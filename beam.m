@@ -3,47 +3,28 @@
 % All other ideas by Dolbow
 % Jessica Sanders, Summer 2006 (SNL) - Summer 2007
 
-%clear
-
-% ----------------------------------------------------------------------- %
+clear
+close all
 
 % LOAD MODEL DATA
 
-sprintf('loading model data')
-
-load cstruct4.mat
-%load unstruct2.mat
-% load pressure51.mat
-
-num_sub_elems = size(CONN,2);
-
-% ----------------------------------------------------------------------- %
-
-% GRAIN MATERIAL INFORMATION
-
-global GRAININFO_ARR
-GRAININFO_ARR = struct('grain_no', 0, 'num_elems',0,'poisson',0,'youngs',0);
-
-% assign material properties to each grain
-poissons = [0.3 0.3 0.3 0.3];
-youngs = [1000.0 1000.0 1000.0 1000.0];
-%youngs = [3*10^7 3*10^7 3*10^7 3*10^7];
-neg = sum(elemgrainmap);    % number of elements in each grain
-
-for i = 1:maxngrains
-    GRAININFO_ARR(i).grain_no = i;
-    GRAININFO_ARR(i).num_elems = neg(i);
-    GRAININFO_ARR(i).poisson = poissons(i);
-    GRAININFO_ARR(i).youngs = youngs(i);
-end
+load beam_bending_example4.mat
 
 % ----------------------------------------------------------------------- %
     
 % DETERMINE NODAL ENRICHMENTS
 
 % determine nodes to be enriched and with which fncs
-% loop over grains, adding that grain enrichment to all of the elements
-% contained within
+% loop over nodes, then loop over grains
+% Add that grain enrichment to all of the nodes contained within
+
+% Since each node needs to be enriched with one less grain than the total
+% number which cross it's support, the algorithm is to add all of the
+% enrichments possible to the data structure, and then re-loop through and
+% eliminate the last enrichement.
+
+% NODAL_ENRICH is a stucture with grain enrichments for each node, as well
+% as the total number of enrichments (should be 1 or 2 in these cases).
 
 sprintf('determining nodal enrichments')
 
@@ -52,11 +33,15 @@ NODAL_ENRICH = struct('cnt',0,'enrichment',[0 0 0]);
 
 for i = 1:numnod
     NODAL_ENRICH(i) = struct('cnt',0,'enrichment',[0 0 0]);
-%    for j = maxngrains:-1:1
     for j = 1:maxngrains
+        % If the node belongs to a "cut" element
         if NODEINFO_ARR(i).areas(3,j) ~= 0
+            
+            % Keep a count of how many enrichments have been added
             NODAL_ENRICH(i).cnt = NODAL_ENRICH(i).cnt + 1; 
             cnt = NODAL_ENRICH(i).cnt;
+            
+            % Add the appropriate enrichment
             NODAL_ENRICH(i).enrichment(cnt) = j;         
         end
     end
@@ -68,20 +53,16 @@ for i = 1:numnod
     NODAL_ENRICH(i).enrichment(last) = 0;
 end 
 
-% ----------------------------------------------------------------------- %
-   
-% BOUNDARY CONDITIONS  - FORCE AND DISPLACEMENTS
-
-sprintf('enforcing boundary conditions')
-
-f = 0;
-[force, dispbc, ubar, num_enr_surf, enr_surf, bc_enr]...
-    = applybcs(x,y,numnod,beam_l,beam_h,f);
 
 % ----------------------------------------------------------------------- %
+
+% ID ARRAY FOR EQUATION NUMBERING
 
 % Data structures for setting up the extended stiffness matrix and
 % determining its size
+
+% Here we set up an array to keep track of which nodes contain which global
+% degrees of freedom.
 
 % ID array including extra degrees of freedom
 % preallocate 6 slots for each node - x = -1,y = -2,and 2 enrichments with
@@ -125,7 +106,10 @@ numeqns = max(max(id_eqns));
 
 sprintf('assembling stiffness')
 
+% initialize the total number of extra added equations
 multipliers = 0;
+
+% Every cut element adds an extra set of equations
 
 for i = 1:numele                    % for every element
     if cutlist(i) ~= 0              % if cut element
@@ -137,14 +121,20 @@ end
 
 old_size = numeqns;
 
-numeqns = numeqns + 2*multipliers;
+if sliding_switch == 1
+    numeqns = numeqns + multipliers;
+else
+    numeqns = numeqns + 2*multipliers;
+end
 
+% Allocate size of the stiffness matrix
 %bigk = zeros(numeqns);
 bigk = spalloc(numeqns,numeqns,numele*36);
 ndof = 2; % number of standard degrees of freedon per node
-%
+
+% Get local stiffness matrices
 % loop over elements
-%
+
 for e = 1:numele
     if (ELEMINFO_ARR(e).nb_subelts == 1)
        [id,ke] = elemstiff_class(node,x,y,e,id_dof,id_eqns);
@@ -181,18 +171,18 @@ end
 
 % ----------------------------------------------------------------------- %
 
-% APPLY CONSTRAINTS AT GRAIN INTERFACES
+% APPLY CONSTRAINTS AT GRAIN INTERFACES USING LAGRANGE MULTIPLIERS
 
 sprintf('enforcing constraint at interfaces')
 
 ex_dofs = 0;
 lag_surf = [];
-tol = 0.00001;
 
 for i = 1:numele  
     % for every element
     if cutlist(i) ~= 0              % if cut element
         
+        % Count the extra degree of freedom we're at
         ex_dofs = ex_dofs + 1;
         
         lag_surf = [lag_surf; ex_dofs i];
@@ -209,24 +199,45 @@ for i = 1:numele
             [pos_g,neg_g,pn_nodes] =... 
                 get_positive(i,j,nodegrainmap,p);
             
+            % Sliding
             
+            if sliding_switch == 1
+                
+                % Get the normal
+                [norm] = get_norm(i,j);
+                
+            end
+            
+            % Get local constraint equations
             [ke_lag,id_node,id_lag] =...
                 gen_lagrange(node,x,y,i,j,id_eqns,id_dof,pn_nodes...
-                ,pos_g,neg_g,old_size,ex_dofs)
+                ,pos_g,neg_g,old_size,ex_dofs,sliding_switch);
+            
+            % If the problem includes sliding, dot with the normal
+            if sliding_switch == 1
+                dim = 1;
+                ke_lag = ke_lag*norm';
+            else
+                dim = 2;
+            end
+                
+                
         
             nlink = size(ke_lag,1);
             %
-            % assemble ke_pen into bigk
+            % assemble ke_lag into bigk
             %
             for m=1:nlink
-                for n=1:2
+                for n=1:dim
                     rbk = id_node(m);
                     cbk = id_lag(n);
                     re = m;
                     ce = n;
                     if (rbk ~= 0) && (cbk ~= 0) 
-                    bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
-                    bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
+                        % The constraint equations
+                        bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
+                        % The transpose are the equilibrium terms
+                        bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
                     end
                 end
             end
@@ -237,6 +248,10 @@ end
 % ----------------------------------------------------------------------- %
 
 % LOOP OVER "ENRICHED SURFACES" AND APPLY BCS THERE
+% This is only necessary if we are applying Dirichlet boundary conditions
+% on enriched nodes, and required an extensive input setup.  This works,
+% but isn't well constructed.  Those boundary conditions should only be
+% used if absolutely necessary.
 
 if (bc_enr)         % The switch indicating we have enriched nodes with bcs
     
@@ -289,6 +304,8 @@ if (bc_enr)         % The switch indicating we have enriched nodes with bcs
     end
 end
 
+
+% ----------------------------------------------------------------------- %
 % ENFORCE DISPLACEMENT BOUNDARY CONDITIONS 
 
 for n=1:numnod
@@ -306,7 +323,7 @@ for n=1:numnod
                 big_force(m) = ubar(j,n);
             elseif (m2 ~= 0) && (m3 == 0)               % If the node is enriched
                 if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-                    n
+                    n;
                     temp = size(bigk,2);
                     bigk(m,:) = zeros(1,temp);
                     big_force = big_force - (ubar(j,n)*bigk(:,m));
@@ -327,12 +344,23 @@ end
 
 sprintf('solving')
 
+% Fdisp will be a vector with the solution for all global degrees of
+% freedom, with "base" and enriched degrees of freedom separated.
+
 fdisp = big_force'/bigk;
 
-% Reassemble displacement vector
+% Reassemble displacement vector  - Enriched nodes need to have their
+% degrees of freedom added to end up representing a total displacement.
+% The extra degrees of freedom should only be added if the node is enriched
+% with the grain in which it resides.  
 
+% ndisp(i,:) are all of the solutions (base and enriched) at node i
 ndisp = zeros(numnod,6);
+
+% disp is a vector with traditional FEM numbering, and the final solution
+% for each node
 disp = zeros(2*numnod,1);
+
 for i = 1:numeqns
     [nnode,doff] = find(id_eqns == i);
     ndisp(nnode,doff) = fdisp(i);
@@ -362,10 +390,10 @@ for e=1:numele
     stress(e,1:6) = stresse;
 end
 
-sprintf('saving to results file')
+%  sprintf('saving to results file')
 
-%  save nlag_pres51.mat x y node disp fdisp numele numnod cutlist...
+%  save my_results_files.mat x y node disp fdisp numele numnod cutlist...
 %      INT_INTERFACE SUBELEM_INFO SUBELEMENT_GRAIN_MAP id_eqns id_dof...
-%      X Y CONN
+%      X Y CONN stress
 
 

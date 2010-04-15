@@ -1,5 +1,6 @@
 function [ke,id_node,id_lag] =... 
-    gen_lagrange(node,x,y,i,j,id_eqns,id_dof,pn_nodes,pos_g,neg_g,numeqns,ex_dof);
+    gen_lagrange(node,x,y,i,j,id_eqns,id_dof,...
+                 pn_nodes,pos_g,neg_g,numeqns,ex_dof,sliding_switch);
 
 global INT_INTERFACE
 
@@ -144,7 +145,10 @@ id_node(10) = id_eqns(nodes(2),6);  % 2nd extra y dof
 id_node(11) = id_eqns(nodes(3),5);  % 2nd extra x dof
 id_node(12) = id_eqns(nodes(3),6);  % 2nd extra y dof
 
-id_lag(1) = numeqns + 2*ex_dof - 1;
-id_lag(2) = numeqns + 2*ex_dof;
-
+if sliding_switch == 1
+    id_lag(1) = numeqns + ex_dof;
+else
+    id_lag(1) = numeqns + 2*ex_dof - 1;
+    id_lag(2) = numeqns + 2*ex_dof;
+end
 
