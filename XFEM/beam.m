@@ -399,8 +399,10 @@ sprintf('postprocessing ...')
 % compute stresses at center of each element
 stress = zeros(numele,6);
 for e=1:numele
-    [stresse] = post_process(node,x,y,e,disp);
-    stress(e,1:6) = stresse;
+    %[stresse] = post_process(node,x,y,e,disp);
+    [straine] = post_process_better(node,x,y,e,disp,ndisp,id_dof,cutlist,maxngrains)
+    %stress(e,1:6) = stresse;
+    strain(e,1:6,:) = straine;
 end
 
 %  disp('saving to results file ...');

@@ -394,6 +394,7 @@ for i = 1:numeqns
     [nnode,doff] = find(id_eqns == i);
     ndisp(nnode,doff) = fdisp(i);
 end
+old_ndisp = ndisp;
 for i = 1:numnod
     grain = nodegrainmap(i);
     for j = 3:6
@@ -412,11 +413,16 @@ end
 disp('postprocessing ...');
 
 % compute stresses at center of each element
-stress = zeros(numele,6);
+stress = zeros(numele,6,maxngrains);
+strain = zeros(numele,6,maxngrains+1);
 for e=1:numele
-    [stresse] = post_process(node,x,y,e,dis);
-    stress(e,1:6) = stresse;
+    %[stresse] = post_process(node,x,y,e,dis);
+    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp,id_dof,cutlist,maxngrains)
+    stress(e,1:6,:) = stresse;
+    strain(e,1:6,:) = straine;
 end
+
+
 
 %  disp('saving to results file ...');
 
