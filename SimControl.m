@@ -5,6 +5,7 @@
 %
 % You can determine, which parts of the code will be executed. You
 % have to choose a input file, too.
+%
 
 % Author: Matthias Mayr (04/2010)
 
@@ -20,7 +21,8 @@ EXEC_XFEM = 1;              % solve
 
 % set the filename of the input file without file extension '.m', that has 
 % to be used.
-filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
+% filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
+filename_input_file = 'inp_multigrain23_40_10';   % NO FILE EXTENSION '.m'
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 

@@ -3,6 +3,8 @@
 % mesh-generating method
 %
 
+disp('generation of background mesh...');
+
 % load data from input file 'xfeminputdata_comp_geo.mat'
 load xfeminputdata_comp_geo.mat
 

@@ -51,26 +51,45 @@ dispbc = zeros(2,numnod);
 % load DBCs
 switch IFDirichletBCs
     case 0
-        cd Boundary_Conditions
-        bc_conv4_DBC
-        cd ..
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv4_DBC');
     case 1
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv1_DBC');
     case 2
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv7_DBC');
+    case 3
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv9_DBC');
+    case 4
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv10_DBC');
+    case 5
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv11_DBC');
+    case 6
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','multi1_DBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
+run(filename_DBC);
 
 % load NBCs
 switch IFNeumannBCs
     case 0
-        cd Boundary_Conditions
-        bc_conv4_NBC
-        cd ..
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','bc_conv4_NBC');
     case 1
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','bc_conv1_NBC');
     case 2
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','bc_conv7_NBC');
+    case 3
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','bc_conv9_NBC');
+    case 4
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','bc_conv10_NBC');
+    case 5
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','bc_conv11_NBC');
+    case 6
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','multi1_NBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
+run(filename_NBC);
+
         
 %  for i=1:numnod
 %    if (x(i) == 0)
