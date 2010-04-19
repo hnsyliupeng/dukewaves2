@@ -128,10 +128,15 @@ switch sliding_switch
         numeqns = numeqns + 2*multipliers;
     case 1              % frictionless sliding
         numeqns = numeqns + multipliers;
-    case 2              % perfect plasticity or frictional contact
-        warning('There exists no code for friction, yet.')
+    case 2              % perfect plasticity
+        warning('MATLAB:XFEM:main_xfem',...
+            'There exists no code for perfect plasticity, yet.')
+    case 3              % frictional contact (Coulomb)
+        warning('MATLAB:XFEM:main_xfem',...
+            'There exists no code for frictional contact (Coulomb), yet.')
     otherwise
-        warning('Unvalid slidingID')
+        warning('MATLAB:XFEM:main_xfem',...
+            'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
 end;
 
 % Allocate size of the stiffness matrix
@@ -209,14 +214,19 @@ for i = 1:numele
             % Sliding
             
             switch sliding_switch
-                case 0
-                case 1          % frictionless sliding
+                case 0              % no sliding at all (fully constrained)
+                case 1              % frictionless sliding
                     % Get the normal
                     [norm] = get_norm(i,j);
-                case 2              % perfect plasticity or frictional contact
-                    warning('There exists no code for friction, yet.')
+                case 2              % perfect plasticity
+                    warning('MATLAB:XFEM:main_xfem',...
+                        'There exists no code for perfect plasticity, yet.')
+                case 3              % frictional contact (Coulomb)
+                    warning('MATLAB:XFEM:main_xfem',...
+                    'There exists no code for frictional contact (Coulomb), yet.')
                 otherwise
-                      warning('Unvalid slidingID')
+                    warning('MATLAB:XFEM:main_xfem',...
+                        'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
             end;
             
             % Get local constraint equations
@@ -231,10 +241,15 @@ for i = 1:numele
                 case 1          % frictionless sliding
                     dim = 1;
                     ke_lag = ke_lag*norm';
-                case 2              % perfect plasticity or frictional contact
-                    warning('There exists no code for friction, yet.')
+                case 2              % perfect plasticity
+                    warning('MATLAB:XFEM:main_xfem',...
+                        'There exists no code for perfect plasticity, yet.')
+                case 3              % frictional contact (Coulomb)
+                    warning('MATLAB:XFEM:main_xfem',...
+                        'There exists no code for frictional contact (Coulomb), yet.')
                 otherwise
-                    warning('Unvalid slidingID')
+                    warning('MATLAB:XFEM:main_xfem',...
+                        'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
             end;
             
             nlink = size(ke_lag,1);
@@ -371,9 +386,9 @@ fdisp = big_force'/bigk;
 % ndisp(i,:) are all of the solutions (base and enriched) at node i
 ndisp = zeros(numnod,6);
 
-% disp is a vector with traditional FEM numbering, and the final solution
-% for each node
-disp = zeros(2*numnod,1);
+% dis is a vector with traditional FEM numbering, and the final solution
+% for each node. It stores the nodal displacements
+dis = zeros(2*numnod,1);
 
 for i = 1:numeqns
     [nnode,doff] = find(id_eqns == i);
@@ -386,28 +401,28 @@ for i = 1:numnod
             ndisp(i,j) = 0;
         end
     end
-    disp(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
-    disp(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
+    dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
+    dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
 end
 
 % ----------------------------------------------------------------------- %
 
 % POST-PROCESS
 
-sprintf('postprocessing ...')
+disp('postprocessing ...');
 
 % compute stresses at center of each element
 stress = zeros(numele,6);
 for e=1:numele
-    [stresse] = post_process(node,x,y,e,disp);
+    [stresse] = post_process(node,x,y,e,dis);
     stress(e,1:6) = stresse;
 end
 
 %  disp('saving to results file ...');
 
-%  save my_results_files.mat x y node disp fdisp numele numnod cutlist...
+%  save my_results_files.mat x y node dis fdisp numele numnod cutlist...
 %      INT_INTERFACE SUBELEM_INFO SUBELEMENT_GRAIN_MAP id_eqns id_dof...
 %      X Y CONN stress
 
-sprintf('Solving and postprocessing done.')
+disp('Solving and postprocessing done.');
 
