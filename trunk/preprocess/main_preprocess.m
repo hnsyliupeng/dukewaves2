@@ -5,6 +5,9 @@
 
 % ----------------------------------------------------------------------- %
 
+% Load input parameters
+load xfeminputdata_preprocess.mat
+
 % LOAD MODEL DATA
 load my_new_mesh.mat
 
@@ -31,8 +34,9 @@ global GRAININFO_ARR
 GRAININFO_ARR = struct('grain_no', 0, 'num_elems',0,'poisson',0,'youngs',0);
 
 % assign material properties to each grain
-poissons = [0.3 0.3 0.3 0.3];
-youngs = [1000.0 1000.0 1000.0 1000.0];
+MatProp = MaterialProperties(IFMatSet);     % Call Material Database
+poissons = MatProp.poissons;
+youngs = MatProp.youngs;
 neg = sum(elemgrainmap);    % number of elements in each grain
 
 for i = 1:maxngrains
@@ -44,6 +48,9 @@ end
 
 %Set a tolerance size (best to base it on the mesh size)
 tol = 0.00001;
+
+% clear temporary variables from workspace
+clear MatProp;
 
 % Save all variables into a input file
 save my_new_mesh_with_BCs.mat
