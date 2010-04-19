@@ -5,7 +5,12 @@
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% multigrain example with 23 grains
+% frictionless sliding: rectangular domain with interface with frictionless
+% sliding. Left part of the domain fixed, right part of the domain is
+% pulled in x-direction. Left part with poisson = 0.0, right part with
+% poisson = 0.3. Transversal deformation of right part causes jump in
+% displacement field at the interface. Length x Height = 16 x 4. Elements
+% 24 x 6.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -35,15 +40,15 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 40;
-IFnldivy = 10;
+IFnldivx = 24;
+IFnldivy = 6;
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 6;
+IFdatasetp = 4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -59,7 +64,8 @@ IFdatasetp = 6;
 % 4     bc_conv10_DBC.m
 % 5     bc_conv11_DBC.m
 % 6     multi1_DBC.m
-IFDirichletBCs = 6;
+% 7     frictionless_sliding1_DBC.m
+IFDirichletBCs = 7;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -70,14 +76,16 @@ IFDirichletBCs = 6;
 % 4     bc_conv10_NBC.m
 % 5     bc_conv11_NBC.m
 % 6     multi1_NMC.m
-IFNeumannBCs = 6;
+% 7     frictionless_sliding1_NBC.m
+IFNeumannBCs = 7;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
-% 0     
-IFMatSet = 0;
+% 0     all grains with same properties (nue = 0.3, E = 1000.0)
+% 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
+IFMatSet = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -87,7 +95,7 @@ IFMatSet = 0;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 1; 
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

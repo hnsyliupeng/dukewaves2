@@ -22,7 +22,7 @@ EXEC_XFEM = 1;              % solve
 % set the filename of the input file without file extension '.m', that has 
 % to be used.
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_multigrain23_40_10';   % NO FILE EXTENSION '.m'
+filename_input_file = 'inp_frictionless_sliding1_24_6';   % NO FILE EXTENSION '.m'
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 
