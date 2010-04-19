@@ -1,15 +1,14 @@
-% Input File 'inp_multigrain.m'
+% Input File 'inp_beambending_24_6.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% multigrain example with 23 grains
+% Beam bending problem: Cantilever beam, fixed on left end, parabolic shear
+% stresses on free right end. length x height = 16 x 4. Mesh = 24 x 6. One
+% Interface. Homogeneous Material. No Sliding at all.
 %**************************************************************************
-%
-% To set up a new example, build it in this file, so that all IDs are
-% strored in this file. Save it to an own file, afterwards.
 %
 
 % Author: Matthias Mayr (04/2010)
@@ -35,15 +34,15 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 40;
-IFnldivy = 10;
+IFnldivx = 24;
+IFnldivy = 6;
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 6;
+IFdatasetp = 4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -53,24 +52,16 @@ IFdatasetp = 6;
 % Dirichlet BCs
 % ID    Description
 % 0     bc_conv4_DBC.m
-% 1     bc_conv1_DBC.m
-% 2     bc_conv7_DBC.m
-% 3     bc_conv9_DBC.m
-% 4     bc_conv10_DBC.m
-% 5     bc_conv11_DBC.m
-% 6     multi1_DBC.m
-IFDirichletBCs = 6;
+% 1
+% 2
+IFDirichletBCs = 0;
 %
 % Neumann BCs
 % ID    Filename            Description
 % 0     bc_conv4_NBC.m
-% 1     bc_conv1_NBC.m
-% 2     bc_conv7_NBC.m
-% 3     bc_conv9_NBC.m
-% 4     bc_conv10_NBC.m
-% 5     bc_conv11_NBC.m
-% 6     multi1_NMC.m
-IFNeumannBCs = 6;
+% 1
+% 2
+IFNeumannBCs = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 

@@ -2,8 +2,8 @@ x_def = [];
 y_def = [];
 
 for i = 1:numnod
-    x_def(i) = x(i) + disp(2*i-1);
-    y_def(i) = y(i) + disp(2*i); 
+    x_def(i) = x(i) + dis(2*i-1);
+    y_def(i) = y(i) + dis(2*i); 
 end
 
 for e = 1:numele

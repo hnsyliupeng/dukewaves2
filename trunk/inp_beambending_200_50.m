@@ -1,11 +1,13 @@
-% Input File 'inp_multigrain.m'
+% Input File '.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% multigrain example with 23 grains
+% Beam bending problem: Cantilever beam, fixed on left end, parabolic shear
+% stresses on free right end. length x height = 16 x 4. Mesh = 200 x 50.
+% One Interface. Homogeneous Material. No Sliding at all.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -35,15 +37,15 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 40;
-IFnldivy = 10;
+IFnldivx = 200;
+IFnldivy = 50;
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 6;
+IFdatasetp = 4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -57,9 +59,7 @@ IFdatasetp = 6;
 % 2     bc_conv7_DBC.m
 % 3     bc_conv9_DBC.m
 % 4     bc_conv10_DBC.m
-% 5     bc_conv11_DBC.m
-% 6     multi1_DBC.m
-IFDirichletBCs = 6;
+IFDirichletBCs = 4;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -68,9 +68,7 @@ IFDirichletBCs = 6;
 % 2     bc_conv7_NBC.m
 % 3     bc_conv9_NBC.m
 % 4     bc_conv10_NBC.m
-% 5     bc_conv11_NBC.m
-% 6     multi1_NMC.m
-IFNeumannBCs = 6;
+IFNeumannBCs = 4;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 

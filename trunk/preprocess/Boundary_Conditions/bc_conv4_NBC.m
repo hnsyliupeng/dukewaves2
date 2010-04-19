@@ -1,7 +1,8 @@
 % bc_conv4_NBC.m
 %
 % Neumann boundary conditions for beam bending problem based on L = 16, set of
-% structed mesh.  This file is for 6 elements through the thickness
+% structed mesh.  This file is for 6 elements through the thickness and 24
+% elements over the length.
 %
 
 % Right hand side - parabolic distribution of downward shear, P = -1
