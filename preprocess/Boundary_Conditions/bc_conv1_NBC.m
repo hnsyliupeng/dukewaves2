@@ -12,7 +12,7 @@ force(2,27) = -3/16;
 
 % Left hand side - force boundary conditions
 
-% y-forces to balance shear on RHS
+% y-forces to balance shear on LHS
 force(2,1) = 3/16;
 force(2,3) = 3/16;
 
