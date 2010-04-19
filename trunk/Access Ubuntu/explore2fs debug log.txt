@@ -1,9 +1,0 @@
-Explore2fs version 1.07
-Written by John Newbigin
-If you experience problems using this program, please set the
-debug level to high, restart the program, cause the problem and
-then e-mail the debug log and a description of the problem to
-John Newbigin jn@it.swin.edu.au
-Windows NT 5.1 build number 2600
-EXT2 Found. magic = 0xEF53
-UID = 9F6B068359CA412E9F896E2228E8FD1C
