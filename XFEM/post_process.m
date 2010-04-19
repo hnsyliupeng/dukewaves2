@@ -1,4 +1,4 @@
-function [stresse] = post_process(node,x,y,e,disp)
+function [stresse] = post_process(node,x,y,e,dis)
 %2D quad element stress computation routine
 
 global GRAININFO_ARR SUBELEMENT_GRAIN_MAP
@@ -33,8 +33,8 @@ end
 for j=1:3
     m1 = node(j,e)*2 - 1;
     m2 = node(j,e)*2;
-    dispj(j*2-1) = disp(m1);
-    dispj(j*2) = disp(m2);
+    dispj(j*2-1) = dis(m1);
+    dispj(j*2) = dis(m2);
 end
 
 % compute derivatives of shape functions in reference coordinates
