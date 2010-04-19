@@ -1,11 +1,10 @@
 % Structured meshes!
-
-length = 16;
-height = 4;
+length = IFlength;
+height = IFheight;
 
 % number of elements in each direction
-ndivl = 40;
-ndivw = 10;
+ndivl = IFnldivx;
+ndivw = IFnldivy;
 
 numele = ndivw*ndivl*2;
 numnod = (ndivl+1)*(ndivw+1);
