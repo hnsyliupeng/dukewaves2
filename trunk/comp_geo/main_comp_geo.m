@@ -14,11 +14,12 @@ switch IFmeshstructure
         warning('MATLAB:comp_geo:meshstructure','Unstructured meshing might bring up some problems.');
         unstructured
     otherwise
-        error('Unvalid mesh structure ID "IFmeshstructure" in input file');
+        error('MATLAB:comp_geo:main_comp_geo',...
+            'Unvalid mesh structure ID "IFmeshstructure" in input file');
 end;
 
 % fill matrix 'p'
-vdata_multi
+vdata_multi;
 
 maxngrains = size(p,1);
 

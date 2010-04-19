@@ -73,14 +73,14 @@ ELEMINFO_ARR = eleminfo_arr;
 
 %now slice recursively, setting up partition info along the way
 for seg_id = 1:size(vx,2)
-    seg_id
+    seg_id;
 %for seg_id = 1:5
       for i=1:size(seg_cut_info(seg_id,:),2) %loop over elements cut by the segment
           elemi = seg_cut_info(seg_id,i).elemno;
           if (elemi>0) %tests against segments that are initialized to -1 (no intersections)
              if (seg_cut_info(seg_id,i).nb_int == 2)
                  cuteleminfo = seg_cut_info(seg_id,i);
-                 recursive_slice_2d(elemi, cuteleminfo)
+                 recursive_slice_2d(elemi, cuteleminfo);
              elseif (seg_cut_info(seg_id,i).nb_int == 1)
                  %extend the segment into the element as necessary
                  %if (ELEMINFO_ARR(elemi).nb_subelts == 1)
@@ -98,7 +98,7 @@ for seg_id = 1:size(vx,2)
                     % recursive_slice_2d(elemi, cuteleminfo)
                  %end
              else
-                 seg_cut_info(seg_id,i).nb_int
+                 seg_cut_info(seg_id,i).nb_int;
                  error('partition2d','the number of cuts is not 1 or 2');
              end
           end
