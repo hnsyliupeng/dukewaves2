@@ -1,4 +1,4 @@
-% Input File 'inp_frictionless_sliding1.m'
+% Input File 'inp_frictionless_sliding1_24_6.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %

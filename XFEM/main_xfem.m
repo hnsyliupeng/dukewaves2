@@ -412,16 +412,31 @@ end
 
 disp('postprocessing ...');
 
-% compute stresses at center of each element
+% compute stresses 'stress' and strains 'strain' at center of each element
+% Structure of 'stress':
+%   Dimension: numelex6x3
+%   Index 1:    'stress' for element 'e'
+%   Index 2:    column 1    global element ID
+%               column 2    x-coordinate of element centroid
+%               column 3    y-coordinate of element centroid
+%               column 4    xx-stress at element centroid
+%               column 5    yy-stress at element centroid
+%               column 6    xy-stress at element centroid
+%   Index 3:    ID of grain, to which these values belong to
 stress = zeros(numele,6,maxngrains);
+% 'strain' has an equivalent structure
 strain = zeros(numele,6,maxngrains+1);
 for e=1:numele
-    %[stresse] = post_process(node,x,y,e,dis);
-    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp,id_dof,cutlist,maxngrains)
+%     [stresse] = post_process(node,x,y,e,dis);
+%     stress(e,1:6) = stresse;
+        
+    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp,id_dof,cutlist,maxngrains);
     stress(e,1:6,:) = stresse;
     strain(e,1:6,:) = straine;
 end
 
+% clear some temporary variables
+clear stresse straine maxstress_vec minstress_vec;
 
 
 %  disp('saving to results file ...');

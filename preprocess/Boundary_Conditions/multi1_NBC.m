@@ -3,7 +3,7 @@
 % Neumann boundary conditions for a patch test problem to check the multigrain
 % example with 23 grains.
 
-endload = 200;
+endload = 10;
 
 % define enriched surfaces for bcs 
 
