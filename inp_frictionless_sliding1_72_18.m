@@ -99,6 +99,23 @@ IFMatSet = 1;
 %
 IFsliding_switch = 1; 
 %--------------------------------------------------------------------------
+% SOLVER PREFERENCES
+% You can choose between an explicit solver and an implicit solver via a
+% Newton-Raphson-scheme. For the implicit one, you have to set some
+% additional preferences
+%
+% Solver Type
+% ID    Description
+% 0     explicit
+% 1     implicit (Newton-Raphson-scheme)
+IFSolverType = 0;
+%
+% Maximum number of iterations 'IFmaxiter' (only for implicit solver)
+IFmaxiter = 25;
+%
+% convergence criteria: increment of displacement < 'IFconvtol' ???
+IFconvtol = 1.0e-3;
+%--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------
 
@@ -114,6 +131,9 @@ disp(['IFDirichletBCs:      ' num2str(IFDirichletBCs)]);
 disp(['IFNeumannBCs:        ' num2str(IFNeumannBCs)]);
 disp(['IFMatSet:            ' num2str(IFMatSet)]);
 disp(['IFsliding_switch:    ' num2str(IFsliding_switch)]);
+disp(['IFSolverType:        ' num2str(IFSolverType)]);
+disp(['IFmaxiter:           ' num2str(IFmaxiter)]);
+disp(['IFconvtol:           ' num2str(IFconvtol)]);
 
 %--------------------------------------------------------------------------
 % create filenames for input files from type '*.mat'
@@ -125,9 +145,10 @@ filename3 = fullfile(pwd, 'XFEM', 'xfeminputdata_xfem.mat');
 save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
-save(filename3, 'IFsliding_switch');                    % for 'XFEM'
+save(filename3, 'IFsliding_switch','IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
-    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet IFsliding_switch;
+    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
+    IFsliding_switch IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

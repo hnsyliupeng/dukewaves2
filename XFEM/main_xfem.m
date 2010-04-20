@@ -185,7 +185,7 @@ end
 
 % APPLY CONSTRAINTS AT GRAIN INTERFACES USING LAGRANGE MULTIPLIERS
 
-disp('enforcing constraint at interfaces ...');
+disp('enforcing constraints at interfaces ...');
 
 ex_dofs = 0;
 lag_surf = [];
@@ -376,7 +376,45 @@ disp('solving ...');
 % Fdisp will be a vector with the solution for all global degrees of
 % freedom, with "base" and enriched degrees of freedom separated.
 
-fdisp = big_force'/bigk;
+switch IFSolverType
+    case 0                          % explicit solver
+        fdisp = big_force'/bigk;
+    case 1                          % implicit solver (Newton-scheme)
+        % implizit solving via a Newton-Raphson-Scheme
+        if IFmaxiter==1;maxiter = 25;end;  % set 'maxiter=25' (default)
+        if IFconvtol==0;convtol = 1.0e-5;end;% set 'convtols=1e-5' (default)
+        solu = zeros(size(big_force));            % set a start vector
+        iter = 0;                                 % iteration index for newton-scheme
+        old_solu = solu;
+        while 1         % maximum number of iterations = maxiter
+            % add '1' to the iteration index
+            iter = iter + 1;
+
+            % compute the increment vector 'delta'
+            delta = -old_solu + bigk\big_force; 
+
+            % update the solution-vector
+            solu = solu + delta;
+
+            % print some information about the current iteration step
+            disp('Newton step: %d   Res-Norm: %d', iter, norm(delta));
+            
+            % convergence check
+            if norm(delta) < IFconvtol;break;end;
+
+            % save displacement to 'old_solu'
+            old_solu = solu;
+
+            if iter > IFmaxiter
+                error('MATLAB:XFEM:main_xfem',...
+                    'Newton did not converge in %d iterations.', IFmaxiter);
+            end;
+        end;
+        fdisp = solu;
+    otherwise
+        error('MATLAB:XFEM:main_xfem',...
+            'Unvalid solver type ID. Choose a valid ID or add an additional solver in "main_xfem.m".');
+end;
 
 % Reassemble displacement vector  - Enriched nodes need to have their
 % degrees of freedom added to end up representing a total displacement.
