@@ -13,7 +13,7 @@ maxload = 1000;
 % nodal load
 nodeload = maxload/6;
 
-% Right hand side - parabolic distribution of downward shear, P = -1
+% Right hand side - constant stress
 force(1,169) = nodeload/2;
 force(1,170) = nodeload;
 force(1,171) = nodeload;
