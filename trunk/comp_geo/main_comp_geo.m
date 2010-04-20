@@ -11,10 +11,12 @@ load xfeminputdata_comp_geo.mat
 %gets array of points p for the voronoi diagram
 switch IFmeshstructure
     case 0
-        structured
+        structured          % call routine for structured meshing
     case 1
         warning('MATLAB:comp_geo:meshstructure','Unstructured meshing might bring up some problems.');
-        unstructured
+        unstructured        % call routine for unstructured meshing
+    case 2
+        readmeshfromGMSH    % read a mesh from a gmsh-mesh-file '*.msh'
     otherwise
         error('MATLAB:comp_geo:main_comp_geo',...
             'Unvalid mesh structure ID "IFmeshstructure" in input file');

@@ -89,7 +89,7 @@ IFsliding_switch = 0;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 0;
+IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;

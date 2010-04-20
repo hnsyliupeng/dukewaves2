@@ -8,7 +8,9 @@ nconn = zeros(3,1);
     
 % get coordinates of element nodes 
 for j=1:3
-    je = conn(j); xe(j) = x(je); ye(j) = y(je);
+    je = conn(j) 
+    xe(j) = x(je) 
+    ye(j) = y(je)
 end
 
 % Calculate element area
