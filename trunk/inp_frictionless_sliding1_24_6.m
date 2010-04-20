@@ -64,7 +64,7 @@ IFdatasetp = 4;
 % 4     bc_conv10_DBC.m
 % 5     bc_conv11_DBC.m
 % 6     multi1_DBC.m
-% 7     frictionless_sliding1_DBC.m
+% 7     frictionless_sliding1_24_6_DBC.m
 IFDirichletBCs = 7;
 %
 % Neumann BCs
@@ -76,7 +76,7 @@ IFDirichletBCs = 7;
 % 4     bc_conv10_NBC.m
 % 5     bc_conv11_NBC.m
 % 6     multi1_NMC.m
-% 7     frictionless_sliding1_NBC.m
+% 7     frictionless_sliding1_24_6_NBC.m
 IFNeumannBCs = 7;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
