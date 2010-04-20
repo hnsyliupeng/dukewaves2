@@ -1,4 +1,4 @@
-% Input File 'inp_multigrain.m'
+% Input File 'inp_frictionless_sliding1_72_18.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -85,10 +85,8 @@ IFNeumannBCs = 8;
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
-% 0     24 grains with same material properties (nue = 0.3, E = 1000.0)
+% 0     all grains with same properties (nue = 0.3, E = 1000.0)
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
-% 2     24 grains with different material properties
-% 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 IFMatSet = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS

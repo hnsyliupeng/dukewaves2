@@ -1,4 +1,44 @@
-function [straine,stresse] = post_process_better(node,x,y,e,disp,disp_vec,id_dof,cutlist,maxngrains)
+% post_process_better.m
+%
+% a post processing routine for computing strains 'straine' and stresses 
+% 'stresse' elementwise, that computes the these quantities with respect 
+% to the subelements, too.
+%
+% Input paramters:
+%   node
+%   x
+%   y
+%   e               global element ID
+%   dis             global displacement vector (base + enriched DOFs)
+%   disp_vec
+%   id_dof
+%   cutlist         lists, which DOFs are enriched
+%   maxngrains
+%
+% Returned variables:
+%   straine         strain in element 'e'
+%   stresse         stress in element 'e'
+%
+% Structure of 'stresse':
+%   Dimension: 1x6xmaxngrains
+%   Index 1:    'stresse' for one element
+%   Index 2:    column 1    global element ID
+%               column 2    x-coordinate of element centroid
+%               column 3    y-coordinate of element centroid
+%               column 4    xx-stress at element centroid
+%               column 5    yy-stress at element centroid
+%               column 6    xy-stress at element centroid
+%   Index 3:    ID of grain, to which these values belong to (maxngrains =
+%               maximum number of grains)
+%
+% 'stresse' will be assembled to global stress matrix 'stress' in
+% 'main_xfem_m'. There, it will have the same structure, but the first
+% index will go up to the number of elements 'numele'.
+%
+% 'straine' is structured and used in a similar way.
+%
+
+function [straine,stresse] = post_process_better(node,x,y,e,dis,disp_vec,id_dof,cutlist,maxngrains)
 %2D quad element stress computation routine
 
 global GRAININFO_ARR SUBELEMENT_GRAIN_MAP
@@ -59,8 +99,8 @@ if cutlist(e) == 0
     for j=1:3
         m1 = node(j,e)*2 - 1;
         m2 = node(j,e)*2;
-        dispj(j*2-1) = disp(m1);
-        dispj(j*2) = disp(m2);
+        dispj(j*2-1) = dis(m1);
+        dispj(j*2) = dis(m2);
     end    
 
     % Area of the element

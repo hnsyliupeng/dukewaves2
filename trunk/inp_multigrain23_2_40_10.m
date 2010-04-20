@@ -1,11 +1,12 @@
-% Input File 'inp_multigrain.m'
+% Input File 'inp_multigrain23_2_40_10.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% multigrain example with 23 grains
+% multigrain example with 23 grains. Length x Height = 16 x 4. Mesh with 40
+% x 10 elements. Each grain with different material properties.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -76,8 +77,10 @@ IFNeumannBCs = 6;
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
-% 0     
-IFMatSet = 0;
+% 0     all grains with same properties (nue = 0.3, E = 1000.0)
+% 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
+% 2     24 grains with different material properties  
+IFMatSet = 2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
