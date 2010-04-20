@@ -68,6 +68,8 @@ switch IFDirichletBCs
         filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_24_6_DBC');
     case 8
         filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_72_18_DBC');
+    case 9
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','quarterring_gmsh_DBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -93,6 +95,8 @@ switch IFNeumannBCs
         filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_24_6_NBC');
     case 8
         filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_72_18_NBC');
+    case 9
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','quarterring_gmsh_NBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

@@ -378,8 +378,10 @@ disp('solving ...');
 
 switch IFSolverType
     case 0                          % explicit solver
+        disp('Solver: explicit');
         fdisp = big_force'/bigk;
     case 1                          % implicit solver (Newton-scheme)
+        disp('Solver: implicit');
         % implizit solving via a Newton-Raphson-Scheme
         if IFmaxiter==1;maxiter = 25;end;  % set 'maxiter=25' (default)
         if IFconvtol==0;convtol = 1.0e-5;end;% set 'convtols=1e-5' (default)
@@ -397,7 +399,9 @@ switch IFSolverType
             solu = solu + delta;
 
             % print some information about the current iteration step
-            disp('Newton step: %d   Res-Norm: %d', iter, norm(delta));
+            step_info = ['  Newton step: ' num2str(iter) '    Res-Norm: '...
+                num2str(norm(delta))];
+            disp(step_info);
             
             % convergence check
             if norm(delta) < IFconvtol;break;end;

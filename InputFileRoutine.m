@@ -5,12 +5,7 @@
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% frictionless sliding: rectangular domain with interface with frictionless
-% sliding. Left part of the domain fixed, right part of the domain is
-% pulled in x-direction. Left part with poisson = 0.0, right part with
-% poisson = 0.3. Transversal deformation of right part causes jump in
-% displacement field at the interface. Length x Height = 16 x 4. Elements
-% 72 x 18.
+% first example with gmsh based mesh data.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -27,7 +22,8 @@
 % ID    Description
 % 0     structured
 % 1     unstructured
-IFmeshstructure = 0;
+% 2     read mesh from gmsh-mesh-file '*.msh'
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -42,6 +38,10 @@ IFheight = 4;
 % Give number of line divisions in x- and y-direction
 IFnldivx = 72;
 IFnldivy = 18;
+%
+% filename of msh-file withput file extension '.msh'
+% (if reading mesh from gmsh-msh-file)
+IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
@@ -66,7 +66,8 @@ IFdatasetp = 4;
 % 6     multi1_DBC.m
 % 7     frictionless_sliding1_24_6_DBC.m
 % 8     frictionless_sliding1_72_18_DBC.m
-IFDirichletBCs = 8;
+% 9     quartercircle_gmsh_DBC.m
+IFDirichletBCs = 9;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -79,7 +80,8 @@ IFDirichletBCs = 8;
 % 6     multi1_NMC.m
 % 7     frictionless_sliding1_24_6_NBC.m
 % 8     frictionless_sliding1_72_18_NBC.m
-IFNeumannBCs = 8;
+% 9     quartercircle_gmsh_NBC.m
+IFNeumannBCs = 9;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -89,7 +91,7 @@ IFNeumannBCs = 8;
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
-IFMatSet = 1;
+IFMatSet = 3;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -99,7 +101,7 @@ IFMatSet = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
