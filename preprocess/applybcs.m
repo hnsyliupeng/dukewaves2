@@ -45,8 +45,8 @@ enr_surfs = struct('nodes',[],'xsi',[],'coords',[],'grain',0);
 num_edges = 0;
 
 ubar = zeros(2,numnod);
-force = zeros(2,numnod);
 dispbc = zeros(2,numnod);
+force = zeros(2,numnod);
 
 % load DBCs
 switch IFDirichletBCs
@@ -65,7 +65,9 @@ switch IFDirichletBCs
     case 6
         filename_DBC = fullfile(pwd,'Boundary_Conditions','multi1_DBC');
     case 7
-        filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_DBC');
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_24_6_DBC');
+    case 8
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_72_18_DBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -88,7 +90,9 @@ switch IFNeumannBCs
     case 6
         filename_NBC = fullfile(pwd,'Boundary_Conditions','multi1_NBC');
     case 7
-        filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_NBC');
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_24_6_NBC');
+    case 8
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_72_18_NBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
