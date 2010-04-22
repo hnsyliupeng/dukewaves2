@@ -23,7 +23,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 0;
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -41,14 +41,14 @@ IFnldivy = 2;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'ring_gmsh';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;
+IFdatasetp = 12;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -68,7 +68,7 @@ IFdatasetp = 11;
 % 8     frictionless_sliding1_72_18_DBC.m
 % 9     quartercircle_gmsh_DBC.m
 % 10    rect_fixabug_DBC.m
-IFDirichletBCs = 10;
+IFDirichletBCs = 11;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -83,7 +83,7 @@ IFDirichletBCs = 10;
 % 8     frictionless_sliding1_72_18_NBC.m
 % 9     quartercircle_gmsh_NBC.m
 % 10    rect_fixabug_NBC.m
-IFNeumannBCs = 10;
+IFNeumannBCs = 11;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -93,7 +93,7 @@ IFNeumannBCs = 10;
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
-IFMatSet = 3;
+IFMatSet = 0;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
