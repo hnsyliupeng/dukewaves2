@@ -22,3 +22,6 @@ norm(2) = z(3)*p(1) - z(1)*p(3);
 
 %Make norm a unit vector
 norm = norm./sqrt(norm(1)^2+norm(2)^2);
+
+% clear temporary variable
+clear p p1 p2 z;

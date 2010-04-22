@@ -26,7 +26,6 @@ minlambda = min(lagmult);
 V = [minlambda maxlambda];
 colmap = colormap(jet(100));
 caxis(V);
-colorbar;
 
 % depending on the sliding case, different plots are made
 switch IFsliding_switch  % different plot routines for sliding / no sliding
@@ -37,6 +36,47 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         subplot(312);   % lagrange multipliers in normal direction
         subplot(313);   % lagrange multipliers in tangential direction
         hold on;
+        
+        % set figure window title
+        set(1,'Name','Lagrange multipliers (no sliding)')
+        
+        %plot mesh into all subplots to have a better impression of 
+        % the geometrie
+        subplot(311)
+        hold on
+        title('absolute values');
+        xlabel('x-coordinate');
+        ylabel('y-coordinate');
+        for e=1:numele
+           plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.9 0.9 0.9],...
+               'LineWidth',0.1)
+           plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
+               'Color',[0.9 0.9 0.9],'LineWidth',0.1)
+        end;
+        
+        subplot(312)
+        hold on
+        title('normal direction');
+        xlabel('x-coordinate');
+        ylabel('y-coordinate');
+        for e=1:numele
+           plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.9 0.9 0.9],...
+               'LineWidth',0.1)
+           plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
+               'Color',[0.9 0.9 0.9],'LineWidth',0.1)
+        end;
+        
+        subplot(313)
+        hold on
+        title('tangential direction');
+        xlabel('x-coordinate');
+        ylabel('y-coordinate');
+        for e=1:numele
+           plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.9 0.9 0.9],...
+               'LineWidth',0.1)
+           plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
+               'Color',[0.9 0.9 0.9],'LineWidth',0.1)
+        end
         
         % Plot interfaces without triple junctions first        
         for i=1:length(cutelements)
@@ -128,7 +168,6 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
                 end;
             end;
         end;
-                
     case 1                      % frictionless sliding
         % For frictionless sliding, only one equation per constraint will
         % be added to 'bigk'. So, some indices change. 
@@ -138,6 +177,19 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         % create a new figure (no subplots due to frictionless sliding)
         figure(1);      
         hold on;
+        set(1,'Name','Lagrange multipliers (frictionless sliding');
+        title('normal direction');
+        xlabel('x-coordinate');
+        ylabel('y-coordinate');
+        
+        % plot mesh for a better impression of geometry
+        hold on
+        for e=1:numele
+           plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.9 0.9 0.9],...
+               'LineWidth',0.1)
+           plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
+               'Color',[0.9 0.9 0.9],'LineWidth',0.1)
+        end;
         
         % Plot interfaces without triple junctions first        
         for i=1:length(cutelements)
@@ -175,11 +227,16 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
                     error('Can´t plot lagrange multipliers for triple junctions, yet.');
                 end;
             end;
-        end;            
+        end;     
     otherwise
         error('MATLAB:XFEM:UnvalidID',...
             'Unvalid sliding ID. Choose a valid ID or add an addition case to switch-case-structure.');
 end;
+
+% figure(1);
+% hold on;
+% colorbar;
+% hold off;
 
 % print max and min lagrange multiplier in console
 text = ['Max. lambda:   ' num2str(maxlambda) '  Min. lambda:    '...
