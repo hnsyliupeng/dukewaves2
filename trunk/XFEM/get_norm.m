@@ -1,3 +1,8 @@
+% get_norm.m
+%
+% Computes normal vector of an interface.
+%
+
 function [norm] = get_norm(i,j)
 
 global INT_INTERFACE

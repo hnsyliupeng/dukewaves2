@@ -197,7 +197,8 @@ for i = 1:numele
         % Count the extra degree of freedom we're at
         ex_dofs = ex_dofs + 1;
         
-        lag_surf = [lag_surf; ex_dofs i];
+        lag_surf = [lag_surf; ex_dofs i];  % mapping between lagrange 
+                                      % multipliers and IDs of cut elements
         
         for j = 1:size(INT_INTERFACE(i).pairings,1) % for every subsegment
                                                     % pairing
@@ -366,6 +367,17 @@ for n=1:numnod
 end
   
 % ----------------------------------------------------------------------- %
+% FIX NONPHYSICAL NODES (due to gmsh-meshes)
+
+for i = nonphysnodevec
+    dofvec_temp = id_eqns(i,:); % get global DOF-numbers for nonphysical node
+    for j=dofvec_temp
+        bigk(j,j)=1;
+    end;
+end;
+
+
+% ----------------------------------------------------------------------- %
 
 % LINEAR SOLVE AND RE-ASSEMBLE SOLUTION 
 
@@ -447,6 +459,10 @@ for i = 1:numnod
     dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
     dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
 end
+
+% extract vector with lagrange multipliers from 'fdisp'
+numlag = length(fdisp) - max(max(id_eqns));% number of lagrange multipliers
+lagmult = fdisp(end-numlag+1:end);
 
 % ----------------------------------------------------------------------- %
 

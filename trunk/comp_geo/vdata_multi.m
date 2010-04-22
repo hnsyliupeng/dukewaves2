@@ -168,6 +168,9 @@ switch IFdatasetp
            16.0000    2.0000;
            16.0000    0.0000;
            16.0000   -2.0000];
+    case 11
+        p = [0 -2.6; 10 -2.6; 5 6.4];       % 3 grains with triple junction
+                                            % near to y = 1
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');
