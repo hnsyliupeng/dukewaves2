@@ -1,11 +1,13 @@
-% Input File 'inp_multigrain.m'
+% Input File 'inp_quarterring_gmsh_coarse.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Rectangle with coarse mesh to fix a possible bug with triple junctions.
+% first example with gmsh based mesh data. The domain is a quarter ring,
+% that is totally fixed on its left end. The rigth end is bend down by
+% nodal forces in y-direction. Mesh is coarse.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -23,7 +25,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 0;
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -32,12 +34,12 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 10;
-IFheight = 2;
+IFlength = 16;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 3;
-IFnldivy = 2;
+IFnldivx = 72;
+IFnldivy = 18;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
@@ -48,7 +50,7 @@ IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;
+IFdatasetp = 4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -67,8 +69,7 @@ IFdatasetp = 11;
 % 7     frictionless_sliding1_24_6_DBC.m
 % 8     frictionless_sliding1_72_18_DBC.m
 % 9     quartercircle_gmsh_DBC.m
-% 10    rect_fixabug_DBC.m
-IFDirichletBCs = 10;
+IFDirichletBCs = 9;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -82,8 +83,7 @@ IFDirichletBCs = 10;
 % 7     frictionless_sliding1_24_6_NBC.m
 % 8     frictionless_sliding1_72_18_NBC.m
 % 9     quartercircle_gmsh_NBC.m
-% 10    rect_fixabug_NBC.m
-IFNeumannBCs = 10;
+IFNeumannBCs = 9;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 

@@ -1,16 +1,28 @@
+% mesh_check.m
+%
+% Subroutine checks mesh ordering, and corrects.
+%
+% Input parameters:
+%   conn        connectivity array (mapping between elements and nodes)
+%   x           x-coordinates of all nodes
+%   y           y-coordinates of all nodes
+%
+% Returned variables
+%   nconn       correct connectivity array
+%
+
 function [nconn] = mesh_check(conn,x,y)
 
-% Subroutine checks mesh ordering, and corrects.
-
+% initialize some variables
 xe = [];
 ye = [];
 nconn = zeros(3,1);
     
 % get coordinates of element nodes 
 for j=1:3
-    je = conn(j) 
-    xe(j) = x(je) 
-    ye(j) = y(je)
+    je = conn(j); 
+    xe(j) = x(je); 
+    ye(j) = y(je);
 end
 
 % Calculate element area

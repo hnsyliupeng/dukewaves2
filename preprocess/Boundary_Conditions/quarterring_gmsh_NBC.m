@@ -3,7 +3,7 @@
 % Boundary conditions for gmsh-mesh.
 %
 
-load = -100;
+load = -1;
 
 % Right hand side 
 force(2,2) = load;

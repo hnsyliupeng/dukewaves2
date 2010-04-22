@@ -12,9 +12,11 @@ load xfeminputdata_comp_geo.mat
 switch IFmeshstructure
     case 0
         structured          % call routine for structured meshing
+        nonphysnodevec = [];% there are no nonphysical nodes
     case 1
         warning('MATLAB:comp_geo:meshstructure','Unstructured meshing might bring up some problems.');
         unstructured        % call routine for unstructured meshing
+        nonphysnodevec = [];% there are no nonphysical nodes
     case 2
         readmeshfromGMSH    % read a mesh from a gmsh-mesh-file '*.msh'
     otherwise
@@ -43,11 +45,18 @@ global X Y CONN;
 X = x; Y = y;
 CONN = node;
 
-%x and node are reserved for the macro-elements
-%X and CONN will contain info for both macro and sub elements
+% x and node are reserved for the macro-elements
+% X and CONN will contain info for both macroand sub elements
 
-%set up the voronoi diagram
+% set up the voronoi diagram
 [vx, vy] = gen_vord(p);
+
+% set up an interface map
+% 'INTERFACE_MAP(i).endpoints' stores the x- and y-coordinates of those two
+% points, which define interface 'i'.
+for i=1:length(vx)
+    INTERFACE_MAP(i).endpoints = [vx(:,i) vy(:,i)];
+end;
 
 %get the delaunay triangulation for the voronoi points
 %this will be useful in determining which cell a point is in
@@ -239,7 +248,7 @@ for i = 1:numele
         end
     end
 end
-    
+   
 
 % ----------------------------------------------------------------------- %
 
@@ -247,7 +256,7 @@ end
 save my_new_mesh.mat x y node X Y CONN ELEMINFO_ARR NODEINFO_ARR...
     SUBELEMENT_GRAIN_MAP beam_h beam_l cutlist elemgrainmap maxngrains...
     nodegrainmap numele numnod p vx vy INT_INTERFACE PARENTELEM_INFO...
-    SUBELEM_INFO
+    SUBELEM_INFO nonphysnodevec seg_cut_info;
 
 % print message into console
 disp('Mesh generation finished. Mesh was saved to file "my_new_mesh.mat".');
