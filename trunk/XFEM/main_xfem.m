@@ -111,33 +111,21 @@ disp('assembling stiffness ...');
 % initialize the total number of extra added equations
 multipliers = 0;
 
-% Every cut element adds an extra set of equations
-
-for i = 1:numele                    % for every element
-    if cutlist(i) ~= 0              % if cut element
+% Every subsegment adds two extra equations
+ for i = 1:size(seg_cut_info,1)     % for every interface
+     for e = 1:size(seg_cut_info,2) % for every cut element in that interface
         
-        multipliers = multipliers + 1;  % Count total number of multipliers
-        
-    end
-end
+         if seg_cut_info(i,e).elemno ~= -1
+             
+            multipliers = multipliers + 1;  % Count total number of multipliers
+         end
+     end
+ end
 
 old_size = numeqns;
 
-switch sliding_switch
-    case 0              % no sliding
-        numeqns = numeqns + 2*multipliers;
-    case 1              % frictionless sliding
-        numeqns = numeqns + multipliers;
-    case 2              % perfect plasticity
-        warning('MATLAB:XFEM:main_xfem',...
-            'There exists no code for perfect plasticity, yet.')
-    case 3              % frictional contact (Coulomb)
-        warning('MATLAB:XFEM:main_xfem',...
-            'There exists no code for frictional contact (Coulomb), yet.')
-    otherwise
-        warning('MATLAB:XFEM:main_xfem',...
-            'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-end;
+numeqns = numeqns + 2*multipliers;
+
 
 % Allocate size of the stiffness matrix
 %bigk = zeros(numeqns);
@@ -190,58 +178,45 @@ disp('enforcing constraints at interfaces ...');
 ex_dofs = 0;
 lag_surf = [];
 
-for i = 1:numele  
-    % for every element
-    if cutlist(i) ~= 0              % if cut element
+ for i = 1:size(seg_cut_info,1)     % for every interface
+     for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+% for i = 1:1
+%     for e = 1:1
         
-        % Count the extra degree of freedom we're at
-        ex_dofs = ex_dofs + 1;
-        
-        lag_surf = [lag_surf; ex_dofs i];  % mapping between lagrange 
-                                      % multipliers and IDs of cut elements
-        
-        for j = 1:size(INT_INTERFACE(i).pairings,1) % for every subsegment
-                                                    % pairing
-                                                    % i
-                                                    % j
+         if seg_cut_info(i,e).elemno ~= -1
+             
+             parent_el = seg_cut_info(i,e).elemno;
+                          
+%         % Count the extra degree of freedom we're at
+            ex_dofs = ex_dofs + 1;         
+            lag_surf = [lag_surf; ex_dofs i parent_el];  % mapping between lagrange 
+                                            % multipliers and IDs of cut elements
+            ex_dofs = ex_dofs + 1;         
+            lag_surf = [lag_surf; ex_dofs i parent_el];
 
-            % Establish which grain is "positive" and which is "negative"
-            % as well as which nodes are "positively" and which are
-            % "negatively" enriched. 
+            % Establish which nodes are "postively" enriched, 
+            % and which reside in the "negative" grain
+             
+             
+            pos_g = seg_cut_info(i,e).positive_grain;
+            neg_g = seg_cut_info(i,e).negative_grain;
+             
+            [pn_nodes] =... 
+                 get_positive_new(parent_el,pos_g,neg_g);
             
-            [pos_g,neg_g,pn_nodes] =... 
-                get_positive(i,j,nodegrainmap,p);
             
-            % Sliding
-            
-            switch sliding_switch
-                case 0              % no sliding at all (fully constrained)
-                case 1              % frictionless sliding
-                    % Get the normal
-                    [norm] = get_norm(i,j);
-                case 2              % perfect plasticity
-                    warning('MATLAB:XFEM:main_xfem',...
-                        'There exists no code for perfect plasticity, yet.')
-                case 3              % frictional contact (Coulomb)
-                    warning('MATLAB:XFEM:main_xfem',...
-                    'There exists no code for frictional contact (Coulomb), yet.')
-                otherwise
-                    warning('MATLAB:XFEM:main_xfem',...
-                        'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-            end;
-            
-            % Get local constraint equations
-            [ke_lag,id_node,id_lag] =...
-                gen_lagrange(node,x,y,i,j,id_eqns,id_dof,pn_nodes...
-                ,pos_g,neg_g,old_size,ex_dofs,sliding_switch);
+             % Get local constraint equations
+             [ke_lag,id_node,id_lag] =...
+                 gen_lagrange(node,x,y,i,parent_el,id_eqns,id_dof,pn_nodes...
+                 ,pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint...
+                 ,INTERFACE_MAP(i).endpoints);
             
             % If the problem includes sliding, dot with the normal
             switch sliding_switch
                 case 0
-                    dim = 2;
                 case 1          % frictionless sliding
-                    dim = 1;
-                    ke_lag = ke_lag*norm';
+                    ke_lag = ke_lag*seg_cut_info(i,e).normal;
+                    ke_lag = [ke_lag zeros(12,1)];
                 case 2              % perfect plasticity
                     warning('MATLAB:XFEM:main_xfem',...
                         'There exists no code for perfect plasticity, yet.')
@@ -258,7 +233,7 @@ for i = 1:numele
             % assemble ke_lag into bigk
             %
             for m=1:nlink
-                for n=1:dim
+                for n=1:2
                     rbk = id_node(m);
                     cbk = id_lag(n);
                     re = m;
@@ -271,9 +246,106 @@ for i = 1:numele
                     end
                 end
             end
-        end
+         end
+     end
+ end;
+
+% ---------------------------------------------------------------
+% Fix unused tangential equations
+
+if sliding_switch == 1
+   
+    for i = 2:2:size(lag_surf,1)
+        global_index = i+ max(max(id_eqns));
+        bigk(global_index,global_index) = 1;
     end
+    
 end
+
+% for i = 1:numele  
+%     % for every element
+%     if cutlist(i) ~= 0              % if cut element
+%         
+%         % Count the extra degree of freedom we're at
+%         ex_dofs = ex_dofs + 1;
+%         
+%         lag_surf = [lag_surf; ex_dofs i];  % mapping between lagrange 
+%                                       % multipliers and IDs of cut elements
+%         
+%         for j = 1:size(INT_INTERFACE(i).pairings,1) % for every subsegment
+%                                                     % pairing
+%                                                     % i
+%                                                     % j
+% 
+%             % Establish which grain is "positive" and which is "negative"
+%             % as well as which nodes are "positively" and which are
+%             % "negatively" enriched. 
+%             
+%             [pos_g,neg_g,pn_nodes] =... 
+%                 get_positive(i,j,nodegrainmap,p);
+%             
+%             % Sliding
+%             
+%             switch sliding_switch
+%                 case 0              % no sliding at all (fully constrained)
+%                 case 1              % frictionless sliding
+%                     % Get the normal
+%                     [norm] = get_norm(i,j);
+%                 case 2              % perfect plasticity
+%                     warning('MATLAB:XFEM:main_xfem',...
+%                         'There exists no code for perfect plasticity, yet.')
+%                 case 3              % frictional contact (Coulomb)
+%                     warning('MATLAB:XFEM:main_xfem',...
+%                     'There exists no code for frictional contact (Coulomb), yet.')
+%                 otherwise
+%                     warning('MATLAB:XFEM:main_xfem',...
+%                         'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+%             end;
+%             
+%             % Get local constraint equations
+%             [ke_lag,id_node,id_lag] =...
+%                 gen_lagrange(node,x,y,i,j,id_eqns,id_dof,pn_nodes...
+%                 ,pos_g,neg_g,old_size,ex_dofs,sliding_switch);
+%             
+%             % If the problem includes sliding, dot with the normal
+%             switch sliding_switch
+%                 case 0
+%                     dim = 2;
+%                 case 1          % frictionless sliding
+%                     dim = 1;
+%                     ke_lag = ke_lag*norm';
+%                 case 2              % perfect plasticity
+%                     warning('MATLAB:XFEM:main_xfem',...
+%                         'There exists no code for perfect plasticity, yet.')
+%                 case 3              % frictional contact (Coulomb)
+%                     warning('MATLAB:XFEM:main_xfem',...
+%                         'There exists no code for frictional contact (Coulomb), yet.')
+%                 otherwise
+%                     warning('MATLAB:XFEM:main_xfem',...
+%                         'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+%             end;
+%             
+%             nlink = size(ke_lag,1);
+%             %
+%             % assemble ke_lag into bigk
+%             %
+%             for m=1:nlink
+%                 for n=1:dim
+%                     rbk = id_node(m);
+%                     cbk = id_lag(n);
+%                     re = m;
+%                     ce = n;
+%                     if (rbk ~= 0) && (cbk ~= 0) 
+%                         % The constraint equations
+%                         bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
+%                         % The transpose are the equilibrium terms
+%                         bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
+%                     end
+%                 end
+%             end
+%         end
+%     end
+% end
 
 % ----------------------------------------------------------------------- %
 

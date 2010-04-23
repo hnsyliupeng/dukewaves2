@@ -33,14 +33,16 @@ for seg_id = 1:size(vx,2)
          end
          if (nb_int > 0)
             nb_cut_elems = nb_cut_elems+1;
-            cuteleminfo = struct('elemno',e,'nb_int',nb_int,'xint',xint,'edge_ids',edge_ids);
+            cuteleminfo = struct('elemno',e,'nb_int',nb_int,'xint',xint,...
+                'edge_ids',edge_ids,'normal',[],'tangent',[]);
             seg_cut_info(seg_id,nb_cut_elems) = cuteleminfo;
          end        
      end %cut check
   end %loop over cut elements
   %there may be some segments that don't intersect the mesh at all
   if ( nb_cut_elems == 0) %initialize to test against
-      cuteleminfo = struct('elemno',-1,'nb_int',0,'xint',[],'edge_ids',[]);
+      cuteleminfo = struct('elemno',-1,'nb_int',0,'xint',[],'edge_ids',[],...
+          'normal',[],'tangent',[]);
       seg_cut_info(seg_id,1) = cuteleminfo;
   end
 end %loop
