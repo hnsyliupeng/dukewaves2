@@ -1,8 +1,6 @@
 function [ke,id_node,id_lag] =... 
-    gen_lagrange(node,x,y,i,j,id_eqns,id_dof,...
-                 pn_nodes,pos_g,neg_g,numeqns,ex_dof,sliding_switch);
-
-global INT_INTERFACE
+    gen_lagrange(node,x,y,i,parent,id_eqns,id_dof,...
+                 pn_nodes,pos_g,neg_g,numeqns,ex_dof,intersection,endpoints)
 
 % Initialize
 ke = zeros(12,2);
@@ -12,7 +10,6 @@ yep = [];
 xes = [];
 yes = [];
 
-parent = i;
 nodes = node(:,parent);
 
 % Establish a set of flags
@@ -50,6 +47,7 @@ for n = 1:3     % loop over nodes
     end
 end
 
+
 % Second Enrichment
 for n = 1:3     % loop over nodes
     
@@ -80,8 +78,27 @@ end
 % end points of intersection - direction doesn't matter - this is for the
 % segment jacobian calculation
 
-p1 = [INT_INTERFACE(i).shared(2*j-1,1) INT_INTERFACE(i).shared(2*j-1,2)];
-p2 = [INT_INTERFACE(i).shared(2*j,1) INT_INTERFACE(i).shared(2*j,2)];
+if all(size(intersection) == [2 2])
+    p1 = intersection(1,:);
+    p2 = intersection(2,:);
+elseif all(size(intersection) == [1 2])
+    p1 = intersection(1,:);
+    
+    % Second endpoint of segment is also end point of interface
+    endpoint = endpoints(1,:);
+    
+    inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
+    
+    if inside
+        p2 = endpoint;
+    else
+        p2 = endpoints(2,:);
+    end
+end
+    
+    
+    
+    
 
 % jacobian of segment to global
 he = sqrt((p1(1)-p2(1))^2 + (p1(2)-p2(2))^2);
@@ -145,10 +162,8 @@ id_node(10) = id_eqns(nodes(2),6);  % 2nd extra y dof
 id_node(11) = id_eqns(nodes(3),5);  % 2nd extra x dof
 id_node(12) = id_eqns(nodes(3),6);  % 2nd extra y dof
 
-if sliding_switch == 1
-    id_lag(1) = numeqns + ex_dof;
-else
-    id_lag(1) = numeqns + 2*ex_dof - 1;
-    id_lag(2) = numeqns + 2*ex_dof;
-end
+id_lag(1) = numeqns + ex_dof - 1;
+id_lag(2) = numeqns + ex_dof;
+
+
 

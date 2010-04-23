@@ -35,6 +35,7 @@ maxngrains = size(p,1);
 %patch
 beam_l = max(x) - min(x);
 beam_h = max(y) - min(y);
+gen_tol = max(beam_l,beam_h)*10e-8;
 %rect
 for e = 1:numele
     [nconn] = mesh_check(node(1:3,e),x,y);
@@ -68,6 +69,105 @@ plot_vord(vx,vy,1) %plots on same figure
 figure(1)
 axis([0,16,-3,3])
 
+% ----------------------------------------------------------------
+% Create a new structure that has the grains associated with every
+% interface
+
+% This creates a structure interface_grains, that associates each interface
+% with the two grains on either side.  
+
+interface_grains = struct('grains',[]);
+
+% Loop over interfaces
+for i = 1:size(vx,2)
+   
+    distance_vec1 = zeros(1,size(p,1));
+    distance_vec2 = zeros(1,size(p,1));
+    xtemp1 = vx(1,i);
+    ytemp1 = vy(1,i);
+    
+    
+    
+    for j = 1:size(p,1)
+       
+        pxtemp = p(j,1);
+        pytemp = p(j,2);
+        
+        % Compute the distance between the two points
+        
+        distance_vec1(j) = sqrt((xtemp1 - pxtemp)^2 + (ytemp1 - pytemp)^2);
+        
+        
+    end
+
+    % Sort the distace vectors to all of the grain centers, and pick off
+    % the three minima.
+    [new_distance_vec, distance_vec_index] = sort(distance_vec1,'ascend');
+    
+    if abs(new_distance_vec(3) - new_distance_vec(2)) > gen_tol
+        our_grains1 = distance_vec_index(1:2);
+        interface_grains(i).grains = our_grains1;
+        continue
+    else
+        our_grains1 = distance_vec_index(1:3);
+    end
+    
+    
+    xtemp2 = vx(2,i);
+    ytemp2 = vy(2,i);
+    
+    for j = 1:size(p,1)
+       
+        pxtemp = p(j,1);
+        pytemp = p(j,2);
+        
+        % Compute the distance between the two points
+        
+        distance_vec2(j) = sqrt((xtemp2 - pxtemp)^2 + (ytemp2 - pytemp)^2);
+        
+        
+    end
+
+    % Sort the distace vectors to all of the grain centers, and pick off
+    % the three minima.
+    [new_distance_vec, distance_vec_index] = sort(distance_vec2,'ascend');
+    
+    if abs(new_distance_vec(3) - new_distance_vec(2)) > gen_tol
+        our_grains2 = distance_vec_index(1:2);
+        interface_grains(i).grains = our_grains2;
+        continue
+    else
+        our_grains2 = distance_vec_index(1:3);
+    end
+    
+    
+    
+    count = 0;
+    for j = 1:3
+       for k = 1:3
+       
+           if our_grains1(j) == our_grains2(k)
+           
+               count = count + 1;
+               temp_grains(count) = our_grains1(j);
+           
+           end
+           
+           
+       
+       end
+    end
+    
+    if length(temp_grains) > 2
+        error('The interface grain mapping was not unique')
+    end
+    
+    interface_grains(i).grains = temp_grains;
+    
+end
+
+% -------------------------------------------
+
 %loop over nodes to assign them to grains
 for i=1:numnod
    k = dsearch(p(:,1), p(:,2), tri, x(i), y(i));
@@ -97,6 +197,45 @@ end
 
 %call partitioning routine
 partition2d
+
+
+% Add information to the structure seg_cut_info
+for i = 1:length(vx) % Loop over all interfaces
+       
+    % Compute the normal to the interface
+    [normal,tangent] = get_normals(vx(:,i),vy(:,i));
+    
+    % There are two grains associated with the interface.  
+    % Define one grain as positive and one grain as negative.  
+    % The normal will point outward from the positive grain.
+    
+    % Get first grain number 
+    trial_grain = interface_grains(i).grains(1);
+    
+    % Get interface end points
+    p1 = [vx(2,i) vy(2,i)];
+    p2 = [vx(1,i) vy(1,i)];
+    
+    value = halfplane_contains_point_2d ( p1, p2, [p(i,1),p(i,2)] );
+    
+    if value
+       positive_grain = trial_grain;
+       negative_grain = interface_grains(i).grains(2);
+    else
+       positive_grain = interface_grains(i).grains(2);
+       negative_grain = trial_grain;
+    end
+    
+    for j = 1:size(seg_cut_info,2)  % Loop over cut elements
+
+        seg_cut_info(i,j).normal = normal;
+        seg_cut_info(i,j).tangent = tangent;
+        seg_cut_info(i,j).grains = interface_grains(i).grains;
+        seg_cut_info(i,j).positive_grain = positive_grain;
+        seg_cut_info(i,j).negative_grain = negative_grain;
+    
+    end
+end
 
 %assign grains to elements/subelements and plot
 figure(3)
