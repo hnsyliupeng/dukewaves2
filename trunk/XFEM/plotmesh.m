@@ -7,3 +7,4 @@ for e=1:numele
    plot(x(node(1:3,e)),y(node(1:3,e)))
    plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))])
 end
+axis equal;

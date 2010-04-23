@@ -47,19 +47,19 @@ for seg_id = 1:size(vx,2)
   end
 end %loop
 
-clear cuteleminfo;
+clear cuteleminfo pint xint edge_ids nb_int p1 q1 nb_cut_elems flag;
 
 if (debug_part2d)
-   figure(3)
-   plot(vx(1:2,1),vy(1:2,1),'r')
-   hold on
+%    figure(3)
+%    plot(vx(1:2,1),vy(1:2,1),'r')
+%    hold on
    for i=1:size(seg_cut_info(1,:),2)
        e = seg_cut_info(1,i).elemno;
        if (e ~= -1)
-          plot(x(node(1:3,e)),y(node(1:3,e)))
-          plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))])
+%           plot(x(node(1:3,e)),y(node(1:3,e)))
+%           plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))])
        end
-       drawnow
+       drawnow;
    end
 end
 
@@ -72,6 +72,9 @@ for e=1:numele
 end
 global ELEMINFO_ARR;
 ELEMINFO_ARR = eleminfo_arr;
+
+% clear some temporary variables
+clear eleminfo;
 
 %now slice recursively, setting up partition info along the way
 for seg_id = 1:size(vx,2)
@@ -106,4 +109,7 @@ for seg_id = 1:size(vx,2)
           end
       end
 end
+
+% clear some temporary variables
+clear debug_part_2d;
 

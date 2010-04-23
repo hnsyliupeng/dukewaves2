@@ -71,7 +71,15 @@ switch IFDirichletBCs
     case 9
         filename_DBC = fullfile(pwd,'Boundary_Conditions','quarterring_gmsh_DBC');
     case 10
-        filename_DBC = fullfile(pwd,'Boundary_Conditions','rect_fixabug_DBC');
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_8_2_DBC');
+    case 11
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_24_6_DBC');
+    case 12
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_72_18_DBC');
+    case 13
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_4_1_DBC');
+    case 14
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_392_98_DBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -100,7 +108,15 @@ switch IFNeumannBCs
     case 9
         filename_NBC = fullfile(pwd,'Boundary_Conditions','quarterring_gmsh_NBC');
     case 10
-        filename_NBC = fullfile(pwd,'Boundary_Conditions','rect_fixabug_NBC');
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_8_2_NBC');
+    case 11
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_24_6_NBC');
+    case 12
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_72_18_NBC');
+    case 13
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_4_1_NBC');
+    case 14
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_392_98_NBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

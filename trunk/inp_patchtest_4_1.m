@@ -1,11 +1,13 @@
-% Input File 'inp_fixabug.m'
+% Input File 'inp_patchtest_4_1.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Rectangle with coarse mesh to fix a possible bug with triple junctions.
+% Rectangle. Length x Heigth = 16 x 4. Mesh 4 x 1. Same Material in every
+% grain (E = 1000.0, nue = 0.3). Constant load on right side, pulling in
+% x-direction. Left side fixed. 3 grains.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -32,12 +34,12 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 10;
-IFheight = 2;
+IFlength = 16;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 3;
-IFnldivy = 2;
+IFnldivx = 4;
+IFnldivy = 1;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
@@ -67,8 +69,12 @@ IFdatasetp = 11;
 % 7     frictionless_sliding1_24_6_DBC.m
 % 8     frictionless_sliding1_72_18_DBC.m
 % 9     quartercircle_gmsh_DBC.m
-% 10    rect_fixabug_DBC.m
-IFDirichletBCs = 10;
+% 10    patchtest_8_2_DBC.m
+% 11    patchtest_24_6_DBC.m
+% 12    patchtest_72_18_DBC.m
+% 13    patchtest_4_1_DBC.m
+% 14    patchtest_392_18_DBC.m
+IFDirichletBCs = 13;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -82,8 +88,12 @@ IFDirichletBCs = 10;
 % 7     frictionless_sliding1_24_6_NBC.m
 % 8     frictionless_sliding1_72_18_NBC.m
 % 9     quartercircle_gmsh_NBC.m
-% 10    rect_fixabug_NBC.m
-IFNeumannBCs = 10;
+% 10    patchtest_8_2_NBC.m
+% 11    patchtest_24_6_NBC.m
+% 12    patchtest_72_18_NBC.m
+% 13    patchtest_4_1_NBC.m
+% 14    patchtest_392_98_NBC.m
+IFNeumannBCs = 13;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -120,7 +130,7 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-3;
+IFconvtol = 1.0e-8;
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------
