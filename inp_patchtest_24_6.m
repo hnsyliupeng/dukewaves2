@@ -1,11 +1,11 @@
-% Input File 'inp_patchtest_4_1.m'
+% Input File 'inp_patchtest_24_6.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Rectangle. Length x Heigth = 16 x 4. Mesh 4 x 1. Same Material in every
+% Rectangle. Length x Heigth = 16 x 4. Mesh 24 x 6. Same Material in every
 % grain (E = 1000.0, nue = 0.3). Constant load on right side, pulling in
 % x-direction. Left side fixed. 3 grains.
 %**************************************************************************
@@ -38,8 +38,8 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 392;
-IFnldivy = 98;
+IFnldivx = 24;
+IFnldivy = 6;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
@@ -71,10 +71,7 @@ IFdatasetp = 11;
 % 9     quartercircle_gmsh_DBC.m
 % 10    patchtest_8_2_DBC.m
 % 11    patchtest_24_6_DBC.m
-% 12    patchtest_72_18_DBC.m
-% 13    patchtest_4_1_DBC.m
-% 14    patchtest_392_18_DBC.m
-IFDirichletBCs = 14;
+IFDirichletBCs = 11;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -90,10 +87,7 @@ IFDirichletBCs = 14;
 % 9     quartercircle_gmsh_NBC.m
 % 10    patchtest_8_2_NBC.m
 % 11    patchtest_24_6_NBC.m
-% 12    patchtest_72_18_NBC.m
-% 13    patchtest_4_1_NBC.m
-% 14    patchtest_392_98_NBC.m
-IFNeumannBCs = 14;
+IFNeumannBCs = 11;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -124,7 +118,7 @@ IFsliding_switch = 0;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 0;
+IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;

@@ -49,12 +49,17 @@ for i = 1:numnod
     end
 end
 
+% clear some temporary variables
+clear cnt i j;
+
 % eleminate the last enrichment function
 for i = 1:numnod
     last = NODAL_ENRICH(i).cnt;
     NODAL_ENRICH(i).enrichment(last) = 0;
-end 
+end
 
+% clear some temporary variables
+clear last i;
 
 % ----------------------------------------------------------------------- %
 
@@ -114,9 +119,7 @@ multipliers = 0;
 % Every subsegment adds two extra equations
  for i = 1:size(seg_cut_info,1)     % for every interface
      for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-        
          if seg_cut_info(i,e).elemno ~= -1
-             
             multipliers = multipliers + 1;  % Count total number of multipliers
          end
      end
@@ -157,6 +160,9 @@ for e = 1:numele
    end
 end
 
+% clear some temporary variables
+clear rbk cbk re ce nlink id ke i e j;
+
 % ----------------------------------------------------------------------- %
 
 % ASSEMBLE EXTERNAL FORCING VECTOR
@@ -169,6 +175,9 @@ for n = 1:numnod
     end
 end
 
+% clear some temporary variables
+clear slot n j;
+
 % ----------------------------------------------------------------------- %
 
 % APPLY CONSTRAINTS AT GRAIN INTERFACES USING LAGRANGE MULTIPLIERS
@@ -180,12 +189,9 @@ lag_surf = [];
 
  for i = 1:size(seg_cut_info,1)     % for every interface
      for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-% for i = 1:1
-%     for e = 1:1
-        
          if seg_cut_info(i,e).elemno ~= -1
              
-             parent_el = seg_cut_info(i,e).elemno;
+            parent_el = seg_cut_info(i,e).elemno;
                           
 %         % Count the extra degree of freedom we're at
             ex_dofs = ex_dofs + 1;         
@@ -207,7 +213,7 @@ lag_surf = [];
             
              % Get local constraint equations
              [ke_lag,id_node,id_lag] =...
-                 gen_lagrange(node,x,y,i,parent_el,id_eqns,id_dof,pn_nodes...
+                 gen_lagrange(node,x,y,parent_el,id_eqns,id_dof,pn_nodes...
                  ,pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint...
                  ,INTERFACE_MAP(i).endpoints);
             
@@ -249,104 +255,23 @@ lag_surf = [];
          end
      end
  end;
+ 
+ % clear some temporary variables
+ clear parent_el rbk cbk re ce nlink ke_lag pn_nodes i e m n id_node ...
+     id_lag pos_g neg_g;
 
 % ---------------------------------------------------------------
 % Fix unused tangential equations
-
 if sliding_switch == 1
-   
     for i = 2:2:size(lag_surf,1)
-        global_index = i+ max(max(id_eqns));
+        global_index = i + max(max(id_eqns));
         bigk(global_index,global_index) = 1;
     end
-    
 end
 
-% for i = 1:numele  
-%     % for every element
-%     if cutlist(i) ~= 0              % if cut element
-%         
-%         % Count the extra degree of freedom we're at
-%         ex_dofs = ex_dofs + 1;
-%         
-%         lag_surf = [lag_surf; ex_dofs i];  % mapping between lagrange 
-%                                       % multipliers and IDs of cut elements
-%         
-%         for j = 1:size(INT_INTERFACE(i).pairings,1) % for every subsegment
-%                                                     % pairing
-%                                                     % i
-%                                                     % j
-% 
-%             % Establish which grain is "positive" and which is "negative"
-%             % as well as which nodes are "positively" and which are
-%             % "negatively" enriched. 
-%             
-%             [pos_g,neg_g,pn_nodes] =... 
-%                 get_positive(i,j,nodegrainmap,p);
-%             
-%             % Sliding
-%             
-%             switch sliding_switch
-%                 case 0              % no sliding at all (fully constrained)
-%                 case 1              % frictionless sliding
-%                     % Get the normal
-%                     [norm] = get_norm(i,j);
-%                 case 2              % perfect plasticity
-%                     warning('MATLAB:XFEM:main_xfem',...
-%                         'There exists no code for perfect plasticity, yet.')
-%                 case 3              % frictional contact (Coulomb)
-%                     warning('MATLAB:XFEM:main_xfem',...
-%                     'There exists no code for frictional contact (Coulomb), yet.')
-%                 otherwise
-%                     warning('MATLAB:XFEM:main_xfem',...
-%                         'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-%             end;
-%             
-%             % Get local constraint equations
-%             [ke_lag,id_node,id_lag] =...
-%                 gen_lagrange(node,x,y,i,j,id_eqns,id_dof,pn_nodes...
-%                 ,pos_g,neg_g,old_size,ex_dofs,sliding_switch);
-%             
-%             % If the problem includes sliding, dot with the normal
-%             switch sliding_switch
-%                 case 0
-%                     dim = 2;
-%                 case 1          % frictionless sliding
-%                     dim = 1;
-%                     ke_lag = ke_lag*norm';
-%                 case 2              % perfect plasticity
-%                     warning('MATLAB:XFEM:main_xfem',...
-%                         'There exists no code for perfect plasticity, yet.')
-%                 case 3              % frictional contact (Coulomb)
-%                     warning('MATLAB:XFEM:main_xfem',...
-%                         'There exists no code for frictional contact (Coulomb), yet.')
-%                 otherwise
-%                     warning('MATLAB:XFEM:main_xfem',...
-%                         'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-%             end;
-%             
-%             nlink = size(ke_lag,1);
-%             %
-%             % assemble ke_lag into bigk
-%             %
-%             for m=1:nlink
-%                 for n=1:dim
-%                     rbk = id_node(m);
-%                     cbk = id_lag(n);
-%                     re = m;
-%                     ce = n;
-%                     if (rbk ~= 0) && (cbk ~= 0) 
-%                         % The constraint equations
-%                         bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
-%                         % The transpose are the equilibrium terms
-%                         bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
-%                     end
-%                 end
-%             end
-%         end
-%     end
-% end
-
+% clear temporary variable 'global_index'
+clear global_index;
+    
 % ----------------------------------------------------------------------- %
 
 % LOOP OVER "ENRICHED SURFACES" AND APPLY BCS THERE
@@ -406,6 +331,9 @@ if (bc_enr)         % The switch indicating we have enriched nodes with bcs
     end
 end
 
+% clear some temporary variables
+clear cbk rbk temp re ce;
+
 
 % ----------------------------------------------------------------------- %
 % ENFORCE DISPLACEMENT BOUNDARY CONDITIONS 
@@ -437,6 +365,9 @@ for n=1:numnod
         end
     end
 end
+
+% clear some temporary variables
+clear m m2 m3 temp;
   
 % ----------------------------------------------------------------------- %
 % FIX NONPHYSICAL NODES (due to gmsh-meshes)
@@ -447,6 +378,9 @@ for i = nonphysnodevec
         bigk(j,j)=1;
     end;
 end;
+
+% clear some temporary variables
+clear dofvec_temp;
 
 
 % ----------------------------------------------------------------------- %
@@ -499,6 +433,9 @@ switch IFSolverType
             end;
         end;
         fdisp = solu;
+        
+        % clear some temporary variables
+        clear solu step_info delta old_solu iter;
     otherwise
         error('MATLAB:XFEM:main_xfem',...
             'Unvalid solver type ID. Choose a valid ID or add an additional solver in "main_xfem.m".');
@@ -533,9 +470,28 @@ for i = 1:numnod
 end
 
 % extract vector with lagrange multipliers from 'fdisp'
-numlag = length(fdisp) - max(max(id_eqns));% number of lagrange multipliers
-lagmult = fdisp(end-numlag+1:end);
+lagmult = fdisp(end-2*multipliers+1:end);
 
+% assign lagrange multipliers into 'seg_cut_info'
+% a subsegment is defined uniquely by interface and element ID
+% loop over interfaces 'i' and elements 'e'
+for i = 1:size(seg_cut_info,1)      % every interface 'i'
+    for e = 1:size(seg_cut_info,2)  % every element 'e'
+        % initialize variable for lagrange multiplier in 'seg_cut_info'
+        seg_cut_info(i,e).lagmult = [];
+        if isempty(seg_cut_info(i,e).elemno)==0   % only, if element is cut by 'i'
+            eleID = seg_cut_info(i,e).elemno;
+        
+            % find row in 'lagmult', that suits to current interface 'e'
+            % and to the element, that is cut by 'i'
+            index = find(lag_surf(:,2)==i & lag_surf(:,3)==eleID);
+            seg_cut_info(i,e).lagmult = [lagmult(index)];
+        end;
+    end;
+end;
+
+% clear some temporary variables
+clear eleID c ia ib A B index;
 % ----------------------------------------------------------------------- %
 
 % POST-PROCESS
@@ -566,7 +522,7 @@ for e=1:numele
 end
 
 % clear some temporary variables
-clear stresse straine maxstress_vec minstress_vec;
+clear stresse straine maxstress_vec minstress_vec i e f j;
 
 
 %  disp('saving to results file ...');

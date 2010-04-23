@@ -8,7 +8,7 @@ if (ELEMINFO_ARR(elemi).nb_subelts == 1)
     ycen = (Y(CONN(1,elemi)) + Y(CONN(2,elemi)) + Y(CONN(3,elemi)) )/3.0;
     k = dsearch(p(:,1), p(:,2), tri, xcen, ycen);
     SUBELEMENT_GRAIN_MAP(elemi) = k;
-    figure(3)
+%     figure(3)
 %    patch(X(CONN(1:3,elemi)),Y(CONN(1:3,elemi)),k)
 %    drawnow
 else

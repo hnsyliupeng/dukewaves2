@@ -1,6 +1,6 @@
-% polycry.m
+% main_comp_geo.m
 %
-% mesh-generating method
+% mesh-generating method (based on 'polycry.m')
 %
 
 disp('generation of background mesh...');
@@ -63,6 +63,7 @@ end;
 %this will be useful in determining which cell a point is in
 tri = delaunay ( p(:,1), p(:,2) );
 
+% plot mesh with interfaces
 plotmesh
 
 plot_vord(vx,vy,1) %plots on same figure
@@ -166,6 +167,10 @@ for i = 1:size(vx,2)
     
 end
 
+% clear some temporary variables
+clear distance_vec1 distance_vec2 distance_vec_index temp_grains count ...
+    our_grains1 our_grains2  pxtemp pytemp xtemp1 xtemp2 ytemp1 ytemp2;
+
 % -------------------------------------------
 
 %loop over nodes to assign them to grains
@@ -173,6 +178,9 @@ for i=1:numnod
    k = dsearch(p(:,1), p(:,2), tri, x(i), y(i));
    nodegrainmap(i) = k;
 end
+
+% clear some temporary variables
+clear k;
 
 %figure(2)
 %hold on
@@ -191,6 +199,10 @@ for e=1:numele
        %plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))])
    end
 end
+
+% clear some temporary variables
+clear grainnode;
+
 %plot_vord(vx,vy,2) %plots on same figure
 %axis([0,1,0,1])
 %drawnow
@@ -216,7 +228,7 @@ for i = 1:length(vx) % Loop over all interfaces
     p1 = [vx(2,i) vy(2,i)];
     p2 = [vx(1,i) vy(1,i)];
     
-    value = halfplane_contains_point_2d ( p1, p2, [p(i,1),p(i,2)] );
+    value = halfplane_contains_point_2d ( p1, p2, [p(trial_grain,1) p(trial_grain,2)] );
     
     if value
        positive_grain = trial_grain;
@@ -237,11 +249,15 @@ for i = 1:length(vx) % Loop over all interfaces
     end
 end
 
+% clear some temporary variables
+clear normal tangent positive_grain negative_grain grains trial_grain ...
+    value p1 p2;
+
 %assign grains to elements/subelements and plot
-figure(3)
-hold on
-plot_vord(vx,vy,3)
-axis([0,16,-3,3])
+% figure(3)
+% hold on
+% plot_vord(vx,vy,3)
+% axis([0,16,-3,3])
 
 global SUBELEMENT_GRAIN_MAP;
 SUBELEMENT_GRAIN_MAP = [];
@@ -281,6 +297,9 @@ for e = 1:numele
     assign_area_to_nodes_recursive(e,fnodes);
 end
 
+% clear some temporary variables
+clear fnodes;
+
 % calulate percentages
 for i = 1:numnod
     
@@ -315,6 +334,9 @@ for e=1:numele
    parentid = e;
    assign_parentelem_recursive(e,parentid)
 end
+
+% clear some temporary variables
+clear parentid;
 
 %For cut elements, list the subelements.
 global SUBELEM_INFO
@@ -387,6 +409,9 @@ for i = 1:numele
         end
     end
 end
+
+% clear some temporary variables
+clear flag grn_m grn_n sub_elno_m sub_elno_n a b;
    
 
 % ----------------------------------------------------------------------- %

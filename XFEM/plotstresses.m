@@ -6,6 +6,10 @@
 
 % Author: Matthias Mayr (04/2010)
 
+%% configure plot routine
+% If you want plot the element edges, then set 'plotedges' to 1, else to 0
+plotedges = 0;
+
 %% get maximum dimensions of domain
 xmax = max(X);
 xmin = min(X);
@@ -55,9 +59,11 @@ for e = 1:numele
         grain = SUBELEMENT_GRAIN_MAP(e);
 
         % plot colored element
-        patch(minix,miniy,stress(e,4,grain));
-    else
-        
+        if plotedges == 1
+            patch(minix,miniy,stress(e,4,grain));
+        else
+            patch(minix,miniy,stress(e,4,grain),'EdgeColor','none');
+        end;
     end;
 end;
 
@@ -82,7 +88,11 @@ for sube = numele+1:CONN_cols
     e=PARENTELEM_INFO(sube);
         
     % plot colored element
-    patch(minix,miniy,stress(e,4,grain));
+    if plotedges == 1
+        patch(minix,miniy,stress(e,4,grain));
+    else
+        patch(minix,miniy,stress(e,4,grain),'EdgeColor','none');
+    end;
 end;
 
 hold off;
@@ -130,7 +140,11 @@ for e = 1:numele
         grain = SUBELEMENT_GRAIN_MAP(e);
 
         % plot colored element
-        patch(minix,miniy,stress(e,5,grain));
+        if plotedges == 1
+            patch(minix,miniy,stress(e,5,grain));
+        else
+            patch(minix,miniy,stress(e,5,grain),'EdgeColor','none');
+        end;
     end;
 end;
 
@@ -154,7 +168,11 @@ for sube = numele+1:CONN_cols
     e=PARENTELEM_INFO(sube);
     
     % plot colored element
-    patch(minix,miniy,stress(e,5,grain));
+    if plotedges == 1
+        patch(minix,miniy,stress(e,5,grain));
+    else
+        patch(minix,miniy,stress(e,5,grain),'EdgeColor','none');
+    end;
 end;
 
 hold off;
@@ -202,7 +220,11 @@ for e = 1:numele
         grain = SUBELEMENT_GRAIN_MAP(e);
 
         % plot colored element
-        patch(minix,miniy,stress(e,6,grain));
+        if plotedges == 1
+            patch(minix,miniy,stress(e,6,grain));
+        else
+            patch(minix,miniy,stress(e,6,grain),'EdgeColor','none');
+        end;
     end;
 end;
 
@@ -225,10 +247,17 @@ for sube = numele+1:CONN_cols
     e=PARENTELEM_INFO(sube);
     
     % plot colored element
-    patch(minix,miniy,stress(e,6,grain));
+    if plotedges == 1
+        patch(minix,miniy,stress(e,6,grain));
+    else
+        patch(minix,miniy,stress(e,6,grain),'EdgeColor','none');
+    end;
 end;
 
 hold off;
 
 %colorbar('location','west')
+
+% clear some temporary variables
+clear e grain minix miniy sub_nodes sube CONN_rows CONN_cols V plotedges;
 

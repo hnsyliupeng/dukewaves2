@@ -1,11 +1,11 @@
-% Input File 'inp_patchtest_4_1.m'
+% Input File 'inp_patchtest_8_2.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Rectangle. Length x Heigth = 16 x 4. Mesh 4 x 1. Same Material in every
+% Rectangle. Length x Heigth = 16 x 4. Mesh 8 x 2. Same Material in every
 % grain (E = 1000.0, nue = 0.3). Constant load on right side, pulling in
 % x-direction. Left side fixed. 3 grains.
 %**************************************************************************
@@ -38,8 +38,8 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 392;
-IFnldivy = 98;
+IFnldivx = 8;
+IFnldivy = 2;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
@@ -72,9 +72,7 @@ IFdatasetp = 11;
 % 10    patchtest_8_2_DBC.m
 % 11    patchtest_24_6_DBC.m
 % 12    patchtest_72_18_DBC.m
-% 13    patchtest_4_1_DBC.m
-% 14    patchtest_392_18_DBC.m
-IFDirichletBCs = 14;
+IFDirichletBCs = 10;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -91,9 +89,7 @@ IFDirichletBCs = 14;
 % 10    patchtest_8_2_NBC.m
 % 11    patchtest_24_6_NBC.m
 % 12    patchtest_72_18_NBC.m
-% 13    patchtest_4_1_NBC.m
-% 14    patchtest_392_98_NBC.m
-IFNeumannBCs = 14;
+IFNeumannBCs = 10;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -103,7 +99,7 @@ IFNeumannBCs = 14;
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
-IFMatSet = 3;
+IFMatSet = 0;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -124,7 +120,7 @@ IFsliding_switch = 0;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 0;
+IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;

@@ -21,13 +21,9 @@ EXEC_XFEM = 1;              % solve
 
 % set the filename of the input file without file extension '.m', that has 
 % to be used.
-%<<<<<<< .mine
-%filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-% filename_input_file = 'inp_multigrain23_1_40_10';   % NO FILE EXTENSION '.m'
-%=======
+%
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_beambending_72_18';   % NO FILE EXTENSION '.m'
-%>>>>>>> .r29
+filename_input_file = 'inp_patchtest_72_18';   % NO FILE EXTENSION '.m'
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 
