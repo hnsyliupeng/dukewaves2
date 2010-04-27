@@ -101,6 +101,21 @@ IFNeumannBCs = 10;
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 IFMatSet = 0;
 %--------------------------------------------------------------------------
+% METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
+% Set an ID to choose the method, by which the constrains shall be enforced
+% at the interface
+% ID    Method
+% 0     Lagrange Multipliers (piecewise constant)
+% 1     Penalty-Method
+% 2     Nitsche's Method
+IFmethod = 1;
+%
+% Set Penalty-Parameter
+IFpenalty = 1.0e+5;
+%
+% Nitsche Parameter
+IFnitsche = 0;
+%--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
 % ID    Description
@@ -143,6 +158,9 @@ disp(['IFDirichletBCs:      ' num2str(IFDirichletBCs)]);
 disp(['IFNeumannBCs:        ' num2str(IFNeumannBCs)]);
 disp(['IFMatSet:            ' num2str(IFMatSet)]);
 disp(['IFsliding_switch:    ' num2str(IFsliding_switch)]);
+disp(['IFmethod:            ' num2str(IFmethod)]);
+disp(['IFpenalty:           ' num2str(IFpenalty)]);
+disp(['IFnitsche:           ' num2str(IFnitsche)]);
 disp(['IFSolverType:        ' num2str(IFSolverType)]);
 disp(['IFmaxiter:           ' num2str(IFmaxiter)]);
 disp(['IFconvtol:           ' num2str(IFconvtol)]);
@@ -157,10 +175,12 @@ filename3 = fullfile(pwd, 'XFEM', 'xfeminputdata_xfem.mat');
 save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
-save(filename3, 'IFsliding_switch','IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+save(filename3, 'IFsliding_switch','IFmethod','IFpenalty','IFnitsche',...
+    'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-    IFsliding_switch IFSolverType IFmaxiter IFconvtol;
+    IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
+    IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

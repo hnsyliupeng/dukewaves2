@@ -10,7 +10,13 @@ set(h,'Marker','o');
 set(h,'MarkerEdgeColor','Red');
 set(h,'MarkerFaceColor','Red');
 set(h,'MarkerSize',4)
-axis([-1 21 -7 7]);
+% axis([-1 21 -7 7]);
+
+% scale axes of plotted mesh
+ax_x = (max(X) - min(X))/max(X);
+ax_y = (max(Y) - min(Y))/max(Y);
+axis([min(X)-ax_x max(X)+ax_x min(Y)-ax_y max(Y)+ax_y]);
+clear ax_x ax_y;
 
 % hold on
 % 

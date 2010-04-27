@@ -1,4 +1,4 @@
-% Input File 'inp_patchtest_4_1.m'
+% Input File 'inp_oszillations_linear_forces_72_18.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -6,8 +6,9 @@
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
 % Rectangle. Length x Heigth = 16 x 4. Mesh 4 x 1. Same Material in every
-% grain (E = 1000.0, nue = 0.3). Constant load on right side, pulling in
-% x-direction. Left side fixed. 3 grains.
+% grain (E = 1000.0, nue = 0.3). Hatshaped forces, pulling in
+% x-direction. Left side fixed. Should show oszillations for Lagrange
+% multipliers.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -38,8 +39,8 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 4;
-IFnldivy = 1;
+IFnldivx = 72;
+IFnldivy = 18;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
@@ -50,7 +51,7 @@ IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;
+IFdatasetp = 13;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -74,7 +75,7 @@ IFdatasetp = 11;
 % 12    patchtest_72_18_DBC.m
 % 13    patchtest_4_1_DBC.m
 % 14    patchtest_392_18_DBC.m
-IFDirichletBCs = 13;
+IFDirichletBCs = 12;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -93,7 +94,9 @@ IFDirichletBCs = 13;
 % 12    patchtest_72_18_NBC.m
 % 13    patchtest_4_1_NBC.m
 % 14    patchtest_392_98_NBC.m
-IFNeumannBCs = 13;
+% 15    hatshaped_x_forces_72_18_NBC.m
+% 16    parabolic_x_forces_72_18_NBC.m
+IFNeumannBCs = 15;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -103,13 +106,14 @@ IFNeumannBCs = 13;
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
+% 4     3 grains with different material properties
 IFMatSet = 3;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
 % at the interface
 % ID    Method
-% 0     Lagrange Multipliers
+% 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
 IFmethod = 0;

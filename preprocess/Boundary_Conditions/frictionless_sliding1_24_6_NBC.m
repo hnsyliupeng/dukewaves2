@@ -8,7 +8,7 @@
 % Author: Matthias Mayr (04/2010)
 
 % maximum load in x-direction
-maxload = 1000;
+maxload = 100;
 
 % nodal load
 nodeload = maxload/6;

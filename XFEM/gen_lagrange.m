@@ -14,7 +14,6 @@ nodes = node(:,parent);
 
 % Establish a set of flags
 
-
 % Get coordinates of parent element
 for m=1:3
     jep = node(m,parent); xep(m) = x(jep); yep(m) = y(jep);
@@ -95,10 +94,7 @@ elseif all(size(intersection) == [1 2])
         p2 = endpoints(2,:);
     end
 end
-    
-    
-    
-    
+      
 
 % jacobian of segment to global
 he = sqrt((p1(1)-p2(1))^2 + (p1(2)-p2(2))^2);

@@ -1,11 +1,11 @@
 % NBCs
 
-load=1/18;
+load=10/18;
 
 % forces in x-direction
-force(1,1368) = load/2;
+force(1,1369) = load/2;
 
-for i=1369:1386
+for i=1370:1386
     force(1,i) = load;
 end;
 

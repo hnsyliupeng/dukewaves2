@@ -20,6 +20,7 @@ ymin = min(Y);
 % open a new figure
 figure(1);
 subplot(311);
+% axis equal;
 hold on;
 title('xx-stress');
 axis([xmin xmax ymin ymax]);
@@ -46,6 +47,7 @@ clear maxstress_vec minstress_vec;
 V = [minstress_xx maxstress_xx];
 colormap(jet(100));
 caxis(V);
+colorbar;
 
 % first, plot all uncut elements
 % loop over all uncut elements
@@ -99,8 +101,9 @@ hold off;
 
 %% plot yy-stresses
 % open a new figure
-%figure(2);
+% figure(2);
 subplot(312);
+% axis equal;
 hold on;
 title('yy-stress');
 axis([xmin xmax ymin ymax]);
@@ -127,6 +130,7 @@ clear maxstress_vec minstress_vec;
 V = [minstress_yy maxstress_yy];
 colormap(jet(100));
 caxis(V);
+colorbar;
 
 % first, plot all uncut elements
 % loop over all uncut elements
@@ -179,8 +183,9 @@ hold off;
 
 %% plot xy-stresses
 % open a new figure
-%figure(3);
+% figure(3);
 subplot(313);
+% axis equal;
 hold on;
 title('xy-stress');
 axis([xmin xmax ymin ymax]);
@@ -207,6 +212,7 @@ clear maxstress_vec minstress_vec;
 V = [minstress_xy maxstress_xy];
 colormap(jet(100));
 caxis(V);
+colorbar;
 
 % first, plot all uncut elements
 % loop over all uncut elements
@@ -257,6 +263,17 @@ end;
 hold off;
 
 %colorbar('location','west')
+
+% print the maximum stresses into the console
+text_xx = ['Max. xx-stress:  ' num2str(maxstress_xx) ...
+    '   Min. xx-stress:    ' num2str(minstress_xx)];
+text_yy = ['Max. yy-stress:  ' num2str(maxstress_yy) ...
+    '   Min. yy-stress:    ' num2str(minstress_yy)];
+text_xy = ['Max. xy-stress:  ' num2str(maxstress_xy) ...
+    '   Min. xy-stress:    ' num2str(minstress_xy)];
+disp(text_xx);
+disp(text_yy);
+disp(text_xy);
 
 % clear some temporary variables
 clear e grain minix miniy sub_nodes sube CONN_rows CONN_cols V plotedges;

@@ -53,6 +53,8 @@ ubar(2,10) = 0.0;
 ubar(2,11) = 0.0;
 
 % define enriched surfaces for bcs 
+bc_enr = 1;     % switch to show, that enriched DOFs are under BCs
+
 
 num_enr_surf = 6;
 

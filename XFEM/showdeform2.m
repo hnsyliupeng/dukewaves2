@@ -1,15 +1,27 @@
 x_def = [];
 y_def = [];
 
+% % plot initial mesh
+% for e=1:numele
+%    plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.5 0.5 0.5],...
+%        'LineWidth',0.1)
+%    plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
+%        'Color',[0.5 0.5 0.5],'LineWidth',1.0)
+% end;
+
+
+% get coordinates of deformed mesh
 for i = 1:numnod
     x_def(i) = x(i) + dis(2*i-1);
     y_def(i) = y(i) + dis(2*i); 
 end
 
+% plot deformed mesh
 for e = 1:numele
-   plot(x_def(node(1:3,e)),y_def(node(1:3,e)),'LineWidth',2);
+   plot(x_def(node(1:3,e)),y_def(node(1:3,e)),'LineWidth',1);
    hold on
-   plot([x_def(node(3,e)) x_def(node(1,e))],[y_def(node(3,e)) y_def(node(1,e))],'LineWidth',2);
+   plot([x_def(node(3,e)) x_def(node(1,e))], ...
+       [y_def(node(3,e)) y_def(node(1,e))],'LineWidth',1);
    hold on
 end
 
@@ -19,7 +31,13 @@ end
 % set(h,'MarkerEdgeColor','Red');
 % set(h,'MarkerFaceColor','Red');
 % set(h,'MarkerSize',4)
-axis([-1 24 -7 7]);
+% axis([-1 24 -7 7]);
+
+% scale axes of plotted mesh
+ax_x = (max(X) - min(X))/max(X);
+ax_y = (max(Y) - min(Y))/max(Y);
+axis([min(X)-ax_x max(X)+ax_x min(Y)-ax_y max(Y)+ax_y]);
+clear ax_x ax_y;
 
 % hold on
 % 

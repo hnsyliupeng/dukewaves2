@@ -66,6 +66,12 @@ IFdatasetp = 4;
 % 6     multi1_DBC.m
 % 7     frictionless_sliding1_24_6_DBC.m
 % 8     frictionless_sliding1_72_18_DBC.m
+% 9     quartercircle_gmsh_DBC.m
+% 10    patchtest_8_2_DBC.m
+% 11    patchtest_24_6_DBC.m
+% 12    patchtest_72_18_DBC.m
+% 13    patchtest_4_1_DBC.m
+% 14    patchtest_392_18_DBC.m
 IFDirichletBCs = 8;
 %
 % Neumann BCs
@@ -79,6 +85,14 @@ IFDirichletBCs = 8;
 % 6     multi1_NMC.m
 % 7     frictionless_sliding1_24_6_NBC.m
 % 8     frictionless_sliding1_72_18_NBC.m
+% 9     quartercircle_gmsh_NBC.m
+% 10    patchtest_8_2_NBC.m
+% 11    patchtest_24_6_NBC.m
+% 12    patchtest_72_18_NBC.m
+% 13    patchtest_4_1_NBC.m
+% 14    patchtest_392_98_NBC.m
+% 15    hatshaped_x_forces_72_18_NBC.m
+% 16    parabolic_x_forces_72_18_NBC.m
 IFNeumannBCs = 8;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
@@ -87,6 +101,8 @@ IFNeumannBCs = 8;
 % ID    Description
 % 0     all grains with same properties (nue = 0.3, E = 1000.0)
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
+% 2     24 grains with different material properties
+% 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 IFMatSet = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
@@ -114,7 +130,7 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-3;
+IFconvtol = 1.0e-8;
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

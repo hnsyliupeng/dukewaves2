@@ -6,6 +6,10 @@
 % load input parameters from 'xfemintutdata_xfem.mat'
 load xfeminputdata_xfem.mat
 
+% Set default values to all not defined input parameters
+if exist('IFmethod','var') == 0, IFmethod = 0;end;  % Lagrange multipliers
+if exist('IFpenalty','var') == 0, IFpenalty = 3.0e+5;end;   % Penalty-Parameter
+
 % assign input parameters to local variables
 sliding_switch = IFsliding_switch;
 
@@ -113,22 +117,25 @@ numeqns = max(max(id_eqns));
 
 disp('assembling stiffness ...');
 
-% initialize the total number of extra added equations
-multipliers = 0;
 
-% Every subsegment adds two extra equations
- for i = 1:size(seg_cut_info,1)     % for every interface
-     for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-         if seg_cut_info(i,e).elemno ~= -1
-            multipliers = multipliers + 1;  % Count total number of multipliers
+% add extra equations only for Lagrange multipliers
+if IFmethod == 0
+    % initialize the total number of extra added equations
+    multipliers = 0;
+
+    % Every subsegment adds two extra equations
+     for i = 1:size(seg_cut_info,1)     % for every interface
+         for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+             if seg_cut_info(i,e).elemno ~= -1
+                multipliers = multipliers + 1;  % Count total number of multipliers
+             end
          end
      end
- end
 
-old_size = numeqns;
+    old_size = numeqns;
 
-numeqns = numeqns + 2*multipliers;
-
+    numeqns = numeqns + 2*multipliers;
+end;
 
 % Allocate size of the stiffness matrix
 %bigk = zeros(numeqns);
@@ -146,18 +153,18 @@ for e = 1:numele
     end
     nlink = size(id,2);
 
-   %
-   % assemble ke into bigk
-   %
-   for i=1:nlink;
-      for j=1:nlink;
-         rbk = id(i);
-         cbk = id(j);
-         re = i;
-         ce = j;
-         bigk(rbk,cbk) = bigk(rbk,cbk) + ke(re,ce);
-      end
-   end
+    %
+    % assemble ke into bigk
+    %
+    for i=1:nlink;
+        for j=1:nlink;
+            rbk = id(i);
+            cbk = id(j);
+            re = i;
+            ce = j;
+            bigk(rbk,cbk) = bigk(rbk,cbk) + ke(re,ce);
+        end
+    end
 end
 
 % clear some temporary variables
@@ -179,99 +186,234 @@ end
 clear slot n j;
 
 % ----------------------------------------------------------------------- %
+% APPLY CONSTRAINS AT INTERFACES
 
-% APPLY CONSTRAINTS AT GRAIN INTERFACES USING LAGRANGE MULTIPLIERS
+% Method is chosen by paramter 'IFmethod'
+switch IFmethod
+    case 0          % Lagrange Multipliers
+        % APPLY CONSTRAINTS AT GRAIN INTERFACES USING LAGRANGE MULTIPLIERS
 
-disp('enforcing constraints at interfaces ...');
+        disp('enforcing constraints at interfaces via Lagrange multipliers ...');
 
-ex_dofs = 0;
-lag_surf = [];
+        ex_dofs = 0;
+        lag_surf = [];
 
- for i = 1:size(seg_cut_info,1)     % for every interface
-     for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-         if seg_cut_info(i,e).elemno ~= -1
-             
-            parent_el = seg_cut_info(i,e).elemno;
-                          
-%         % Count the extra degree of freedom we're at
-            ex_dofs = ex_dofs + 1;         
-            lag_surf = [lag_surf; ex_dofs i parent_el];  % mapping between lagrange 
-                                            % multipliers and IDs of cut elements
-            ex_dofs = ex_dofs + 1;         
-            lag_surf = [lag_surf; ex_dofs i parent_el];
+         for i = 1:size(seg_cut_info,1)     % for every interface
+             for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+                 if seg_cut_info(i,e).elemno ~= -1
 
-            % Establish which nodes are "postively" enriched, 
-            % and which reside in the "negative" grain
-             
-             
-            pos_g = seg_cut_info(i,e).positive_grain;
-            neg_g = seg_cut_info(i,e).negative_grain;
-             
-            [pn_nodes] =... 
-                 get_positive_new(parent_el,pos_g,neg_g);
-            
-            
-             % Get local constraint equations
-             [ke_lag,id_node,id_lag] =...
-                 gen_lagrange(node,x,y,parent_el,id_eqns,id_dof,pn_nodes...
-                 ,pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint...
-                 ,INTERFACE_MAP(i).endpoints);
-            
-            % If the problem includes sliding, dot with the normal
-            switch sliding_switch
-                case 0
-                case 1          % frictionless sliding
-                    ke_lag = ke_lag*seg_cut_info(i,e).normal;
-                    ke_lag = [ke_lag zeros(12,1)];
-                case 2              % perfect plasticity
-                    warning('MATLAB:XFEM:main_xfem',...
-                        'There exists no code for perfect plasticity, yet.')
-                case 3              % frictional contact (Coulomb)
-                    warning('MATLAB:XFEM:main_xfem',...
-                        'There exists no code for frictional contact (Coulomb), yet.')
-                otherwise
-                    warning('MATLAB:XFEM:main_xfem',...
-                        'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-            end;
-            
-            nlink = size(ke_lag,1);
-            %
-            % assemble ke_lag into bigk
-            %
-            for m=1:nlink
-                for n=1:2
-                    rbk = id_node(m);
-                    cbk = id_lag(n);
-                    re = m;
-                    ce = n;
-                    if (rbk ~= 0) && (cbk ~= 0) 
-                        % The constraint equations
-                        bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
-                        % The transpose are the equilibrium terms
-                        bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
+                    parent_el = seg_cut_info(i,e).elemno;
+
+        %         % Count the extra degree of freedom we're at
+                    ex_dofs = ex_dofs + 1;         
+                    lag_surf = [lag_surf; ex_dofs i parent_el];  % mapping between lagrange 
+                                                    % multipliers and IDs of cut elements
+                    ex_dofs = ex_dofs + 1;         
+                    lag_surf = [lag_surf; ex_dofs i parent_el];
+
+                    % Establish which nodes are "postively" enriched, 
+                    % and which reside in the "negative" grain
+
+                    pos_g = seg_cut_info(i,e).positive_grain;
+                    neg_g = seg_cut_info(i,e).negative_grain;
+
+                    [pn_nodes] =... 
+                         get_positive_new(parent_el,pos_g,neg_g);
+
+
+                     % Get local constraint equations
+                     [ke_lag,id_node,id_lag] =...
+                         gen_lagrange(node,x,y,parent_el,id_eqns,id_dof,pn_nodes...
+                         ,pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint...
+                         ,INTERFACE_MAP(i).endpoints);
+
+                    % If the problem includes sliding, dot with the normal
+                    switch sliding_switch
+                        case 0
+                        case 1          % frictionless sliding
+                            ke_lag = ke_lag * seg_cut_info(i,e).normal;
+                            ke_lag = [ke_lag zeros(12,1)];
+                        case 2              % perfect plasticity
+                            warning('MATLAB:XFEM:main_xfem',...
+                                'There exists no code for perfect plasticity, yet.')
+                        case 3              % frictional contact (Coulomb)
+                            warning('MATLAB:XFEM:main_xfem',...
+                                'There exists no code for frictional contact (Coulomb), yet.')
+                        otherwise
+                            warning('MATLAB:XFEM:main_xfem',...
+                                'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+                    end;
+
+                    nlink = size(ke_lag,1);
+                    %
+                    % assemble ke_lag into bigk
+                    %
+                    for m=1:nlink
+                        for n=1:2
+                            rbk = id_node(m);
+                            cbk = id_lag(n);
+                            re = m;
+                            ce = n;
+                            if (rbk ~= 0) && (cbk ~= 0) 
+                                % The constraint equations
+                                bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
+                                % The transpose are the equilibrium terms
+                                bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
+                            end
+                        end
+                    end
+                 end
+             end
+         end;
+
+         % clear some temporary variables
+         clear parent_el rbk cbk re ce nlink ke_lag pn_nodes i e m n id_node ...
+             id_lag pos_g neg_g;
+
+        % ---------------------------------------------------------------
+        % Fix unused tangential equations
+        if sliding_switch == 1
+            for i = 2:2:size(lag_surf,1)
+                global_index = i + max(max(id_eqns));
+                bigk(global_index,global_index) = 1;
+            end
+        end
+
+        % clear temporary variable 'global_index'
+        clear global_index;
+
+    case 1              % Penalty-Method
+        % APPLY CONSTRAINTS AT GRAIN INTERFACES USING PENALTY METHOD
+        disp('enforcing constrainst at interfaces via penalty method ...');
+
+        % get values from input file
+        penalty =IFpenalty;
+
+        for i = 1:size(seg_cut_info,1)     % for every interface
+             for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+                 if seg_cut_info(i,e).elemno ~= -1
+
+                    parent_el = seg_cut_info(i,e).elemno;
+                     
+                    % Establish which nodes are "postively" enriched, and
+                    % which reside in the "negative" grain
+                    pos_g = seg_cut_info(i,e).positive_grain;
+                    neg_g = seg_cut_info(i,e).negative_grain;
+
+                    [pn_nodes] =... 
+                         get_positive_new(parent_el,pos_g,neg_g);
+
+                    % Penalty terms
+
+                    [ke_pen,id_pen] =...
+                        gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
+                        pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
+                        INTERFACE_MAP(i).endpoints);
+
+                    nlink = size(id_pen,2);
+                    %
+                    % assemble ke_pen into bigk
+                    %
+                    for m=1:nlink
+                        for n=1:nlink
+                            rbk = id_pen(m);
+                            cbk = id_pen(n);
+                            re = m;
+                            ce = n;
+                            if ((rbk ~= 0) && (cbk ~= 0))                        
+                                bigk(rbk,cbk) = bigk(rbk,cbk) + ...
+                                    penalty*ke_pen(re,ce);
+                            end
+                        end
                     end
                 end
             end
-         end
-     end
- end;
- 
- % clear some temporary variables
- clear parent_el rbk cbk re ce nlink ke_lag pn_nodes i e m n id_node ...
-     id_lag pos_g neg_g;
+        end
+        
+        % clear some temporary variables
+        clear rbk cbk re ce m n nlink ke_pen parent_el pos_g neg_g i e ...
+            id_pen;
+        
+    case 2              % Nitsche's Method
+        % APPLY CONSTRAINTS AT GRAIN INTERFACES USING NITSCHE'S METHOD
+        disp('enforcing constraints at interfaces via Nitsche´s method ...');
 
-% ---------------------------------------------------------------
-% Fix unused tangential equations
-if sliding_switch == 1
-    for i = 2:2:size(lag_surf,1)
-        global_index = i + max(max(id_eqns));
-        bigk(global_index,global_index) = 1;
-    end
-end
+        % get values from input file
+        penalty =IFpenalty;
 
-% clear temporary variable 'global_index'
-clear global_index;
-    
+        for i = 1:size(seg_cut_info,1)     % for every interface
+             for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+                 if seg_cut_info(i,e).elemno ~= -1
+
+                    parent_el = seg_cut_info(i,e).elemno;
+                     
+                    % Establish which nodes are "postively" enriched, and
+                    % which reside in the "negative" grain
+                    pos_g = seg_cut_info(i,e).positive_grain;
+                    neg_g = seg_cut_info(i,e).negative_grain;
+
+                    [pn_nodes] =... 
+                         get_positive_new(parent_el,pos_g,neg_g);
+
+                    % Penalty terms
+
+                    [ke_pen,id_pen] =...
+                        gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
+                        pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
+                        INTERFACE_MAP(i).endpoints);
+
+                    nlink = size(id_pen,2);
+                    %
+                    % assemble ke_pen into bigk
+                    %
+                    for m=1:nlink
+                        for n=1:nlink
+                            rbk = id_pen(m);
+                            cbk = id_pen(n);
+                            re = m;
+                            ce = n;
+                            if ((rbk ~= 0) && (cbk ~= 0))                        
+                                bigk(rbk,cbk) = bigk(rbk,cbk) + ...
+                                    penalty*ke_pen(re,ce);
+                            end
+                        end
+                    end
+
+                    % Nitsche Terms
+
+                    [ke_nit,id_nit] =...
+                        nit_stiff(node,x,y,parent_el,id_eqns,id_dof, ...
+                        pn_nodes,pos_g,neg_g,seg_cut_info(i,e).normal, ...
+                        seg_cut_info(i,e).xint,INTERFACE_MAP(i).endpoints);
+
+                    nlink = size(id_nit,2);
+                    %
+                    % assemble ke_nit into bigk
+                    %
+                    for m=1:nlink
+                        for n=1:nlink
+                            rbk = id_nit(m);
+                            cbk = id_nit(n);
+                            re = m;
+                            ce = n;
+                            if ((rbk ~= 0)  && (cbk ~= 0))                      
+                                bigk(rbk,cbk) = bigk(rbk,cbk)...
+                                    - ke_nit(re,ce) - ke_nit(ce,re);
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        % clear some temporary variables
+        clear rbk cbk re ce m n nlink ke_pen parent_el pos_g neg_g i e ...
+            id_pen ke_nit id_nit;
+        
+    otherwise
+        error('MATLAB:XFEM:UnvalidID',...
+            'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
+end;
 % ----------------------------------------------------------------------- %
 
 % LOOP OVER "ENRICHED SURFACES" AND APPLY BCS THERE
@@ -396,16 +538,24 @@ disp('solving ...');
 
 switch IFSolverType
     case 0                          % explicit solver
-        disp('Solver: explicit');
-        fdisp = big_force'/bigk;
+        disp('    Solver: explicit');
+        disp(['    Condition number in L1-norm:  ' num2str(condest(bigk))]);
+        fdisp = big_force'/bigk;    % fdisp is a row-vector
     case 1                          % implicit solver (Newton-scheme)
         disp('Solver: implicit');
+        
         % implizit solving via a Newton-Raphson-Scheme
+        % set some default values (if they are not set via input file)
         if IFmaxiter==1;maxiter = 25;end;  % set 'maxiter=25' (default)
         if IFconvtol==0;convtol = 1.0e-5;end;% set 'convtols=1e-5' (default)
+        
+        % initialize some variables
         solu = zeros(size(big_force));            % set a start vector
         iter = 0;                                 % iteration index for newton-scheme
+        
+        % store old solution to enable update
         old_solu = solu;
+        
         while 1         % maximum number of iterations = maxiter
             % add '1' to the iteration index
             iter = iter + 1;
@@ -432,7 +582,7 @@ switch IFSolverType
                     'Newton did not converge in %d iterations.', IFmaxiter);
             end;
         end;
-        fdisp = solu;
+        fdisp = solu';      % fdisp is a row-vector
         
         % clear some temporary variables
         clear solu step_info delta old_solu iter;
@@ -469,29 +619,78 @@ for i = 1:numnod
     dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
 end
 
-% extract vector with lagrange multipliers from 'fdisp'
-lagmult = fdisp(end-2*multipliers+1:end);
+% computing the internal forces in the interface depends on the method of
+% constraint enforcing
+switch IFmethod 
+    case 0              % Lagrange multipliers
+        % extract vector with lagrange multipliers from 'fdisp'
+        lagmult = fdisp(end-2*multipliers+1:end);
 
-% assign lagrange multipliers into 'seg_cut_info'
-% a subsegment is defined uniquely by interface and element ID
-% loop over interfaces 'i' and elements 'e'
-for i = 1:size(seg_cut_info,1)      % every interface 'i'
-    for e = 1:size(seg_cut_info,2)  % every element 'e'
-        % initialize variable for lagrange multiplier in 'seg_cut_info'
-        seg_cut_info(i,e).lagmult = [];
-        if isempty(seg_cut_info(i,e).elemno)==0   % only, if element is cut by 'i'
-            eleID = seg_cut_info(i,e).elemno;
-        
-            % find row in 'lagmult', that suits to current interface 'e'
-            % and to the element, that is cut by 'i'
-            index = find(lag_surf(:,2)==i & lag_surf(:,3)==eleID);
-            seg_cut_info(i,e).lagmult = [lagmult(index)];
+        % assign lagrange multipliers into 'seg_cut_info'
+        % a subsegment is defined uniquely by interface and element ID
+        % loop over interfaces 'i' and elements 'e'
+
+        for i = 1:size(seg_cut_info,1)      % every interface 'i'
+            for e = 1:size(seg_cut_info,2)  % every element 'e'
+                % initialize variable for lagrange multiplier in 'seg_cut_info'
+                seg_cut_info(i,e).lagmult = [];
+                
+                if isempty(seg_cut_info(i,e).elemno)==0   % only, if element is cut by 'i'
+                    eleID = seg_cut_info(i,e).elemno;
+
+                    % find row in 'lagmult', that suits to current interface 'e'
+                    % and to the element, that is cut by 'i'
+                    index = find(lag_surf(:,2)==i & lag_surf(:,3)==eleID);
+                    seg_cut_info(i,e).lagmult = lagmult(index);
+                 end;
+            end;
         end;
-    end;
-end;
 
-% clear some temporary variables
-clear eleID c ia ib A B index;
+        % clear some temporary variables
+        clear eleID index i e;
+        
+    case 1                  % Penalty method
+        % Compute Lagrange multipliers via 'lambda = alpha * [[u]]'
+        
+        %initialize
+        lagmult = [];
+        
+        for i = 1:size(seg_cut_info,1)     % for every interface
+            for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+                % initialize variable for lagrange multiplier in 'seg_cut_info'
+                seg_cut_info(i,e).lagmult = [];
+                
+                if seg_cut_info(i,e).elemno ~= -1
+
+                    parent_el = seg_cut_info(i,e).elemno;
+
+                    % Establish which nodes are "postively" enriched, and
+                    % which reside in the "negative" grain
+                    pos_g = seg_cut_info(i,e).positive_grain;
+                    neg_g = seg_cut_info(i,e).negative_grain;
+
+                    [pn_nodes] =... 
+                         get_positive_new(parent_el,pos_g,neg_g);
+        
+                     seg_cut_info(i,e).lagmult = ...
+                         get_lag_mults_for_penalty(node,x,y,parent_el, ...
+                         id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
+                         seg_cut_info(i,e).xint, ...
+                         INTERFACE_MAP(i).endpoints,penalty,fdisp);
+                     
+                     lagmult = [lagmult; seg_cut_info(i,e).lagmult];
+                end;
+            end;
+        end;
+                     
+        % clear some temporary variables
+        clear pn_nodes neg_g pos_g i e parent_el;
+          
+    case 2                  % Nitsche's method
+    otherwise
+        error('MATLAB:XFEM:UnvalidID',...
+            'Unvalid method ID. Choose a valid ID or add an additional case to switch-case-structure.');
+end;
 % ----------------------------------------------------------------------- %
 
 % POST-PROCESS
