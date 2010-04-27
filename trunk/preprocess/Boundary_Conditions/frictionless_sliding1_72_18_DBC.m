@@ -13,6 +13,7 @@ dispbc = zeros(2,numnod);
 % x fixed displacements
 for i=1:19
     dispbc(1,i) = 1;
+    dispbc(2,i) = 1;
 end;
 
 % y fixed displacements
@@ -20,4 +21,5 @@ dispbc(2,10) = 1;    % Center on left edge of domain
 
 
 % Right hand side - displacement boundary conditions
+% dispbc(2,447) = 1;  % Center on right edge of domain
 dispbc(2,1378) = 1;  % Center on right edge of domain

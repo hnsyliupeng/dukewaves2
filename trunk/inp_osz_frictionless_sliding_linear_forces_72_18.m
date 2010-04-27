@@ -1,13 +1,16 @@
-% Input File 'inp_patchtest_4_1.m'
+% Input File 'inp_frictionless_sliding1_72_18.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Rectangle. Length x Heigth = 16 x 4. Mesh 4 x 1. Same Material in every
-% grain (E = 1000.0, nue = 0.3). Constant load on right side, pulling in
-% x-direction. Left side fixed. 3 grains.
+% frictionless sliding: rectangular domain with interface with frictionless
+% sliding. Left part of the domain fixed, right part of the domain is
+% pulled in x-direction with parabolic hatshaped forces. Left part with 
+% poisson = 0.0, right part with poisson = 0.3. Transversal deformation of 
+% right part causes jump in displacement field at the interface. Length x 
+% Height = 16 x 4. Elements 72 x 18. Oszillations expected.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -24,7 +27,6 @@
 % ID    Description
 % 0     structured
 % 1     unstructured
-% 2     read mesh from gmsh-mesh-file '*.msh'
 IFmeshstructure = 0;
 %
 % Shape of geometry: 'IFshapegeometryID'
@@ -38,19 +40,15 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 4;
-IFnldivy = 1;
-%
-% filename of msh-file withput file extension '.msh'
-% (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
+IFnldivx = 72;
+IFnldivy = 18;
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;
+IFdatasetp = 13;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -74,7 +72,7 @@ IFdatasetp = 11;
 % 12    patchtest_72_18_DBC.m
 % 13    patchtest_4_1_DBC.m
 % 14    patchtest_392_18_DBC.m
-IFDirichletBCs = 13;
+IFDirichletBCs = 8;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -93,32 +91,20 @@ IFDirichletBCs = 13;
 % 12    patchtest_72_18_NBC.m
 % 13    patchtest_4_1_NBC.m
 % 14    patchtest_392_98_NBC.m
-IFNeumannBCs = 13;
+% 15    hatshaped_x_forces_72_18_NBC.m
+% 16    parabolic_x_forces_72_18_NBC.m
+IFNeumannBCs = 15;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
-% 0     24 grains with same material properties (nue = 0.3, E = 1000.0)
+% 0     all grains with same properties (nue = 0.3, E = 1000.0)
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
-IFMatSet = 3;
-%--------------------------------------------------------------------------
-% METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
-% Set an ID to choose the method, by which the constrains shall be enforced
-% at the interface
-% ID    Method
-% 0     Lagrange Multipliers
-% 1     Penalty-Method
-% 2     Nitsche's Method
-IFmethod = 0;
-%
-% Set Penalty-Parameter
-IFpenalty = 5.0e+5;
-%
-% Nitsche Parameter
-IFnitsche = 0;
+% 4     3 grains with different material properties
+IFMatSet = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -128,7 +114,7 @@ IFnitsche = 0;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 1; 
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -162,9 +148,6 @@ disp(['IFDirichletBCs:      ' num2str(IFDirichletBCs)]);
 disp(['IFNeumannBCs:        ' num2str(IFNeumannBCs)]);
 disp(['IFMatSet:            ' num2str(IFMatSet)]);
 disp(['IFsliding_switch:    ' num2str(IFsliding_switch)]);
-disp(['IFmethod:            ' num2str(IFmethod)]);
-disp(['IFpenalty:           ' num2str(IFpenalty)]);
-disp(['IFnitsche:           ' num2str(IFnitsche)]);
 disp(['IFSolverType:        ' num2str(IFSolverType)]);
 disp(['IFmaxiter:           ' num2str(IFmaxiter)]);
 disp(['IFconvtol:           ' num2str(IFconvtol)]);
@@ -179,12 +162,10 @@ filename3 = fullfile(pwd, 'XFEM', 'xfeminputdata_xfem.mat');
 save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
-save(filename3, 'IFsliding_switch','IFmethod','IFpenalty','IFnitsche',...
-    'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+save(filename3, 'IFsliding_switch','IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-    IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-    IFmaxiter IFconvtol;
+    IFsliding_switch IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

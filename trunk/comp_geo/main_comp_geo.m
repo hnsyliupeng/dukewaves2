@@ -416,6 +416,12 @@ clear flag grn_m grn_n sub_elno_m sub_elno_n a b;
 
 % ----------------------------------------------------------------------- %
 
+% scale axes of plotted mesh
+ax_x = (max(X) - min(X))/max(X);
+ax_y = (max(Y) - min(Y))/max(Y);
+axis([min(X)-ax_x max(X)+ax_x min(Y)-ax_y max(Y)+ax_y]);
+clear ax_x ax_y;
+
 % SAVE DATA AS AN INPUT FILE
 save my_new_mesh.mat x y node X Y CONN ELEMINFO_ARR NODEINFO_ARR...
     SUBELEMENT_GRAIN_MAP beam_h beam_l cutlist elemgrainmap maxngrains...

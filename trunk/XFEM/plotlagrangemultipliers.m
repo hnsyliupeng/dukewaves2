@@ -12,6 +12,10 @@
 maxlambda = max(lagmult);
 minlambda = min(lagmult);
 
+if maxlambda == minlambda
+    minlambda = 0.999999 * maxlambda;
+end;
+
 % scale the colormap
 V = [minlambda maxlambda];
 colmap = colormap(jet(100));
@@ -23,10 +27,13 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         % create a new figure with three subplots
         figure(1);      
         subplot(311)    % absolute values of lagrange multipliers
+        colorbar;
         axis equal;
         subplot(312);   % lagrange multipliers in normal direction
+        colorbar;
         axis equal;
         subplot(313);   % lagrange multipliers in tangential direction
+        colorbar;
         axis equal;
         hold on;
                 
@@ -190,6 +197,7 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         title('normal direction');
         xlabel('x-coordinate');
         ylabel('y-coordinate');
+        colorbar;
         
         % plot mesh for a better impression of geometry
         hold on
