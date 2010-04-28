@@ -1,6 +1,6 @@
 % NBCs
 
-load = 100;
+load = 10;
 
 % Right hand side - parabolic distribution
 

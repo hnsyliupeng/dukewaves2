@@ -1,6 +1,7 @@
 function [ke_pen,id] =... 
     gen_penalty(node,x,y,parent,id_eqns,id_dof,...
-                 pn_nodes,pos_g,neg_g,intersection,endpoints);
+                 pn_nodes,pos_g,neg_g,intersection,endpoints,normal, ...
+                 IFsliding_switch)
 
 
 % Initialize
@@ -137,10 +138,30 @@ end
 for c = 1:6
     N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
 end
-    
-ke_pen = (N'*N);
 
 
+% treatment of different sliding cases
+switch IFsliding_switch
+    case 0              % no sliding at all (fully constrained)
+        % compute ke_pen
+        ke_pen = (N'*N);
+    case 1              % frictionless sliding
+        % dot 'N' with the normal vector 'normal'
+        N = N' * normal; 
+        
+        % compute ke_pen
+        ke_pen = (N * N');
+    case 2              % perfect plasticity
+        warning('MATLAB:XFEM:main_xfem',...
+            'There exists no code for perfect plasticity, yet.')
+    case 3              % frictional contact (Coulomb)
+        warning('MATLAB:XFEM:main_xfem',...
+            'There exists no code for frictional contact (Coulomb), yet.')
+    otherwise
+        warning('MATLAB:XFEM:main_xfem',...
+            'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+end;
+        
 % Build id array
 nodes = node(:,parent);
 id(1) = id_eqns(nodes(1),3);  % 1st extra x dof
