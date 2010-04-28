@@ -8,6 +8,16 @@
 
 % Author: Matthias Mayr (04/2010)
     
+% get maximum dimensions of domain
+xmax = max(X);
+xmin = min(X);
+ymax = max(Y);
+ymin = min(Y);
+
+% scale axes of plotted mesh
+ax_x = (max(X) - min(X))/max(X);
+ax_y = (max(Y) - min(Y))/max(Y);
+
 % get max and min lagrange multipllier to scale the color range
 maxlambda = max(lagmult);
 minlambda = min(lagmult);
@@ -27,14 +37,20 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         % create a new figure with three subplots
         figure(1);      
         subplot(311)    % absolute values of lagrange multipliers
+        caxis(V);
         colorbar;
-        axis equal;
+        axis([xmin-ax_x xmax+ax_x ymin-ax_y ymax+ax_y]);
+%         axis equal;
         subplot(312);   % lagrange multipliers in normal direction
+        caxis(V);
         colorbar;
-        axis equal;
+        axis([xmin-ax_x xmax+ax_x ymin-ax_y ymax+ax_y]);
+%         axis equal;
         subplot(313);   % lagrange multipliers in tangential direction
+        caxis(V);
         colorbar;
-        axis equal;
+        axis([xmin-ax_x xmax+ax_x ymin-ax_y ymax+ax_y]);
+%         axis equal;
         hold on;
                 
         % set figure window title
@@ -185,8 +201,6 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         end;    
             
     case 1                      % frictionless sliding
-        % For frictionless sliding, only one equation per constraint will
-        % be added to 'bigk'. So, some indices change. 
         % Due to the frictionless sliding, there is no tangential lagrange
         % multiplier. So, only one plot will be generated.
         
@@ -197,8 +211,9 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         title('normal direction');
         xlabel('x-coordinate');
         ylabel('y-coordinate');
+        axis([xmin-ax_x xmax+ax_x ymin-ax_y ymax+ax_y]);
         colorbar;
-        
+
         % plot mesh for a better impression of geometry
         hold on
         for e=1:numele
@@ -207,13 +222,13 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
            plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
                'Color',[0.9 0.9 0.9],'LineWidth',0.1)
         end;
-            
+
         % loop over all interfaces
         for i = 1:size(seg_cut_info,1)      % every interface 'i'
             for e = 1:size(seg_cut_info,2)  % every cut element 'e' in 
                                             % interface 'i'
                 if isempty(seg_cut_info(i,e).lagmult)==0    %only,if lagrange multiplier exists
-                
+
                     % get 2 points, that determine the subsegment
                     if all(size(seg_cut_info(i,e).xint) == [2 2])       % no triple junction in 'e'
                         p1 = seg_cut_info(i,e).xint(1,:);
@@ -255,9 +270,7 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
                     lag = seg_cut_info(i,e).lagmult;
 
                     % compute absolute value, normal and tangential value
-%                     lag_val = norm(lag);
                     lag_normal = lag * seg_cut_info(i,e).normal;
-%                     lag_tang = lag * seg_cut_info(i,e).tangent;
 
                     % define line color (scaled to lagrange multiplier
                     colindex = ...
@@ -274,7 +287,7 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
                     line(xcoord,ycoord,'Color',linecolor,'LineWidth',3);
                 end;
             end;
-        end;    
+        end;  
     otherwise
         error('MATLAB:XFEM:UnvalidID',...
             'Unvalid sliding ID. Choose a valid ID or add an addition case to switch-case-structure.');

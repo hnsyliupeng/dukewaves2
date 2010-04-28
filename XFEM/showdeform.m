@@ -13,9 +13,9 @@ set(h,'MarkerSize',4)
 % axis([-1 21 -7 7]);
 
 % scale axes of plotted mesh
-ax_x = (max(X) - min(X))/max(X);
-ax_y = (max(Y) - min(Y))/max(Y);
-axis([min(X)-ax_x max(X)+ax_x min(Y)-ax_y max(Y)+ax_y]);
+ax_x = (max(x_def) - min(x_def))/max(x_def);
+ax_y = (max(y_def) - min(y_def))/max(y_def);
+axis([min(x_def)-ax_x max(x_def)+ax_x min(y_def)-ax_y max(y_def)+ax_y]);
 clear ax_x ax_y;
 
 % hold on

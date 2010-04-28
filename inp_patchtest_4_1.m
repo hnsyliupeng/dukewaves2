@@ -50,7 +50,7 @@ IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;
+IFdatasetp = 15;%11;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -112,10 +112,10 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+5;
+IFpenalty = 5.0e+8;
 %
 % Nitsche Parameter
 IFnitsche = 0;

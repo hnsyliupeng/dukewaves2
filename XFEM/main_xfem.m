@@ -117,25 +117,119 @@ numeqns = max(max(id_eqns));
 
 disp('assembling stiffness ...');
 
+% 'old_size' is the number of base-DOFs plus number of enriched DOFs 
+old_size = numeqns;
+
+% initialize the total number of extra added equations
+multipliers = 0;
 
 % add extra equations only for Lagrange multipliers
 if IFmethod == 0
-    % initialize the total number of extra added equations
-    multipliers = 0;
-
     % Every subsegment adds two extra equations
-     for i = 1:size(seg_cut_info,1)     % for every interface
-         for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-             if seg_cut_info(i,e).elemno ~= -1
+    for i = 1:size(seg_cut_info,1)     % for every interface
+        for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+            if seg_cut_info(i,e).elemno ~= -1
                 multipliers = multipliers + 1;  % Count total number of multipliers
-             end
-         end
-     end
-
-    old_size = numeqns;
-
+            end
+        end
+    end
+    
+    % update number of equations 'numeqns'
     numeqns = numeqns + 2*multipliers;
 end;
+
+
+
+% add extra equations to enforce DBCs on enriched nodes via Lagrange
+% multipliers
+% get nodes with x- and y-DBCs
+DOFs_x_DBCs = find(dispbc(1,:) ~= 0);
+DOFs_y_DBCs = find(dispbc(2,:) ~= 0);
+
+% get enriches nodes with x- and y-DBCs
+enr_DOFs_x_DBCs = find(id_eqns(DOFs_x_DBCs,3) ~= 0);
+enr_DOFs_y_DBCs = find(id_eqns(DOFs_y_DBCs,4) ~= 0);
+
+enr_DOFs_x_DBCs2 = find(id_eqns(DOFs_x_DBCs,5) ~= 0);
+enr_DOFs_y_DBCs2 = find(id_eqns(DOFs_y_DBCs,6) ~= 0);
+
+% add one equation per DBC on an enriched node, but only, if this node lies
+% in an enriched grain.
+%
+% initialize
+extra_eqns_DBCx = 0;    % number of extra equations for x-DOFs as first enrichments
+extra_eqns_DBCx2 = 0;   % number of extra equations for x-DOFs as second enrichments
+extra_eqns_DBCy = 0;    % number of extra equations for y-DOFs as first enrichments
+extra_eqns_DBCy2 = 0;   % number of extra equations for y-DOFs as second enrichments
+
+% following variables store in following 3 values
+% 1. column: global number of base DOF
+% 2. column: global number of enriched DOF
+% 3. column: global ID of enriched node
+extra_constr_x = [];    % stores DOFs, that have to be constrained in the extra equations
+extra_constr_x2 = [];   % stores DOFs, that have to be constrained in the extra equations
+extra_constr_y = [];    % stores DOFs, that have to be constrained in the extra equations
+extra_constr_y2 = [];   % stores DOFs, that have to be constrained in the extra equations
+for i=1:length(enr_DOFs_x_DBCs)
+    % get global node ID
+    tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs(i));
+    
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,3)
+        % node lies in the grain, by which it is enriched --> add an
+        % equation
+        extra_eqns_DBCx = extra_eqns_DBCx + 1;
+        extra_constr_x = ...
+            [extra_constr_x; id_eqns(tempnode,1) id_eqns(tempnode,3) tempnode];
+    end;
+end;
+for i=1:length(enr_DOFs_x_DBCs2)
+    % get global node ID
+    tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs2(i));
+    
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,5)
+        % node lies in the grain, by which it is enriched --> add an
+        % equation
+        extra_eqns_DBCx = extra_eqns_DBCx2 + 1;
+        extra_constr_x2 = ...
+            [extra_constr_x2; id_eqns(tempnode,1) id_eqns(tempnode,5) tempnode];
+    end;
+end;
+for i=1:length(enr_DOFs_y_DBCs)
+    % get global node ID
+    tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs(i));
+    
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,4)
+        % node lies in the grain, by which it is enriched --> add an
+        % equation
+        extra_eqns_DBCy = extra_eqns_DBCy + 1;
+        extra_constr_y = ...
+            [extra_constr_y; id_eqns(tempnode,2) id_eqns(tempnode,4) tempnode];
+    end;
+end;
+for i=1:length(enr_DOFs_x_DBCs2)
+    % get global node ID
+    tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs2(i));
+    
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,6)
+        % node lies in the grain, by which it is enriched --> add an
+        % equation
+        extra_eqns_DBCy = extra_eqns_DBCy2 + 1;
+        extra_constr_y2 = ...
+            [extra_constr_y2; id_eqns(tempnode,2) id_eqns(tempnode,6) tempnode];
+    end;
+end;
+
+% extra_eqns_DBC = length(enr_DOFs_x_DBCs) + length(enr_DOFs_y_DBCs) + ...
+%     length(enr_DOFs_x_DBCs2) + length(enr_DOFs_y_DBCs2);
+extra_eqns_DBC = extra_eqns_DBCx + extra_eqns_DBCx2 + extra_eqns_DBCy ...
+    + extra_eqns_DBCy2;
+numeqns = numeqns + extra_eqns_DBC;
+
+
 
 % Allocate size of the stiffness matrix
 %bigk = zeros(numeqns);
@@ -308,7 +402,8 @@ switch IFmethod
                     [ke_pen,id_pen] =...
                         gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
                         pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
-                        INTERFACE_MAP(i).endpoints);
+                        INTERFACE_MAP(i).endpoints, ...
+                        seg_cut_info(i,e).normal,IFsliding_switch);
 
                     nlink = size(id_pen,2);
                     %
@@ -510,7 +605,207 @@ end
 
 % clear some temporary variables
 clear m m2 m3 temp;
-  
+
+% ----------------------------------------------------------------------- %
+% ADD CONASTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHES
+% NODES
+% Order of assembly:
+%   1. x-DBCs of first enriched nodes
+%   2. y-DBCs of first enriched nodes
+%   3. x-DBCs of second enriched nodes (if existing)
+%   4. y-DBCs of second enriched nodes (if existing)
+
+% x-DBCs (first enrichment)
+for i=1:size(extra_constr_x,1)
+    % get global base dof 'b_dof' and global enriched dof 'e_dof'
+    b_dof = extra_constr_x(i,1);
+    e_dof = extra_constr_x(i,2);
+    
+    % put in extra equation as row-equation
+    rbk = old_size + 2*multipliers + i;
+    bigk(rbk,b_dof) = 1.0;
+    bigk(rbk,e_dof) = 1.0;
+    
+    % put in extra equation as column-equation (as transpose)
+    bigk(b_dof,rbk) = 1.0;
+    bigk(e_dof,rbk) = 1.0;
+    
+    % set value for prescribed displacement
+    big_force(rbk) = ubar(1,extra_constr_x(i,3));
+end;
+
+% y-DBCs (first enrichment)
+for i=1:size(extra_constr_y,1)
+    % get global base dof 'b_dof' and global enriched dof 'e_dof'
+    b_dof = extra_constr_y(i,1);
+    e_dof = extra_constr_y(i,2);
+    
+    % put in extra equation as row-equation
+    rbk = old_size + 2*multipliers + extra_eqns_DBCx + i;
+    bigk(rbk,b_dof) = 1.0;
+    bigk(rbk,e_dof) = 1.0;
+    
+    % put in extra equation as column-equation (as transpose)
+    bigk(b_dof,rbk) = 1.0;
+    bigk(e_dof,rbk) = 1.0;
+    
+    % set value for prescribed displacement
+    big_force(rbk) = ubar(2,extra_constr_y(i,3));
+end;
+
+% x-DBCs (second enrichment)
+for i=1:size(extra_constr_x2,1)
+    % get global base dof 'b_dof' and global enriched dof 'e_dof'
+    b_dof = extra_constr_x2(i,1);
+    e_dof = extra_constr_x2(i,2);
+    
+    % put in extra equation as row-equation
+    rbk = old_size + 2*multipliers + extra_eqns_DBCx + extra_eqns_DBCy + i;
+    bigk(rbk,b_dof) = 1.0;
+    bigk(rbk,e_dof) = 1.0;
+    
+    % put in extra equation as column-equation (as transpose)
+    bigk(b_dof,rbk) = 1.0;
+    bigk(e_dof,rbk) = 1.0;
+    
+    % set value for prescribed displacement
+    big_force(rbk) = ubar(1,extra_constr_x2(i,3));
+end;
+
+% y-DBCs (second enrichment)
+for i=1:size(extra_constr_y2,1)
+    % get global base dof 'b_dof' and global enriched dof 'e_dof'
+    b_dof = extra_constr_y2(i,1);
+    e_dof = extra_constr_y2(i,2);
+    
+    % put in extra equation as row-equation
+    rbk = old_size + 2*multipliers + extra_eqns_DBCx + ...
+        extra_eqns_DBCx + extra_eqns_DBCy + extra_eqns_DBCx2 + i;
+    bigk(rbk,b_dof) = 1.0;
+    bigk(rbk,e_dof) = 1.0;
+    
+    % put in extra equation as column-equation (as transpose)
+    bigk(b_dof,rbk) = 1.0;
+    bigk(e_dof,rbk) = 1.0;
+    
+    % set value for prescribed displacement
+    big_force(rbk) = ubar(2,extra_constr_y2(i,3));
+end;
+
+% x-DBCs (first enrichment)
+% for i=1:length(enr_DOFs_x_DBCs)
+%     % get global node ID
+%     tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs(i));
+%     
+%     % only, if the node lies in the grain, by which it is enriched
+%     if nodegrainmap(tempnode) ==  id_dof(tempnode,3)
+%         % node lies in the grain, by which it is enriched --> add an
+%         % equation
+%             
+%         m = id_eqns(DOFs_x_DBCs(enr_DOFs_x_DBCs(i)),3);
+%         n = id_eqns(DOFs_x_DBCs(enr_DOFs_x_DBCs(i)),1);
+% 
+%         % base DOFs
+%         bigk(old_size + 2*multipliers + i,n) = 1.0;
+%         bigk(n,old_size + 2*multipliers + i) = 1.0;
+% 
+%         % extra DOFs
+%         bigk(old_size + 2*multipliers + i,m) = 1.0;
+%         bigk(m,old_size + 2*multipliers + i) = 1.0;
+% 
+%         % big_force
+%         big_force(old_size + 2*multipliers + i) = ...
+%             ubar(1,DOFs_x_DBCs(enr_DOFs_x_DBCs(i)));
+%     end;
+% end;
+
+% % y-DBCs (first enrichment)
+% for i=1:length(enr_DOFs_y_DBCs)
+%     % get global node ID
+%     tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs(i));
+%     
+%     % only, if the node lies in the grain, by which it is enriched
+%     if nodegrainmap(tempnode) ==  id_dof(tempnode,4)
+%         % node lies in the grain, by which it is enriched --> add an
+%         % equation
+%         m = id_eqns(DOFs_y_DBCs(enr_DOFs_y_DBCs(i)),4);
+%         n = id_eqns(DOFs_y_DBCs(enr_DOFs_y_DBCs(i)),2);
+% 
+%         % base DOFs
+%         bigk(old_size + 2*multipliers + extra_eqns_DBCx + i,n) = 1.0;
+%         bigk(n,old_size + 2*multipliers + extra_eqns_DBCx + i) = 1.0;
+% 
+%         % extra DOFs
+%         bigk(old_size + 2*multipliers + extra_eqns_DBCx + i,m) = 1.0;
+%         bigk(m,old_size + 2*multipliers + extra_eqns_DBCx + i) = 1.0;
+% 
+%         % big_force
+%         big_force(old_size + 2*multipliers + extra_eqns_DBCx + i) = ...
+%             ubar(2,DOFs_y_DBCs(enr_DOFs_y_DBCs(i)));
+%     end;
+% end;
+% 
+% % x-DBCs (second enrichment)
+% for i=1:length(enr_DOFs_x_DBCs2)
+%     % get global node ID
+%     tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs2(i));
+%     
+%     % only, if the node lies in the grain, by which it is enriched
+%     if nodegrainmap(tempnode) ==  id_dof(tempnode,5)
+%         % node lies in the grain, by which it is enriched --> add an
+%         % equation
+%             
+%         m = id_eqns(DOFs_x_DBCs(enr_DOFs_x_DBCs2(i)),5);
+%         n = id_eqns(DOFs_x_DBCs(enr_DOFs_x_DBCs2(i)),1);
+% 
+%         % base DOFs
+%         bigk(old_size + 2*multipliers + i,n) = 1.0;
+%         bigk(n,old_size + 2*multipliers + i) = 1.0;
+% 
+%         % extra DOFs
+%         bigk(old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + i,m) = 1.0;
+%         bigk(m,old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy+ i) = 1.0;
+% 
+%         % big_force
+%         big_force(old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + i) = ubar(1,DOFs_x_DBCs(enr_DOFs_x_DBCs(i)));
+%     end;
+% end;
+% 
+% % y-DBCs (second enrichment)
+% for i=1:length(enr_DOFs_y_DBCs2)
+%     % get global node ID
+%     tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs2(i));
+%     
+%     % only, if the node lies in the grain, by which it is enriched
+%     if nodegrainmap(tempnode) ==  id_dof(tempnode,6)
+%         % node lies in the grain, by which it is enriched --> add an
+%         % equation
+%         m = id_eqns(DOFs_y_DBCs(enr_DOFs_y_DBCs2(i)),6);
+%         n = id_eqns(DOFs_y_DBCs(enr_DOFs_y_DBCs2(i)),2);
+% 
+%         % base DOFs
+%         bigk(old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + extra_eqns_DBCx2 + i,n) = 1.0;
+%         bigk(n,old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + extra_eqns_DBCx2 + i) = 1.0;
+% 
+%         % extra DOFs
+%         bigk(old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + extra_eqns_DBCx2 + i,m) = 1.0;
+%         bigk(m,old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + extra_eqns_DBCx2+ i) = 1.0;
+% 
+%         % big_force
+%         big_force(old_size + 2*multipliers + extra_eqns_DBCx + ...
+%             extra_eqns_DBCy + extra_eqns_DBCx2 + i) = ...
+%             ubar(2,DOFs_y_DBCs(enr_DOFs_y_DBCs(i)));
+%     end;
+% end;
+
+
 % ----------------------------------------------------------------------- %
 % FIX NONPHYSICAL NODES (due to gmsh-meshes)
 
@@ -678,7 +973,7 @@ switch IFmethod
                          seg_cut_info(i,e).xint, ...
                          INTERFACE_MAP(i).endpoints,penalty,fdisp);
                      
-                     lagmult = [lagmult; seg_cut_info(i,e).lagmult];
+                     lagmult = [lagmult seg_cut_info(i,e).lagmult];
                 end;
             end;
         end;
