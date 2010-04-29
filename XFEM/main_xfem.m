@@ -824,6 +824,26 @@ clear dofvec_temp;
 
 % ----------------------------------------------------------------------- %
 
+
+% delete the following lines
+bigk(3,:) = 0;
+bigk(4,:)=0;
+bigk(:,3)=0;
+bigk(:,4)=0;
+bigk(3,3)=1.0;
+bigk(4,4)=1.0;
+
+bigk(1,:) = 0;
+bigk(2,:)=0;
+bigk(:,1)=0;
+bigk(:,2)=0;
+bigk(1,1)=1.0;
+bigk(2,2)=1.0;
+big_force(1)=0;
+big_force(2)=0;
+
+
+
 % LINEAR SOLVE AND RE-ASSEMBLE SOLUTION 
 
 % solve stiffness equations
@@ -921,7 +941,7 @@ end
 switch IFmethod 
     case 0              % Lagrange multipliers
         % extract vector with lagrange multipliers from 'fdisp'
-        lagmult = fdisp(end-2*multipliers+1:end);
+        lagmult = fdisp(old_size+1:old_size + 2*multipliers);
 
         % assign lagrange multipliers into 'seg_cut_info'
         % a subsegment is defined uniquely by interface and element ID

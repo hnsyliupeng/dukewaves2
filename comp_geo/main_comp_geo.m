@@ -167,9 +167,16 @@ for i = 1:size(vx,2)
     
 end
 
+% store this information into 'INTERFACE_MAP', too.
+for i=1:size(interface_grains,2)
+    INTERFACE_MAP(1,i).grains = interface_grains(i).grains;
+end;
+
+
 % clear some temporary variables
 clear distance_vec1 distance_vec2 distance_vec_index temp_grains count ...
-    our_grains1 our_grains2  pxtemp pytemp xtemp1 xtemp2 ytemp1 ytemp2;
+    our_grains1 our_grains2  pxtemp pytemp xtemp1 xtemp2 ytemp1 ytemp2 ...
+    i new_distance_vec;
 
 % -------------------------------------------
 
@@ -426,7 +433,7 @@ clear ax_x ax_y;
 save my_new_mesh.mat x y node X Y CONN ELEMINFO_ARR NODEINFO_ARR...
     SUBELEMENT_GRAIN_MAP beam_h beam_l cutlist elemgrainmap maxngrains...
     nodegrainmap numele numnod p vx vy INT_INTERFACE PARENTELEM_INFO...
-    SUBELEM_INFO nonphysnodevec seg_cut_info;
+    SUBELEM_INFO nonphysnodevec seg_cut_info INTERFACE_MAP;
 
 % print message into console
 disp('Mesh generation finished. Mesh was saved to file "my_new_mesh.mat".');

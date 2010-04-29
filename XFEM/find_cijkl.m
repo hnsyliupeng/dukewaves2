@@ -1,3 +1,16 @@
+% find_cijkl.m
+%
+% CALL: find_cijkl(grn)
+%
+% Returns the constitutive tensor 'cijkl' for grain 'grn'.
+%
+% Input parameters:
+%   grn             global grain ID
+%
+% Returned variables:
+%   cijkl           constitutive tensor of grain 'grn' (4-tensor)
+%
+
 function [cijkl] = find_cijkl(grn)
 
 global GRAININFO_ARR
