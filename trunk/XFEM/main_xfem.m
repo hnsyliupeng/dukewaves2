@@ -397,8 +397,8 @@ switch IFmethod
                     [pn_nodes] =... 
                          get_positive_new(parent_el,pos_g,neg_g);
 
-                    % Penalty terms
 
+                    % Penalty terms
                     [ke_pen,id_pen] =...
                         gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
                         pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
@@ -450,12 +450,13 @@ switch IFmethod
                     [pn_nodes] =... 
                          get_positive_new(parent_el,pos_g,neg_g);
 
+          
                     % Penalty terms
-
                     [ke_pen,id_pen] =...
                         gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
                         pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
-                        INTERFACE_MAP(i).endpoints);
+                        INTERFACE_MAP(i).endpoints, ...
+                        seg_cut_info(i,e).normal,IFsliding_switch);                    
 
                     nlink = size(id_pen,2);
                     %
@@ -475,12 +476,13 @@ switch IFmethod
                     end
 
                     % Nitsche Terms
-
                     [ke_nit,id_nit] =...
                         nit_stiff(node,x,y,parent_el,id_eqns,id_dof, ...
                         pn_nodes,pos_g,neg_g,seg_cut_info(i,e).normal, ...
-                        seg_cut_info(i,e).xint,INTERFACE_MAP(i).endpoints);
-
+                        seg_cut_info(i,e).xint,...
+                        INTERFACE_MAP(i).endpoints,IFsliding_switch);
+                
+                        
                     nlink = size(id_nit,2);
                     %
                     % assemble ke_nit into bigk
@@ -1010,7 +1012,8 @@ for e=1:numele
 %     [stresse] = post_process(node,x,y,e,dis);
 %     stress(e,1:6) = stresse;
         
-    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp,id_dof,cutlist,maxngrains);
+    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp, ...
+        id_dof,cutlist,maxngrains,INT_INTERFACE);
     stress(e,1:6,:) = stresse;
     strain(e,1:6,:) = straine;
 end

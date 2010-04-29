@@ -112,7 +112,7 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;

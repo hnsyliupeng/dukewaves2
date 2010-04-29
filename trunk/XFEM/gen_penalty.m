@@ -1,3 +1,31 @@
+% gen_penalty.m
+%
+% Computes the penalty-contribution to the global stiffnes matrix for
+% element 'parent'. Also, an id-array for assembly is computed.
+%
+% Input arguments:
+%   node                mapping between elements and their nodes
+%   x                   x-coordinates of all nodes
+%   y                   y-coordinates of all nodes
+%   parent              global element ID of current element
+%   id_eqns             mapping between nodes and global DOFs
+%   id_dof              shows, if a node is enriched or not
+%   pn_nodes            information about "positive" or "negative"
+%                       enrichment
+%   pos_g               global ID of positively enriched grain
+%   neg_g               gloabl ID of negatively enriched grain
+%   intersection        coordinates of the intersection points of current
+%                       element (points, where the interface cuts the 
+%                       element edges)
+%   normal              normal vector to the interface
+%   IFsliding_switch    indicates, which kind of sliding is chosen
+%
+% Returned parameters
+%   ke_pen              element "stiffness" matrix for penalty contribution
+%   id                  id-array to enable assembly into global stiffnes
+%                       matrix 'bigk'
+%
+
 function [ke_pen,id] =... 
     gen_penalty(node,x,y,parent,id_eqns,id_dof,...
                  pn_nodes,pos_g,neg_g,intersection,endpoints,normal, ...
@@ -138,7 +166,6 @@ end
 for c = 1:6
     N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
 end
-
 
 % treatment of different sliding cases
 switch IFsliding_switch
