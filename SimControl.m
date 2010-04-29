@@ -23,7 +23,7 @@ EXEC_XFEM = 1;              % solve
 % to be used.
 %
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_osz_frictionless_sliding_parabolic_forces_72_18';   % NO FILE EXTENSION '.m'
+filename_input_file = 'inp_frictionless_sliding1_72_18';   % NO FILE EXTENSION '.m'
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 

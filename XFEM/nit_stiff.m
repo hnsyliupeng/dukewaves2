@@ -1,6 +1,34 @@
+% nit_stiff.m
+%
+% Computes the Nitsche contribution to the global stiffnes matrix for
+% element 'parent'. Also, an id-array for assembly is computed.
+%
+% Input arguments:
+%   node                mapping between elements and their nodes
+%   x                   x-coordinates of all nodes
+%   y                   y-coordinates of all nodes
+%   parent              global element ID of current element
+%   id_eqns             mapping between nodes and global DOFs
+%   id_dof              shows, if a node is enriched or not
+%   pn_nodes            information about "positive" or "negative"
+%                       enrichment
+%   pos_g               global ID of positively enriched grain
+%   neg_g               gloabl ID of negatively enriched grain
+%   intersection        coordinates of the intersection points of current
+%                       element (points, where the interface cuts the 
+%                       element edges)
+%   normal              normal vector to the interface
+%   IFsliding_switch    indicates, which kind of sliding is chosen
+%
+% Returned parameters
+%   ke_nit              element "stiffness" matrix for Nitsche contribution
+%   id                  id-array to enable assembly into global stiffnes
+%                       matrix 'bigk'
+%
+
 function [ke_nit,id] =...
     nit_stiff(node,x,y,parent,id_eqns,id_dof,pn_nodes,pos_g,neg_g,...
-    normal,intersection,endpoints)
+    normal,intersection,endpoints, IFsliding_switch)
 
 % ----------------------------------------------------------------------- %
 
@@ -228,6 +256,29 @@ for b = 1:6
     N(b) = N(b)*flg(b);
 end
 
+% ----------------------------------------------------------------------- %
+% TREATMENT OF SILDING
+% Depending on the chosen sliding case, the shape function matrix 'N' has
+% to be manipulated.
+switch IFsliding_switch
+    case 0              % no sliding at all (fully constrained)
+        % no maniputlation necessary
+    case 1              % frictionless sliding
+        % dot 'N' with the normal
+        sizeN = size(N)
+        sizenormal = size(normal)
+        N = N * normal;
+        sizeNnew = size(N)
+    case 2              % perfect plasticity
+        warning('MATLAB:XFEM:main_xfem',...
+            'There exists no code for perfect plasticity, yet.')
+    case 3              % frictional contact (Coulomb)
+        warning('MATLAB:XFEM:main_xfem',...
+            'There exists no code for frictional contact (Coulomb), yet.')
+    otherwise
+        warning('MATLAB:XFEM:main_xfem',...
+            'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+end;
 
 % ----------------------------------------------------------------------- %
 
