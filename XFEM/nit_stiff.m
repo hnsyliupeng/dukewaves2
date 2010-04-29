@@ -370,7 +370,7 @@ switch IFsliding_switch
         warning('MATLAB:XFEM:main_xfem',...
             'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
 end;
-ke_nit_sub
+
 ke_nit = [zeros(6,18);
           ke_nit_sub];
 

@@ -207,7 +207,7 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
         % create a new figure (no subplots due to frictionless sliding)
         figure(1);      
         hold on;
-        set(1,'Name','Lagrange multipliers (frictionless sliding');
+        set(1,'Name','Lagrange multipliers (frictionless sliding)');
         title('normal direction');
         xlabel('x-coordinate');
         ylabel('y-coordinate');
