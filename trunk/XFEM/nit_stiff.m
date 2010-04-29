@@ -257,18 +257,109 @@ for b = 1:6
 end
 
 % ----------------------------------------------------------------------- %
-% TREATMENT OF SILDING
-% Depending on the chosen sliding case, the shape function matrix 'N' has
-% to be manipulated.
+
+% Fill stiffness matrix twice, once with terms associated with the positive
+% grain and once with terms associated with the negative grain.  In each
+% case, we are creating a matrix 12x18 in dimension.
+
+ke_nit_sub = zeros(12,18);
+
+% distinguish between different sliding cases
 switch IFsliding_switch
-    case 0              % no sliding at all (fully constrained)
-        % no maniputlation necessary
+    case 0              % no sliding at all (fully tied problem)
+        % Computation via nested for-loops, since cijkl is a 4-tensor
+        % First, the positive terms.
+        for a = 1:6
+            for b = 1:9
+                for m = 1:2
+                    for n = 1:2
+
+                        p = 2*(a-1) + m;
+                        q = 2*(b-1) + n;
+
+                        for w = 1:2
+                            for v = 1:2
+                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                                  N(a)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        % Second, the negative terms.
+        for a = 1:6
+            for b = 1:9
+                for m = 1:2
+                    for n = 1:2
+
+                        p = 2*(a-1) + m;
+                        q = 2*(b-1) + n;
+
+                        for w = 1:2
+                            for v = 1:2
+                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                                  N(a)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
     case 1              % frictionless sliding
-        % dot 'N' with the normal
-        sizeN = size(N)
-        sizenormal = size(normal)
-        N = N * normal;
-        sizeNnew = size(N)
+        % Computation via nested for-loops, since cijkl is a 4-tensor.
+        % For frictionless sliding, the 'N' and 'cijkl * strain' have to be
+        % doted with the normal. 
+        
+        % Since 'N' is constructed as a row-vector here and not as a
+        % matrix, the dot product 'N dot normal' is computed before.
+        for i=1:3
+            N(i) = N(i) * normal(1);        % x-entries
+            N(i+3) = N(i+3) * normal(2);    % y-entries
+        end;
+        
+        % First, the positive terms.
+        for a = 1:6
+            for b = 1:9
+                for m = 1:2
+                    for n = 1:2
+
+                        p = 2*(a-1) + m;
+                        q = 2*(b-1) + n;
+
+                        for w = 1:2
+                            for v = 1:2
+                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                                  N(a)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+                            end;
+                        end;
+                    end;
+                end;
+            end;
+        end;
+
+        % Second, the negative terms.
+
+        for a = 1:6
+            for b = 1:9
+                for m = 1:2
+                    for n = 1:2
+
+                        p = 2*(a-1) + m;
+                        q = 2*(b-1) + n;
+
+                        for w = 1:2
+                            for v = 1:2
+                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                                  N(a)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+                            end
+                        end
+                    end
+                end
+            end
+        end
     case 2              % perfect plasticity
         warning('MATLAB:XFEM:main_xfem',...
             'There exists no code for perfect plasticity, yet.')
@@ -279,57 +370,7 @@ switch IFsliding_switch
         warning('MATLAB:XFEM:main_xfem',...
             'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
 end;
-
-% ----------------------------------------------------------------------- %
-
-% Fill stiffness matrix twice, once with terms associated with the positive
-% grain and once with terms associated with the negative grain.  In each
-% case, we are creating a matrix 12x18 in dimension.
-
-ke_nit_sub = zeros(12,18);
-
-% First, the positive terms.
-    
-for a = 1:6
-    for b = 1:9
-        for m = 1:2
-            for n = 1:2
-                    
-                p = 2*(a-1) + m;
-                q = 2*(b-1) + n;
-                   
-                for w = 1:2
-                    for v = 1:2
-                        ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                          N(a)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
-                    end
-                end
-            end
-        end
-    end
-end
-
-% Second, the negative terms.
-    
-for a = 1:6
-    for b = 1:9
-        for m = 1:2
-            for n = 1:2
-                    
-                p = 2*(a-1) + m;
-                q = 2*(b-1) + n;
-                   
-                for w = 1:2
-                    for v = 1:2
-                        ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                          N(a)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
-                    end
-                end
-            end
-        end
-    end
-end
-
+ke_nit_sub
 ke_nit = [zeros(6,18);
           ke_nit_sub];
 
