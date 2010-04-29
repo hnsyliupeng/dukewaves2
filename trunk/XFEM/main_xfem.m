@@ -825,25 +825,6 @@ clear dofvec_temp;
 % ----------------------------------------------------------------------- %
 
 
-% delete the following lines
-bigk(3,:) = 0;
-bigk(4,:)=0;
-bigk(:,3)=0;
-bigk(:,4)=0;
-bigk(3,3)=1.0;
-bigk(4,4)=1.0;
-
-bigk(1,:) = 0;
-bigk(2,:)=0;
-bigk(:,1)=0;
-bigk(:,2)=0;
-bigk(1,1)=1.0;
-bigk(2,2)=1.0;
-big_force(1)=0;
-big_force(2)=0;
-
-
-
 % LINEAR SOLVE AND RE-ASSEMBLE SOLUTION 
 
 % solve stiffness equations
@@ -936,6 +917,40 @@ for i = 1:numnod
     dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
 end
 
+%--------------------------------------------------------------------------
+
+% POST-PROCESS
+
+disp('postprocessing ...');
+
+% compute stresses 'stress' and strains 'strain' at center of each element
+% Structure of 'stress':
+%   Dimension: numelex6x3
+%   Index 1:    'stress' for element 'e'
+%   Index 2:    column 1    global element ID
+%               column 2    x-coordinate of element centroid
+%               column 3    y-coordinate of element centroid
+%               column 4    xx-stress at element centroid
+%               column 5    yy-stress at element centroid
+%               column 6    xy-stress at element centroid
+%   Index 3:    ID of grain, to which these values belong to
+stress = zeros(numele,6,maxngrains);
+% 'strain' has an equivalent structure
+strain = zeros(numele,6,maxngrains+1);
+for e=1:numele
+%     [stresse] = post_process(node,x,y,e,dis);
+%     stress(e,1:6) = stresse;
+        
+    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp, ...
+        id_dof,cutlist,maxngrains,INT_INTERFACE);
+    stress(e,1:6,:) = stresse;
+    strain(e,1:6,:) = straine;
+end
+
+% clear some temporary variables
+clear stresse straine maxstress_vec minstress_vec i e f j;
+
+
 % computing the internal forces in the interface depends on the method of
 % constraint enforcing
 switch IFmethod 
@@ -1004,42 +1019,68 @@ switch IFmethod
         clear pn_nodes neg_g pos_g i e parent_el;
           
     case 2                  % Nitsche's method
+        % Compute Lagrange multipliers via 
+        %                       'lambda = alpha * [[u]] - <sigma>*normal'
+        
+        %initialize
+        lagmult = [];
+        
+        for i = 1:size(seg_cut_info,1)     % for every interface
+            for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+                % initialize variable for lagrange multiplier in 'seg_cut_info'
+                seg_cut_info(i,e).lagmult = [];
+                
+                if seg_cut_info(i,e).elemno ~= -1
+
+                    parent_el = seg_cut_info(i,e).elemno;
+
+                    % Establish which nodes are "postively" enriched, and
+                    % which reside in the "negative" grain
+                    pos_g = seg_cut_info(i,e).positive_grain;
+                    neg_g = seg_cut_info(i,e).negative_grain;
+
+                    [pn_nodes] =... 
+                         get_positive_new(parent_el,pos_g,neg_g);
+        
+                    % compute Lagrange multiplier as in penalty case
+                    lagmult_pen = ...
+                        get_lag_mults_for_penalty(node,x,y,parent_el, ...
+                        id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
+                        seg_cut_info(i,e).xint, ...
+                        INTERFACE_MAP(i).endpoints,penalty,fdisp);
+                     
+                    % grains, associated to interface 'i'
+                    grain1 = seg_cut_info(i,e).grains(1);
+                    grain2 = seg_cut_info(i,e).grains(2);
+                                        
+                    % stress tensors in cut element 'e' on both sides of
+                    % interface 'i'
+                    sigma1 = [stress(parent_el,4,grain1) stress(parent_el,6,grain1);
+                        stress(parent_el,6,grain1) stress(parent_el,5,grain1)];
+                    sigma2 = [stress(parent_el,4,grain2) stress(parent_el,6,grain2);
+                        stress(parent_el,6,grain2) stress(parent_el,5,grain2)];
+                                        
+                    % compute Nitsche Lagrange multiplier
+                    sigma_avg = 0.5 * (sigma1 + sigma2);
+                    lagmult_nit = sigma_avg * seg_cut_info(i,e).normal;
+                    
+                    % subtract the nitsche form the penalty contribution 
+                    seg_cut_info(i,e).lagmult = lagmult_pen - lagmult_nit';
+                     
+                    lagmult = [lagmult seg_cut_info(i,e).lagmult];
+                end;
+            end;
+        end;
+                     
+        % clear some temporary variables
+        clear pn_nodes neg_g pos_g i e parent_el;
     otherwise
         error('MATLAB:XFEM:UnvalidID',...
             'Unvalid method ID. Choose a valid ID or add an additional case to switch-case-structure.');
 end;
 % ----------------------------------------------------------------------- %
 
-% POST-PROCESS
 
-disp('postprocessing ...');
-
-% compute stresses 'stress' and strains 'strain' at center of each element
-% Structure of 'stress':
-%   Dimension: numelex6x3
-%   Index 1:    'stress' for element 'e'
-%   Index 2:    column 1    global element ID
-%               column 2    x-coordinate of element centroid
-%               column 3    y-coordinate of element centroid
-%               column 4    xx-stress at element centroid
-%               column 5    yy-stress at element centroid
-%               column 6    xy-stress at element centroid
-%   Index 3:    ID of grain, to which these values belong to
-stress = zeros(numele,6,maxngrains);
-% 'strain' has an equivalent structure
-strain = zeros(numele,6,maxngrains+1);
-for e=1:numele
-%     [stresse] = post_process(node,x,y,e,dis);
-%     stress(e,1:6) = stresse;
-        
-    [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp, ...
-        id_dof,cutlist,maxngrains,INT_INTERFACE);
-    stress(e,1:6,:) = stresse;
-    strain(e,1:6,:) = straine;
-end
-
-% clear some temporary variables
-clear stresse straine maxstress_vec minstress_vec i e f j;
 
 
 %  disp('saving to results file ...');
