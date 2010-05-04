@@ -31,7 +31,7 @@
 
 % Author: Matthias Mayr (04/2010)
 
-function [force,dispbc,ubar,num_enr_surf,enr_surfs,bc_enr]...
+function [force,dispbc,ubar,num_enr_surf,enr_surfs,bc_enr,nodeNBC]...
     = applybcs(x,y,numnod,beam_l,beam_h,f)
 
 % load parameters from input file 'xfeminputdata_preprocess.mat'
@@ -84,6 +84,8 @@ switch IFDirichletBCs
         filename_DBC = fullfile(pwd,'Boundary_Conditions','bc_conv7_frictionless_sliding_DBC');
     case 16
         filename_DBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_1_DBC');
+    case 17
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_2_DBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -127,10 +129,18 @@ switch IFNeumannBCs
         filename_NBC = fullfile(pwd,'Boundary_Conditions','parabolic_x_forces_72_18_NBC');
     case 17
         filename_NBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_1_NBC');
+    case 18
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_enr_NBC_8_2_NBC');   
+    case 19
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_2_NBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
 run(filename_NBC);
+
+if exist('nodeNBC','var') == 0
+    nodeNBC = zeros(1,3);
+end;
 
         
 %  for i=1:numnod

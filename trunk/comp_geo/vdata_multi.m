@@ -180,6 +180,12 @@ switch IFdatasetp
         p = [-1.0 0.0000001; 20.0 3.0000001; -1.0 6.0000001];
     case 15
         p = [-3 -2.6; 7 -2.6; 2 6.4];       % 3 grains
+    case 16
+        p = [10.5 1;12.5 -1;12.5 3];       % 3 grains
+    case 17
+        p = [-1.0 0.05; 20.0 3.05; -1.0 6.05];    % 3 grains for
+                                                % Hertzian_Contact_2
+
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

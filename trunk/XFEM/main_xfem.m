@@ -1,4 +1,4 @@
-% Two dimensional polycrystal XFEM code
+    % Two dimensional polycrystal XFEM code
 % G-FEM Based on the paper by Simone, Duarte and Van der Giesseb
 % All other ideas by Dolbow
 % Jessica Sanders, Summer 2006 (SNL) - Summer 2007
@@ -111,7 +111,24 @@ end
 numeqns = max(max(id_eqns));
 
 % ----------------------------------------------------------------------- %
+% PREPARE ASSEMBLY OF FORCE VECTOR 'big_force'
+% get enriched nodes with NBCs on it
+DOFs_x_NBCs = find(force(1,:));     % nodes with NBC in x-direction
+DOFs_y_NBCs = find(force(2,:));     % nodes with NBC in y-direction
 
+% get enriched dofs of those nodes
+% get enriches nodes with x- and y-DBCs
+% index of those nodes in DOFs_x_NBCs, that have a first enrichment
+enr_DOFs_x_NBCs = find(id_eqns(DOFs_x_NBCs,3) ~= 0); 
+% index of those nodes in DOFs_y_NBCs, that have a first enrichment
+enr_DOFs_y_NBCs = find(id_eqns(DOFs_y_NBCs,4) ~= 0);    
+% index of those nodes in DOFs_y_NBCs, that have a second enrichment
+enr_DOFs_x_NBCs2 = find(id_eqns(DOFs_x_NBCs,5) ~= 0);   
+% index of those nodes in DOFs_y_NBCs, that have a second enrichment
+enr_DOFs_y_NBCs2 = find(id_eqns(DOFs_y_NBCs,6) ~= 0);   
+
+
+% ----------------------------------------------------------------------- %
 
 %ASSEMBLY OF STIFFNESS
 
@@ -265,8 +282,11 @@ end
 clear rbk cbk re ce nlink id ke i e j;
 
 % ----------------------------------------------------------------------- %
-
 % ASSEMBLE EXTERNAL FORCING VECTOR
+% For not enriched nodes, the nodal force given in 'force' can be assigned
+% to 'big_force' at the right position. For enriched nodes, the element
+% load vector has to be computed via integration, because the nodal forces
+% have to be partitioned on the base and extra DOFs.
 
 big_force = zeros(numeqns,1);
 for n = 1:numnod
@@ -274,11 +294,40 @@ for n = 1:numnod
         slot = id_eqns(n,j);
         big_force(slot) = force(j,n);
     end
+    
+    % If node is enriched, then apply NBCs on enriched DOFs, too.
+    if strcmp(NODEINFO_ARR(n).enriched,'true')
+        % These nodes are enriched, so the forces can not be applied
+        % directly to the DOFs. The integration over Gamma_h has to be
+        % split into 2 parts at the interface.
+        %
+        % Input File: Give triples of nodes, that contain the enriched node
+        % with NBC (in first column) and its two neighbours in ascending 
+        % order (in columns 2 and 3), in variable 'nodeNBC'
+       
+        % apply NBCs only on nodes, that are element of the Neumann
+        % boundary. For eniched nodes, these nodes have to be listed in
+        % 'nodeNBC' in the NBC-input-file by the user (together with the
+        % two neighbored nodes).
+        if any(n == nodeNBC(:,1))
+%             disp(['enriched node n = ' num2str(n)]);
+            % get the two nodes (in ascending order), neighbored to 
+            % enriched node 'n'
+%             othernodes = nodeNBC(find(nodeNBC(:,1)==n),2:3);
+            
+            % call fucntion, that manages the integration over the Neumann
+            % boundary
+%             [force_values, force_id] = ...
+%                NBCs_on_enr_nodes_new(NODEINFO_ARR([n othernodes]), ...
+%                force(:,[n othernodes]), seg_cut_info,interface_grains, ...
+%                id_dof,node);
+
+        end;
+    end;
 end
 
 % clear some temporary variables
 clear slot n j;
-
 % ----------------------------------------------------------------------- %
 % APPLY CONSTRAINS AT INTERFACES
 
@@ -434,7 +483,7 @@ switch IFmethod
         disp('enforcing constraints at interfaces via Nitsche´s method ...');
 
         % get values from input file
-        penalty =IFpenalty;
+        penalty =IFnitsche;
 
         for i = 1:size(seg_cut_info,1)     % for every interface
              for e = 1:size(seg_cut_info,2) % for every cut element in that interface
@@ -821,6 +870,8 @@ end;
 % clear some temporary variables
 clear dofvec_temp;
 
+% ----------------------------------------------------------------------- %
+% APPLY NEUMANN BOUNDARY CONDITIONS
 
 % ----------------------------------------------------------------------- %
 

@@ -288,11 +288,15 @@ global NODEINFO_ARR
 grains = [1:maxngrains;zeros(2,maxngrains)];  % Grain numbers
 
 % 'multi_grains' is the total number of 
-nodeinfo = struct('multi_grains',0,'areas',grains);
+nodeinfo = struct('multi_grains',0,'areas',grains,'elements',[],'grain',0,...
+                    'enriched','false','coords',[],'nodeno',0);
 
 
 for i = 1:numnod
     nodeinfo_arr(i) = nodeinfo;
+    nodeinfo_arr(i).grain = nodegrainmap(i);    % grain, in which the node resides
+    nodeinfo_arr(i).coords = [x(i) y(i)];       % coordinates of the node
+    nodeinfo_arr(i).nodeno = i;                 % nodenumber / node ID
 end
 
 NODEINFO_ARR = nodeinfo_arr;
@@ -312,6 +316,9 @@ for i = 1:numnod
     
     % count the amount of grains associated with a node
     NODEINFO_ARR(i).multi_grains = sum(NODEINFO_ARR(i).areas(2,:) ~= 0);
+    if NODEINFO_ARR(i).multi_grains ~= 1
+        NODEINFO_ARR(i).enriched = 'true';
+    end;
     
 %    if NODEINFO_ARR(i).multi_grains > 1
         for j = 1:numgrain
@@ -320,6 +327,18 @@ for i = 1:numnod
         end
 %    end
 end
+
+% ----------------------------------------------------------------------- %
+% THIS SECTION LOOKS FOR THE ELEMENTS, EACH NODE IS ASSIGNED TO
+for i=1:numele
+    ele_nodes = node(:,i)';
+    for e = ele_nodes
+        NODEINFO_ARR(e).elements(end+1) = i;
+    end;
+end;
+
+% clear some temporary variables
+clear i e ele_nodes;
 
 % ----------------------------------------------------------------------- %
 
@@ -428,6 +447,9 @@ ax_x = (max(X) - min(X))/max(X);
 ax_y = (max(Y) - min(Y))/max(Y);
 axis([min(X)-ax_x max(X)+ax_x min(Y)-ax_y max(Y)+ax_y]);
 clear ax_x ax_y;
+
+% clear some temporary variables
+clear nodeinfo_arr debug_part2d;
 
 % SAVE DATA AS AN INPUT FILE
 save my_new_mesh.mat x y node X Y CONN ELEMINFO_ARR NODEINFO_ARR...

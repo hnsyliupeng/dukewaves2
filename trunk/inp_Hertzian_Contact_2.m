@@ -1,11 +1,12 @@
-% Input File 'inp_patchtest_enr_NBC_8_2.m'
+% Input File 'inp_Hertzian_Contact_2.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% patchtest with 8x2-mesh and Neumann BCs on enriched nodes.
+% Hertzian Contact with gmsh. Full problem is modelled to avoid BCs on
+% enriched nodes. According to Popp2010 Example 8.1.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -23,7 +24,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 0;
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -41,14 +42,14 @@ IFnldivy = 2;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'Hertzian_Contact_1';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'Hertzian_Contact_2';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 16;
+IFdatasetp = 17;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -74,8 +75,8 @@ IFdatasetp = 16;
 % 14    patchtest_392_18_DBC.m
 % 15    bc_conv7_frictionless_sliding_DBC.m
 % 16    Hertzian_Contact_1_DBC.m
-% 18    Hertzian_Contact_2_DBC.m
-IFDirichletBCs = 10;
+% 17    Hertzian_Contact_2_DBC.m
+IFDirichletBCs = 17;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -99,7 +100,7 @@ IFDirichletBCs = 10;
 % 17    Hertzian_Contact_1_NBC.m
 % 18    patchtest_enr_NBC_8_2_NBC.m
 % 19    Hertzian_Contact_2_NBC.m
-IFNeumannBCs = 18;
+IFNeumannBCs = 19;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -111,7 +112,7 @@ IFNeumannBCs = 18;
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 % 4     3 grains with different material properties
 % 5     3 grains with same material properties (nue = 0.3, E = 200.0)
-IFMatSet = 3;
+IFMatSet = 5;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -120,13 +121,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+5;
+IFpenalty = 5.0e+8;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche = 1.0e+5;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -136,7 +137,7 @@ IFnitsche = 0;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 1; 
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a

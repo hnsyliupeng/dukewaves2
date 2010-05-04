@@ -192,7 +192,7 @@ end
 index1 = id_eqns(node(1,parent),3:6);
 if all(index1)      % node 1 of element 'parent' is enriched twice
     localdis1 = [fdisp(index1(1:2)) zeros(1,4) fdisp(index1(3:4)) zeros(1,4)];
-else
+else                % node 1 of element 'parent' is enriched once
     localdis1 = [fdisp(index1(1:2)) zeros(1,10)];
 end;
 
@@ -201,7 +201,7 @@ index2 = id_eqns(node(2,parent),3:6);
 if all(index2)      % node 2 of element 'parent' is enriched twice
     localdis2 = [zeros(1,2) fdisp(index2(1:2)) zeros(1,4) ...
         fdisp(index2(3:4)) zeros(1,2)];
-else
+else                % node 2 of element 'parent' is enriched once
     localdis2 = [zeros(1,2) fdisp(index2(1:2)) zeros(1,8)];
 end;
 
@@ -210,7 +210,7 @@ index3 = id_eqns(node(3,parent),3:6);
 if all(index3)      % node 3 of element 'parent' is enriched twice
     localdis3 = [zeros(1,4) fdisp(index3(1:2)) zeros(1,4) ...
         fdisp(index3(3:4))];
-else
+else                % node 3 of element 'parent' is enriched once
     localdis3 = [zeros(1,4) fdisp(index3(1:2)) zeros(1,6)];
 end;
 
