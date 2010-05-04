@@ -8,3 +8,5 @@ force(1,26) = load;
 force(1,27) = load/2;
 
 % forces in y-direction
+
+
