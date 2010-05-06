@@ -1,13 +1,11 @@
-% Input File 'inp_patchtest_24_6.m'
+% Input File 'inp_patchtest_enr_NBC_8_2.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Rectangle. Length x Heigth = 16 x 4. Mesh 24 x 6. Same Material in every
-% grain (E = 1000.0, nue = 0.3). Constant load on right side, pulling in
-% x-direction. Left side fixed. 3 grains.
+% square domain to test NBC-integrate-routine
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -25,7 +23,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 0;
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -38,19 +36,19 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 24;
-IFnldivy = 6;
+IFnldivx = 8;
+IFnldivy = 2;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'square';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;
+IFdatasetp = 4;%11;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -71,7 +69,15 @@ IFdatasetp = 11;
 % 9     quartercircle_gmsh_DBC.m
 % 10    patchtest_8_2_DBC.m
 % 11    patchtest_24_6_DBC.m
-IFDirichletBCs = 11;
+% 12    patchtest_72_18_DBC.m
+% 13    patchtest_4_1_DBC.m
+% 14    patchtest_392_18_DBC.m
+% 15    bc_conv7_frictionless_sliding_DBC.m
+% 16    Hertzian_Contact_1_DBC.m
+% 17    Hertzian_Contact_2_DBC.m
+% 18    square_DBC.m
+% 19    patchtest_gmsh_1604_DBC.m
+IFDirichletBCs = 18;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -87,13 +93,23 @@ IFDirichletBCs = 11;
 % 9     quartercircle_gmsh_NBC.m
 % 10    patchtest_8_2_NBC.m
 % 11    patchtest_24_6_NBC.m
-IFNeumannBCs = 11;
+% 12    patchtest_72_18_NBC.m
+% 13    patchtest_4_1_NBC.m
+% 14    patchtest_392_98_NBC.m
+% 15    hatshaped_x_forces_72_18_NBC.m
+% 16    parabolic_x_forces_72_18_NBC.m
+% 17    Hertzian_Contact_1_NBC.m
+% 18    patchtest_enr_NBC_8_2_NBC.m
+% 19    Hertzian_Contact_2_NBC.m
+% 20    square_NBC.m
+% 21    patchtest_gmsh_1604_NBC.m
+IFNeumannBCs = 20;
 %
 % method of giving NBCs
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 0;
+IFneumann = 1;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -103,6 +119,8 @@ IFneumann = 0;
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
+% 4     3 grains with different material properties
+% 5     3 grains with same material properties (nue = 0.3, E = 200.0)
 IFMatSet = 3;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
@@ -115,10 +133,10 @@ IFMatSet = 3;
 IFmethod = 0;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+8;
+IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche = 1.0e+3;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -139,7 +157,7 @@ IFsliding_switch = 0;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 0;
+IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;

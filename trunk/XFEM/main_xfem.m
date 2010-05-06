@@ -287,44 +287,98 @@ clear rbk cbk re ce nlink id ke i e j;
 % to 'big_force' at the right position. For enriched nodes, the element
 % load vector has to be computed via integration, because the nodal forces
 % have to be partitioned on the base and extra DOFs.
+%
+% There are two methods to impose NBCs:
+% (1)   Nodal forces, given in input file (works only on not-enriched nodes
+% (2)   Give traction as a function and get nodal forces via integration
+%       over the Neumann boundary.
+%
+% Set standard method to "nodal forces", if not specified in input file
+if exist('IFneumann','var') == 0,IFneumann = 0; end;
 
 big_force = zeros(numeqns,1);
-for n = 1:numnod
-    for j = 1:ndof
-        slot = id_eqns(n,j);
-        big_force(slot) = force(j,n);
-    end
-    
-    % If node is enriched, then apply NBCs on enriched DOFs, too.
-    if strcmp(NODEINFO_ARR(n).enriched,'true')
-        % These nodes are enriched, so the forces can not be applied
-        % directly to the DOFs. The integration over Gamma_h has to be
-        % split into 2 parts at the interface.
-        %
-        % Input File: Give triples of nodes, that contain the enriched node
-        % with NBC (in first column) and its two neighbours in ascending 
-        % order (in columns 2 and 3), in variable 'nodeNBC'
-       
-        % apply NBCs only on nodes, that are element of the Neumann
-        % boundary. For eniched nodes, these nodes have to be listed in
-        % 'nodeNBC' in the NBC-input-file by the user (together with the
-        % two neighbored nodes).
-        if any(n == nodeNBC(:,1))
-%             disp(['enriched node n = ' num2str(n)]);
-            % get the two nodes (in ascending order), neighbored to 
-            % enriched node 'n'
-%             othernodes = nodeNBC(find(nodeNBC(:,1)==n),2:3);
-            
-            % call fucntion, that manages the integration over the Neumann
-            % boundary
-%             [force_values, force_id] = ...
-%                NBCs_on_enr_nodes_new(NODEINFO_ARR([n othernodes]), ...
-%                force(:,[n othernodes]), seg_cut_info,interface_grains, ...
-%                id_dof,node);
+
+% select method of applying Neumann BCs
+switch IFneumann
+    case 0  % give nodal forces in input file
+%         for n = 1:numnod
+%             for j = 1:ndof
+%                 slot = id_eqns(n,j);
+%                 big_force(slot) = force(j,n);
+%             end
+% 
+%             % If node is enriched, then apply NBCs on enriched DOFs, too.
+%             if strcmp(NODEINFO_ARR(n).enriched,'true')
+%                 % These nodes are enriched, so the forces can not be applied
+%                 % directly to the DOFs. The integration over Gamma_h has to be
+%                 % split into 2 parts at the interface.
+%                 %
+%                 % Input File: Give triples of nodes, that contain the enriched node
+%                 % with NBC (in first column) and its two neighbours in ascending 
+%                 % order (in columns 2 and 3), in variable 'nodeNBC'
+% 
+%                 % apply NBCs only on nodes, that are element of the Neumann
+%                 % boundary. For eniched nodes, these nodes have to be listed in
+%                 % 'nodeNBC' in the NBC-input-file by the user (together with the
+%                 % two neighbored nodes).
+%                 if any(n == nodeNBC(:,1))
+%         %             disp(['enriched node n = ' num2str(n)]);
+%                     % get the two nodes (in ascending order), neighbored to 
+%                     % enriched node 'n'
+%         %             othernodes = nodeNBC(find(nodeNBC(:,1)==n),2:3);
+% 
+%                     % call fucntion, that manages the integration over the Neumann
+%                     % boundary
+%         %             [force_values, force_id] = ...
+%         %                NBCs_on_enr_nodes_new(NODEINFO_ARR([n othernodes]), ...
+%         %                force(:,[n othernodes]), seg_cut_info,interface_grains, ...
+%         %                id_dof,node);
+% 
+%                 end;
+%             end;
+%         end;
+
+    case 1  % give function for forces in input file
+        % loop over all boundary elements
+        for i=1:size(BOUNDARY,2);
+            % loop over all traction-sets
+            for j=1:size(FORCE,2)
+                % integrate only over elements, where both nodes have
+                % forces on it
+                if length(intersect(BOUNDARY(1,i).nodes,FORCE(1,j).nodes)) == 2
+                    % check, if element is cut = enriched
+                    if cutlist(BOUNDARY(1,i).ele) == 0
+                        % element is not intersected by an interface
+                        
+                        nodenumbers = BOUNDARY(1,i).nodes;
+                        
+                        % get DOFs of the two nodes
+                        DOFs1 = id_eqns(BOUNDARY(i).nodes(1),1:2);
+                        DOFs2 = id_eqns(BOUNDARY(i).nodes(2),1:2);
+                        
+                        % get element load vector and ID array for
+                        % assembling into 'big_force'
+                        [force_values,force_id] = ...
+                            NBCintegrate(BOUNDARY(1,i),FORCE(1,j),DOFs1,DOFs2)
+
+                        % assemble into 'big_force'
+                        for k=1:4
+                            big_force(force_id(k)) = ...
+                                big_force(force_id(k)) + force_values(k);
+                        end;
+                    else
+                        % element is intersected by an interface
+
+                    end;
+                end;
+            end;
 
         end;
-    end;
-end
+    otherwise
+end;
+
+
+
 
 % clear some temporary variables
 clear slot n j;
@@ -621,7 +675,6 @@ end
 
 % clear some temporary variables
 clear cbk rbk temp re ce;
-
 
 % ----------------------------------------------------------------------- %
 % ENFORCE DISPLACEMENT BOUNDARY CONDITIONS 

@@ -20,12 +20,23 @@ num_sub_elems = size(CONN,2);
 
 % Applying of BCs is managed by 'applybcs.m'
 f = 0;  % Some boundary conditions require the parameter, f
-[force, dispbc, ubar, num_enr_surf, enr_surf, bc_enr,nodeNBC]...
+[force, dispbc, ubar, num_enr_surf, enr_surf, bc_enr,nodeNBC,FORCE]...
     = applybcs(x,y,numnod,beam_l,beam_h,f);     % call 'applybcs.m'
     % force  ...    Neumann BCs
     % dispbc ...    knows, in which DOFs there is a DBC
     % ubar   ...    Gives the values of the DBCs
 
+% ----------------------------------------------------------------------- %
+% ADD COORDINATES OF BEGINNING AND END NODE FOR FORCE
+if IFneumann
+    for i=1:size(FORCE,2)
+        FORCE(i).coords = [x(FORCE(i).nodes(1)) y(FORCE(i).nodes(1));
+            x(FORCE(i).nodes(end)) y(FORCE(i).nodes(end))];
+    end;
+end;
+
+% clear some temporary variables
+clear i;
 % ----------------------------------------------------------------------- %
 
 % GRAIN MATERIAL INFORMATION

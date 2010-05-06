@@ -31,7 +31,7 @@
 
 % Author: Matthias Mayr (04/2010)
 
-function [force,dispbc,ubar,num_enr_surf,enr_surfs,bc_enr,nodeNBC]...
+function [force,dispbc,ubar,num_enr_surf,enr_surfs,bc_enr,nodeNBC,FORCE]...
     = applybcs(x,y,numnod,beam_l,beam_h,f)
 
 % load parameters from input file 'xfeminputdata_preprocess.mat'
@@ -86,6 +86,12 @@ switch IFDirichletBCs
         filename_DBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_1_DBC');
     case 17
         filename_DBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_2_DBC');
+    case 18
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','square_DBC');
+    case 19
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_gmsh_1604_DBC');
+    case 20
+        filename_DBC = fullfile(pwd,'Boundary_Conditions','patchtest_gmsh_130_DBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -133,6 +139,12 @@ switch IFNeumannBCs
         filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_enr_NBC_8_2_NBC');   
     case 19
         filename_NBC = fullfile(pwd,'Boundary_Conditions','Hertzian_Contact_2_NBC');
+    case 20
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','square_NBC');
+    case 21
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_gmsh_1604_NBC');
+    case 22
+        filename_NBC = fullfile(pwd,'Boundary_Conditions','patchtest_gmsh_130_NBC');
     otherwise
         error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -160,6 +172,14 @@ end;
 % 
 %  end
 
+
+% set default values, which are never used, because NBCs are given nodally.
+if exist('FORCE','var') == 0
+    FORCE = 0;
+end;
+if exist('nodeNBC','var') == 0
+    nodeNBC = 0;
+end;
 
 %unstruct2
 %pressure3
