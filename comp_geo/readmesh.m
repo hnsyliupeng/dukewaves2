@@ -15,16 +15,21 @@ fid = fopen('mesh2.msh', 'r')
   c = fscanf(fid,'%s',1)
   
   numsideele = fscanf(fid,'%d',1)
-  %node = zeros(4,numele);
-  numele = 0;
+   text = 'blabla3333'
+  numele = 0;       % stores number of elements in the domain
+  numboundele = 0;  % stores number of element edges on boundary of domain
   for e=1:numsideele
       elemsideno = fscanf(fid, '%d',1);
       c1 = fscanf(fid, '%lf',1);
       if (c1 == 1) %a side
-          c2 = fscanf(fid, '%lf',1);
-          conn = fscanf(fid, '%lf',4);
+          text = 'blabla22222'
+          numboundele = numboundele + 1
+          c2 = fscanf(fid, '%lf',3);
+          conn = fscanf(fid, '%lf',2);
+          boundary_nodes(1:2,numboundele);
       elseif (c1 == 2)
-          numele = numele +1;
+          text = 'blabla'
+          numele = numele + 1;
           c2 = fscanf(fid, '%lf',1); 
           c3 = fscanf(fid, '%lf',1); 
           c4 = fscanf(fid, '%lf',1);

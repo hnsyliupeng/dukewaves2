@@ -438,8 +438,39 @@ end
 
 % clear some temporary variables
 clear flag grn_m grn_n sub_elno_m sub_elno_n a b;
-   
-
+  
+% ----------------------------------------------------------------------- %
+% FIND ELEMENTS THAT BUILD THE BOUNDARY OF THE DOMAIN
+% 'boundary_nodes' store pairs of nodes, that build the boundary of the
+% domain. Now, these node pairs have to be assigned to the elements. The
+% characteristicum of a 'boundary_nodes' pair is, that it is only part of
+% one single element.
+boundary_eles = [];
+if IFneumann    
+    for i=1:numboundele
+        boundnodes = boundary_nodes(:,i);
+        for j=1:numele
+            elenodes = node(:,j);
+            if length(intersect(boundnodes,elenodes)) == 2
+                boundary_eles(i) = j;
+            end;
+        end;
+    end;
+    
+    % define a structure, that stores information about the boundary
+    BOUNDARY = struct('nodes',[0 0],'ele',0,'coords',[]);
+    for i=1:numboundele
+        BOUNDARY(i).nodes = boundary_nodes(:,i)';
+        BOUNDARY(i).ele = boundary_eles(i);
+        BOUNDARY(i).coords = [x(boundary_nodes(:,i))' y(boundary_nodes(:,i))'];
+    end;
+else
+    % set default values, which are never used, because NBCs are given
+    % nodally
+    boundary_nodes = 0;
+    numboundele = 0;
+    BOUNDARY = 0;
+end;
 % ----------------------------------------------------------------------- %
 
 % scale axes of plotted mesh
@@ -455,7 +486,8 @@ clear nodeinfo_arr debug_part2d;
 save my_new_mesh.mat x y node X Y CONN ELEMINFO_ARR NODEINFO_ARR...
     SUBELEMENT_GRAIN_MAP beam_h beam_l cutlist elemgrainmap maxngrains...
     nodegrainmap numele numnod p vx vy INT_INTERFACE PARENTELEM_INFO...
-    SUBELEM_INFO nonphysnodevec seg_cut_info INTERFACE_MAP;
+    SUBELEM_INFO nonphysnodevec seg_cut_info INTERFACE_MAP ...
+    boundary_nodes numboundele BOUNDARY;
 
 % print message into console
 disp('Mesh generation finished. Mesh was saved to file "my_new_mesh.mat".');
