@@ -108,14 +108,11 @@ N = zeros(2,12);
 
 % loop over Gauss points to assemble N
 for g = 1:2
-    
     % Get real coordinates of gauss points
     xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
     yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
     
-
     for b = 1:3     % Evaluate shape functions
-        
         % Get coorindates of area opposite node of concern
         for m=1:3
             jes = node(m,parent); xes(m) = x(jes); yes(m) = y(jes);
@@ -127,12 +124,11 @@ for g = 1:2
         Larea = det([[1 1 1]' xes' yes'])/2;
     
         % Evaluate shape function
-            N(1,2*b-1) = N(1,2*b-1) + Larea/Area*seg_jcob*weights(g);    % First enrichment
-            N(2,2*b)   = N(2,2*b)   + Larea/Area*seg_jcob*weights(g);
-            N(1,2*b+5) = N(1,2*b+5) + Larea/Area*seg_jcob*weights(g);    % Second enrichment
-            N(2,2*b+6) = N(2,2*b+6) + Larea/Area*seg_jcob*weights(g);
+        N(1,2*b-1) = N(1,2*b-1) + Larea/Area*seg_jcob*weights(g);    % First enrichment
+        N(2,2*b)   = N(2,2*b)   + Larea/Area*seg_jcob*weights(g);
+        N(1,2*b+5) = N(1,2*b+5) + Larea/Area*seg_jcob*weights(g);    % Second enrichment
+        N(2,2*b+6) = N(2,2*b+6) + Larea/Area*seg_jcob*weights(g);
     end
-    
 end
 
 for c = 1:6

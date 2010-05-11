@@ -1065,7 +1065,7 @@ switch IFmethod
 
         if seg_cut_info(i,e).elemno ~= -1
 
-          parent_el = seg_cut_info(i,e).elemno
+          parent_el = seg_cut_info(i,e).elemno;
 
           % Establish which nodes are "postively" enriched, and
           % which reside in the "negative" grain
@@ -1092,37 +1092,19 @@ switch IFmethod
           % get normal to the interface
           normal = seg_cut_info(i,e).normal;
           
+          % compute penalty part of Lagrange multiplier as in
+          % penalty case
+          lagmult_pen = ...
+            get_lag_mults_for_penalty(node,x,y,parent_el, ...
+            id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
+            seg_cut_info(i,e).xint, ...
+            INTERFACE_MAP(i).endpoints,penalty,fdisp);
+              
+          % compute Nitsche-part
+          lagmult_nit = sigma_avg * normal;
+                        
           % subtract the nitsche form the penalty contribution 
-%           switch IFsliding_switch
-%             case 0
-              % compute penalty part of Lagrange multiplier as in
-              % penalty case
-              lagmult_pen = ...
-                get_lag_mults_for_penalty(node,x,y,parent_el, ...
-                id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
-                seg_cut_info(i,e).xint, ...
-                INTERFACE_MAP(i).endpoints,penalty,fdisp)
-              
-              lagmult_nit = sigma_avg * normal
-              lagmult_pen - lagmult_nit'
-              
-              seg_cut_info(i,e).lagmult = lagmult_pen - lagmult_nit';
-%             case 1
-%               % compute penalty part different
-%               lagmult_pen = ...       % scalar value in normal direction
-%                 get_lag_mults_for_frictionless_nitsche(node,x,y,parent_el, ...
-%                 id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
-%                 seg_cut_info(i,e).xint, ...
-%                 INTERFACE_MAP(i).endpoints,penalty,fdisp,normal)
-%               
-%               lagmult_nit = normal' * sigma_avg * normal % scalar value
-%                            
-%               lagmulttemp1 = lagmult_pen - lagmult_nit
-% % lagmulttemp1 = -lagmult_nit;
-%               
-%               lagmulttemp2 = [lagmulttemp1 0];
-%               seg_cut_info(i,e).lagmult = lagmulttemp2;
-%           end;
+          seg_cut_info(i,e).lagmult = lagmult_pen - lagmult_nit';
                     
           % store into global vector 'lagmult' to find maximum
           % and minimum value afterwards
