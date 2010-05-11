@@ -97,10 +97,10 @@ IFMatSet = 1;
 IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+1;
+IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche = 1.0e+2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

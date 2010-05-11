@@ -86,7 +86,7 @@ IFmethod = 1;
 IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche = 1.0e+5;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

@@ -445,6 +445,11 @@ clear flag grn_m grn_n sub_elno_m sub_elno_n a b;
 % domain. Now, these node pairs have to be assigned to the elements. The
 % characteristicum of a 'boundary_nodes' pair is, that it is only part of
 % one single element.
+% 
+% If 'Ifneumann' is not defined, then set it to zero for compatibility with
+% old input files
+if exist('IFneumann','var') == 0,IFneumann = 0;end;
+
 boundary_eles = [];
 if IFneumann    
     for i=1:numboundele
@@ -458,7 +463,7 @@ if IFneumann
     end;
     
     % define a structure, that stores information about the boundary
-    BOUNDARY = struct('nodes',[0 0],'ele',0,'coords',[]);
+    BOUNDARY = struct('nodes',[0 0],'ele',0,'coords',[],'intsecpoint',[]);
     for i=1:numboundele
         BOUNDARY(i).nodes = boundary_nodes(:,i)';
         BOUNDARY(i).ele = boundary_eles(i);

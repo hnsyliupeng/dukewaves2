@@ -36,13 +36,13 @@ function [ke_nit,id] =...
 
 ke_nit = zeros(18);
 
-xep = [];
-yep = [];
+xep = [];   % x-coords of nodes of parent element
+yep = [];   % y-coords of nodes of parent element
 xes = [];
 yes = [];
 jes = [];
-jep = [];
-cijkl = [];
+jep = [];   % node IDs of nodes of parent element
+cijkl = []; % constitutive tensor
 
 nodes = node(:,parent);
 
@@ -67,7 +67,6 @@ cijkl_n = find_cijkl(neg_g);
 
 % Derivatives are constant, so quadrature need not occur over these points
 % compute derivatives of shape functions in reference coordinates
-
 NJr(1) = 1;
 NJr(2) = 0;
 NJr(3) = -1;
@@ -76,7 +75,11 @@ NJs(2) = 1;
 NJs(3) = -1;
 
 % compute derivatives of x and y wrt psi and eta
-xr = NJr*xep'; yr = NJr*yep'; xs = NJs*xep';  ys = NJs*yep';
+xr = NJr*xep'; 
+yr = NJr*yep'; 
+xs = NJs*xep';  
+ys = NJs*yep';
+
 Jinv = [ys, -yr; -xs, xr];
 elem_jcob = xr*ys - xs*yr;
 
@@ -90,23 +93,16 @@ NJdxy = Jinv*NJdrs/elem_jcob;
 NJdxy1 = zeros(2,9);
 NJdxy1(:,1:3) = NJdxy;
 for m = 1:3
-    if (pn_nodes(m,1) == 1)  % If the node is enriched positively
-        
-        % Is this the first enrichment?
-        if id_dof(nodes(m),3) == pos_g
-            
-            % Fill the appropriate slot
-            
-            NJdxy1(:,m+3) = NJdxy(:,m);
-            
-        else  % If this is the second enrichment
-            
-            % Fill the appropriate slot
-            
-            NJdxy1(:,m+6) = NJdxy(:,m);
-        end
-        
+  if (pn_nodes(m,1) == 1)  % If the node is enriched positively
+    % Is this the first enrichment?
+    if id_dof(nodes(m),3) == pos_g
+      % Fill the appropriate slot
+      NJdxy1(:,m+3) = NJdxy(:,m);
+    else  % If this is the second enrichment
+      % Fill the appropriate slot
+      NJdxy1(:,m+6) = NJdxy(:,m);
     end
+  end
 end
 
 % Assemble *term 2* (derivitives to go with Cijkl 2)  Negative term
@@ -114,80 +110,60 @@ end
 NJdxy2 = zeros(2,9);
 NJdxy2(:,1:3) = NJdxy;
 for m = 1:3
-    if (pn_nodes(m,2) == 1)  % If the node is enriched negatively
-        
-        % Is this the first enrichment?
-        if id_dof(nodes(m),3) == neg_g
-            
-            % Fill the appropriate slot
-            
-            NJdxy2(:,m+3) = NJdxy(:,m);
-            
-        else  % If this is the second enrichment
-            
-            % Fill the appropriate slot
-            
-            NJdxy2(:,m+6) = NJdxy(:,m);
-        end
-        
+  if (pn_nodes(m,2) == 1)  % If the node is enriched negatively
+    % Is this the first enrichment?
+    if id_dof(nodes(m),3) == neg_g
+      % Fill the appropriate slot
+      NJdxy2(:,m+3) = NJdxy(:,m);
+    else  % If this is the second enrichment
+      % Fill the appropriate slot
+       NJdxy2(:,m+6) = NJdxy(:,m);
     end
+  end
 end
 
 
 % ----------------------------------------------------------------------- %
 
 % Establish a set of flags
-
 flg = [0 0 0 0 0 0];
 
 % First enrichment
 for n = 1:3     % loop over nodes
-    
-    % Get the "first" enrichment of node
-    
-    enrich1(n) = id_dof(nodes(n),3);
-    
-    if enrich1(n) == pos_g
-    
-        if (pn_nodes(n,1) == 1)
-            flg(n) = 1;
-        else
-            flg(n) = 0;
-        end
-      
-    elseif enrich1(n) == neg_g
-        
-        if (pn_nodes(n,2) == 1)
-            flg(n) = -1;
-        else
-            flg(n) = 0;
-        end        
+  % Get the "first" enrichment of node
+  enrich1(n) = id_dof(nodes(n),3);
+  if enrich1(n) == pos_g
+    if (pn_nodes(n,1) == 1)
+      flg(n) = 1;
+    else
+      flg(n) = 0;
     end
+  elseif enrich1(n) == neg_g
+    if (pn_nodes(n,2) == 1)
+      flg(n) = -1;
+    else
+      flg(n) = 0;
+    end        
+  end
 end
 
 % Second Enrichment
 for n = 1:3     % loop over nodes
-    
-    % Get the "second" enrichment of node
-    
-    enrich2(n) = id_dof(nodes(n),5);
-    
-    if enrich2(n) == pos_g
-    
-        if (pn_nodes(n,1) == 1)
-            flg(3 + n) = 1;
-        else
-            flg(3 + n) = 0;
-        end
-      
-    elseif enrich2(n) == neg_g
-        
-        if (pn_nodes(n,2) == 1)
-            flg(3 + n) = -1;
-        else
-            flg(3 + n) = 0;
-        end        
+  % Get the "second" enrichment of node
+  enrich2(n) = id_dof(nodes(n),5);
+  if enrich2(n) == pos_g
+    if (pn_nodes(n,1) == 1)
+      flg(3 + n) = 1;
+    else
+      flg(3 + n) = 0;
     end
+  elseif enrich2(n) == neg_g
+    if (pn_nodes(n,2) == 1)
+      flg(3 + n) = -1;
+    else
+      flg(3 + n) = 0;
+    end        
+  end
 end
 
 % ----------------------------------------------------------------------- %
@@ -199,21 +175,21 @@ end
 % segment jacobian calculation
 
 if all(size(intersection) == [2 2])
-    p1 = intersection(1,:);
-    p2 = intersection(2,:);
+  p1 = intersection(1,:);
+  p2 = intersection(2,:);
 elseif all(size(intersection) == [1 2])
-    p1 = intersection(1,:);
-    
-    % Second endpoint of segment is also end point of interface
-    endpoint = endpoints(1,:);
-    
-    inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
-    
-    if inside
-        p2 = endpoint;
-    else
-        p2 = endpoints(2,:);
-    end
+  p1 = intersection(1,:);
+
+  % Second endpoint of segment is also end point of interface
+  endpoint = endpoints(1,:);
+
+  inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
+
+  if inside
+    p2 = endpoint;
+  else
+    p2 = endpoints(2,:);
+  end
 end
 
 % jacobian of segment to global
@@ -229,27 +205,25 @@ weights = [1 1];
 N = zeros(1,6);
 
 for g = 1:2
-    
-    % Get real coordinates of gauss points
-    xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
-    yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
+  % Get real coordinates of gauss points
+  xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
+  yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
 
-    for b = 1:3     % Evaluate shape functions
-        
-        % Get coorindates of area opposite node of concern
-        for m=1:3
-            jes = node(m,parent); xes(m) = x(jes); yes(m) = y(jes);
-        end
-
-        xes(b) = xn; yes(b) = yn;
-
-        Area = det([[1 1 1]' xep' yep'])/2;
-        Larea = det([[1 1 1]' xes' yes'])/2;
-    
-        % Evaluate shape function
-        N(b)   = N(b) + Larea/Area*seg_jcob;
-        N(b+3) = N(b+3) + Larea/Area*seg_jcob;
+  for b = 1:3     % Evaluate shape functions
+    % Get coorindates of area opposite node of concern
+    for m=1:3
+      jes = node(m,parent); xes(m) = x(jes); yes(m) = y(jes);
     end
+
+    xes(b) = xn; yes(b) = yn;
+
+    Area = det([[1 1 1]' xep' yep'])/2;
+    Larea = det([[1 1 1]' xes' yes'])/2;
+
+    % Evaluate shape function
+    N(b)   = N(b) + Larea/Area*seg_jcob;
+    N(b+3) = N(b+3) + Larea/Area*seg_jcob;
+  end
 end
 
 for b = 1:6
@@ -266,113 +240,123 @@ ke_nit_sub = zeros(12,18);
 
 % distinguish between different sliding cases
 switch IFsliding_switch
-    case 0              % no sliding at all (fully tied problem)
-        % Computation via nested for-loops, since cijkl is a 4-tensor
-        % First, the positive terms.
-        for a = 1:6
-            for b = 1:9
-                for m = 1:2
-                    for n = 1:2
+  case 0              % no sliding at all (fully tied problem)
+    % Computation via nested for-loops, since cijkl is a 4-tensor
+    % First, the positive terms.
+    for a = 1:6
+      for b = 1:9
+        for m = 1:2
+          for n = 1:2
+            p = 2*(a-1) + m;
+            q = 2*(b-1) + n;
 
-                        p = 2*(a-1) + m;
-                        q = 2*(b-1) + n;
-
-                        for w = 1:2
-                            for v = 1:2
-                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                                  N(a)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
-                            end
-                        end
-                    end
-                end
+            for w = 1:2
+              for v = 1:2
+                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                  N(a)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+              end
             end
+          end
         end
+      end
+    end
 
-        % Second, the negative terms.
-        for a = 1:6
-            for b = 1:9
-                for m = 1:2
-                    for n = 1:2
+    % Second, the negative terms.
+    for a = 1:6
+      for b = 1:9
+        for m = 1:2
+          for n = 1:2
+            p = 2*(a-1) + m;
+            q = 2*(b-1) + n;
 
-                        p = 2*(a-1) + m;
-                        q = 2*(b-1) + n;
-
-                        for w = 1:2
-                            for v = 1:2
-                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                                  N(a)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
-                            end
-                        end
-                    end
-                end
+            for w = 1:2
+              for v = 1:2
+                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                  N(a)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+              end
             end
+          end
         end
+      end
+    end
 
-    case 1              % frictionless sliding
-        % Computation via nested for-loops, since cijkl is a 4-tensor.
-        % For frictionless sliding, the 'N' and 'cijkl * strain' have to be
-        % doted with the normal. 
-        
-        % Since 'N' is constructed as a row-vector here and not as a
-        % matrix, the dot product 'N dot normal' is computed before.
-        for i=1:3
-            N(i) = N(i) * normal(1);        % x-entries
-            N(i+3) = N(i+3) * normal(2);    % y-entries
-        end;
-        
-        % First, the positive terms.
-        for a = 1:6
-            for b = 1:9
-                for m = 1:2
-                    for n = 1:2
+  case 1              % frictionless sliding
+    % Computation via nested for-loops, since cijkl is a 4-tensor.
+    % For frictionless sliding, the 'N' and 'cijkl * strain' have to be
+    % doted with the normal. 
 
-                        p = 2*(a-1) + m;
-                        q = 2*(b-1) + n;
+    % construct a real matrix 'N'
+    Nvec = N;
+    clear N;
+    N = [Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6) 0;
+         0       Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6)];
 
-                        for w = 1:2
-                            for v = 1:2
-                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                                  N(a)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
-                            end;
-                        end;
-                    end;
-                end;
+    % Since 'N' is constructed as a row-vector here and not as a
+    % matrix, the dot product 'N dot normal' is computed before.
+%     for i=1:3
+%       N(i) = N(i) * normal(1);        % x-entries
+%       N(i+3) = N(i+3) * normal(2);    % y-entries
+%     end;
+    N
+    
+    % First, the positive terms.
+%     for a = 1:6
+for i=1:12
+  a = ceil(i / 2);
+  for j=1:2
+      for b = 1:9
+        for m = 1:2
+          for n = 1:2
+            p = 2*(a-1) + m;
+            q = 2*(b-1) + n;
+
+            for w = 1:2
+              for v = 1:2
+                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                  N(j,i)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+              end;
             end;
+          end;
         end;
+      end;
+    end;
+end;
 
-        % Second, the negative terms.
+    % Second, the negative terms.
+%     for a = 1:6
+for i=1:12
+  a = ceil(i / 2);
+  for j=1:2
+      for b = 1:9
+        for m = 1:2
+          for n = 1:2
+            p = 2*(a-1) + m;
+            q = 2*(b-1) + n;
 
-        for a = 1:6
-            for b = 1:9
-                for m = 1:2
-                    for n = 1:2
-
-                        p = 2*(a-1) + m;
-                        q = 2*(b-1) + n;
-
-                        for w = 1:2
-                            for v = 1:2
-                                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                                  N(a)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
-                            end
-                        end
-                    end
-                end
+            for w = 1:2
+              for v = 1:2
+                ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                  N(j,i)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+              end
             end
+          end
         end
-    case 2              % perfect plasticity
-        warning('MATLAB:XFEM:main_xfem',...
-            'There exists no code for perfect plasticity, yet.')
-    case 3              % frictional contact (Coulomb)
-        warning('MATLAB:XFEM:main_xfem',...
-            'There exists no code for frictional contact (Coulomb), yet.')
-    otherwise
-        warning('MATLAB:XFEM:main_xfem',...
-            'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+      end
+  end
+end;
+  case 2              % perfect plasticity
+    warning('MATLAB:XFEM:main_xfem',...
+        'There exists no code for perfect plasticity, yet.')
+  case 3              % frictional contact (Coulomb)
+    warning('MATLAB:XFEM:main_xfem',...
+      'There exists no code for frictional contact (Coulomb), yet.')
+  otherwise
+    warning('MATLAB:XFEM:main_xfem',...
+      'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
 end;
 
 ke_nit = [zeros(6,18);
-          ke_nit_sub];
+          ke_nit_sub]
 
 % Build id array
 nodes = node(:,parent);

@@ -218,7 +218,6 @@ end;
 localdis = localdis1' + localdis2' + localdis3';
 
 %--------------------------------------------------------------------------
-
 % compute lagrange multipliers
 lagmult = penalty * (N * localdis)';
 

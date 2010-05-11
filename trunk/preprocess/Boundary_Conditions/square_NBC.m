@@ -32,9 +32,9 @@ load = 10;
 % define a structure, that defines the properties of the applied forces
 % first set of tractions
 FORCE(1) = struct('shape',[],'values',[],'nodes',[],'coords',[]);
-FORCE(1).nodes = [2 3 5 6 7];
-FORCE(1).values = [10 0];        % [x-force y-force]
-FORCE(1).shape = 'constant';
+FORCE(1).nodes = [4 10 9 3];
+FORCE(1).values = [0 0; 0 -1];        % [x-force y-force]
+FORCE(1).shape = 'linear';
 
 % nodes_with_force = [2 3 5 6 7];
 % values = [10 -10];        % [x-force y-force]

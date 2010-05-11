@@ -68,8 +68,8 @@ for j = 1:numele
 
     % get nodal displacements
     for i = 1:3
-        nodal_disp(2*i-1) = disp(2*nodes(i) - 1);
-        nodal_disp(2*i)   = disp(2*nodes(i));
+        nodal_disp(2*i-1) = dis(2*nodes(i) - 1);
+        nodal_disp(2*i)   = dis(2*nodes(i));
     end
 
     % compute derivatives of x and y wrt psi and eta

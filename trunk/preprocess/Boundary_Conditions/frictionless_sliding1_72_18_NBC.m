@@ -5,15 +5,20 @@
 % 18 elements through the thickness and 72 elements over the length.
 %
 
+
 % Author: Matthias Mayr (04/2010)
+
 
 % maximum load in x-direction
 maxload = 100;
 
+
 % nodal load
 nodeload = maxload/18;
 
+
 force = zeros(2,numnod);
+
 
 % Right hand side - constant stress
 force(1,1369)=nodeload/2;

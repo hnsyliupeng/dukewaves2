@@ -48,7 +48,7 @@ IFnldivy = 18;
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 4;
+IFdatasetp = 19;%4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -112,13 +112,13 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+1;
+IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche = 1.0e+2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

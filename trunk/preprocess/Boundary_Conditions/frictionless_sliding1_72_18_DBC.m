@@ -13,7 +13,7 @@ dispbc = zeros(2,numnod);
 % x fixed displacements
 for i=1:19
     dispbc(1,i) = 1;
-    dispbc(2,i) = 1;
+%     dispbc(2,i) = 1;
 end;
 
 % y fixed displacements

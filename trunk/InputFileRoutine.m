@@ -1,18 +1,22 @@
-% Input File 'inp_patchtest_enr_NBC_8_2.m'
+% Input File 'inp_frictionless_sliding_analyt_4_1840.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% patchtest with gmsh-mesh with 130 elements. Length x height = 16 x 4
+% Example to compare with analytical solution to show oszillations and
+% their stabilization for frictionless sliding. Rectangular domain with 
+% spherical cavitiy (according to [Timoshenko p. 396 ff]). 
+% Length x height = 8 x 8. radius a = 0.5. unstructured mesh. 1840
+% elements. Symmetry of domain is used (only a half is modelled).
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
 % strored in this file. Save it to an own file, afterwards.
 %
 
-% Author: Matthias Mayr (04/2010)
+% Author: Matthias Mayr (05/2010)
 
 %--------------------------------------------------------------------------
 % PARAMETERS FOR BACKGROUND MESH
@@ -36,19 +40,19 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 8;
-IFnldivy = 2;
+IFnldivx = 72;
+IFnldivy = 18;
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'patchtest_130';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'stripewithhole_symm_1840';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;%4;
+IFdatasetp = 21;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -78,7 +82,18 @@ IFdatasetp = 11;%4;
 % 18    square_DBC.m
 % 19    patchtest_gmsh_1604_DBC.m
 % 20    patchtest_gmsh_130_DBC.m
-IFDirichletBCs = 20;
+% 21    frictionless_sliding_analyt_1_130_DBC.m
+% 22    frictionless_sliding_analyt_1_1604_DBC.m
+% 23    frictionless_sliding_analyt_1_46_DBC.m
+% 24    frictionless_sliding_analyt_1_534_DBC.m
+% 25    frictionless_sliding_analyt_1_3622_DBC.m
+% 26    frictionless_sliding_analyt_1_6660_DBC.m
+% 27    frictionless_sliding_analyt_1_72_18_DBC.m
+% 28    frictionless_sliding_analyt_2_552_DBC.m
+% 29    frictionless_sliding_analyt_3_1053_DBC.m
+% 30    frictionless_sliding_analyt_4_328_DBC.m
+% 31    frictionless_sliding_analyt_4_1840_DBC.m
+IFDirichletBCs = 31;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -105,7 +120,18 @@ IFDirichletBCs = 20;
 % 20    square_NBC.m
 % 21    patchtest_gmsh_1604_NBC.m
 % 22    patchtest_gmsh_130_NBC.m
-IFNeumannBCs = 22;
+% 23    frictionless_sliding_analyt_1_130_NBC.m
+% 24    frictionless_sliding_analyt_1_1604_NBC.m
+% 25    frictionless_sliding_analyt_1_46_NBC.m
+% 26    frictionless_sliding_analyt_1_534_NBC.m
+% 27    frictionless_sliding_analyt_1_3622_NBC.m
+% 28    frictionless_sliding_analyt_1_6660_NBC.m
+% 29    frictionless_sliding_analyt_1_72_18_NBC.m
+% 30    frictionless_sliding_analyt_2_552_NBC.m
+% 31    frictionless_sliding_analyt_3_1053_NBC.m
+% 32    frictionless_sliding_analyt_4_328_NBC.m% 32
+% 33    frictionless_sliding_analyt_4_1840_NBC.m
+IFNeumannBCs = 33;
 %
 % method of giving NBCs
 % ID    Description
@@ -118,11 +144,12 @@ IFneumann = 1;
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
 % 0     24 grains with same material properties (nue = 0.3, E = 1000.0)
-% 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
+% 1     Two grains (nue1 = 0.0, nue2 = 0.3, nue3 = 0.3, Ei = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 % 4     3 grains with different material properties
 % 5     3 grains with same material properties (nue = 0.3, E = 200.0)
+% 6     Two grains (nue1 = 0.3, nue2 = nue3 = 0.0, Ei = 1000.0)
 IFMatSet = 3;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
@@ -132,13 +159,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+3;
+IFnitsche = 1.0e+5;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -148,7 +175,7 @@ IFnitsche = 1.0e+3;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 1; 
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
