@@ -48,7 +48,9 @@ nodes = node(:,parent);
 
 % Get coordinates of parent element
 for m=1:3
-    jep = node(m,parent); xep(m) = x(jep); yep(m) = y(jep);
+    jep = node(m,parent); 
+    xep(m) = x(jep); 
+    yep(m) = y(jep);
 end
 
 % ----------------------------------------------------------------------- %
@@ -75,7 +77,7 @@ NJs(2) = 1;
 NJs(3) = -1;
 
 % compute derivatives of x and y wrt psi and eta
-xr = NJr*xep'; 
+xr = NJr*xep'; % derivatve of x-coord wrt 
 yr = NJr*yep'; 
 xs = NJs*xep';  
 ys = NJs*yep';
@@ -84,13 +86,11 @@ Jinv = [ys, -yr; -xs, xr];
 elem_jcob = xr*ys - xs*yr;
 
 % compute derivatives of shape functions in element coordinates
-
-NJdrs = [NJr; NJs];
-NJdxy = Jinv*NJdrs/elem_jcob;
+NJdrs = [NJr; NJs];             % in parameter space
+NJdxy = Jinv*NJdrs/elem_jcob;   % in real space
 
 % Assemble *term 1* (derivitives to go with Cijkl 1)  Positive term
-
-NJdxy1 = zeros(2,9);
+NJdxy1 = zeros(2,9);    % derivated shape functions of grain (1)
 NJdxy1(:,1:3) = NJdxy;
 for m = 1:3
   if (pn_nodes(m,1) == 1)  % If the node is enriched positively
@@ -104,10 +104,14 @@ for m = 1:3
     end
   end
 end
+% Now, 'NJdx1' contains the derivatived of the shape functions for grain
+% (1). First row corresponds to x, second row to y. The zeros in between 
+% are ommitted here. First 3 colums correspond to base DOFs, second 3 
+% columns to first enrichment, last 3 columns to a possible second 
+% enrichment.
 
 % Assemble *term 2* (derivitives to go with Cijkl 2)  Negative term
-
-NJdxy2 = zeros(2,9);
+NJdxy2 = zeros(2,9);    % derivated shape functions of grain (2)
 NJdxy2(:,1:3) = NJdxy;
 for m = 1:3
   if (pn_nodes(m,2) == 1)  % If the node is enriched negatively
@@ -121,8 +125,11 @@ for m = 1:3
     end
   end
 end
-
-
+% Now, 'NJdx2' contains the derivatived of the shape functions for grain
+% (2). First row corresponds to x, second row to y. The zeros in between 
+% are ommitted here. First 3 colums correspond to base DOFs, second 3 
+% columns to first enrichment, last 3 columns to a possible second 
+% enrichment.
 % ----------------------------------------------------------------------- %
 
 % Establish a set of flags
@@ -167,13 +174,10 @@ for n = 1:3     % loop over nodes
 end
 
 % ----------------------------------------------------------------------- %
-
-
 % INTEGRATE SHAPE FUNCTIONS OVER SEGMENT AND ASSEMBLE NITSCHES TERMS
 
 % end points of intersection - direction doesn't matter - this is for the
-% segment jacobian calculation
-
+% segment jacobian calculation only
 if all(size(intersection) == [2 2])
   p1 = intersection(1,:);
   p2 = intersection(2,:);
@@ -183,6 +187,7 @@ elseif all(size(intersection) == [1 2])
   % Second endpoint of segment is also end point of interface
   endpoint = endpoints(1,:);
 
+  % check, whether 'endpoint' is inside the element
   inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
 
   if inside
@@ -201,8 +206,9 @@ gauss = [-sqrt(3)/3 sqrt(3)/3];
 weights = [1 1];
 
 % loop over Gauss points to assemble N
-
-N = zeros(1,6);
+N = zeros(1,6);   % first three entries correspond to the first enrichment 
+                  % of the three nodes, second three entries to the
+                  % possible second enrichment.
 
 for g = 1:2
   % Get real coordinates of gauss points
@@ -212,10 +218,13 @@ for g = 1:2
   for b = 1:3     % Evaluate shape functions
     % Get coorindates of area opposite node of concern
     for m=1:3
-      jes = node(m,parent); xes(m) = x(jes); yes(m) = y(jes);
+      jes = node(m,parent); 
+      xes(m) = x(jes); 
+      yes(m) = y(jes);
     end
 
-    xes(b) = xn; yes(b) = yn;
+    xes(b) = xn; 
+    yes(b) = yn;
 
     Area = det([[1 1 1]' xep' yep'])/2;
     Larea = det([[1 1 1]' xes' yes'])/2;
@@ -226,12 +235,16 @@ for g = 1:2
   end
 end
 
+% set all entries of not enriched nodes to zero via 'flg'
 for b = 1:6
     N(b) = N(b)*flg(b);
 end
+% Now, 'N' contains the shape function values evaluated at the 2 gauss
+% points. The first 3 entries correspond to first enrichment of the 3
+% nodes, the second 3 entries to the possible second enrichment of the 3
+% nodes.
 
 % ----------------------------------------------------------------------- %
-
 % Fill stiffness matrix twice, once with terms associated with the positive
 % grain and once with terms associated with the negative grain.  In each
 % case, we are creating a matrix 12x18 in dimension.
@@ -290,60 +303,50 @@ switch IFsliding_switch
     clear N;
     N = [Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6) 0;
          0       Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6)];
-
-    % Since 'N' is constructed as a row-vector here and not as a
-    % matrix, the dot product 'N dot normal' is computed before.
-%     for i=1:3
-%       N(i) = N(i) * normal(1);        % x-entries
-%       N(i+3) = N(i+3) * normal(2);    % y-entries
-%     end;
-    N
     
+    % dot 'N' with the normal due to frictionless sliding
+    N = normal' * N;
+           
     % First, the positive terms.
-%     for a = 1:6
-for i=1:12
-  a = ceil(i / 2);
-  for j=1:2
+    for i = 1:12
       for b = 1:9
         for m = 1:2
           for n = 1:2
+            a = ceil(i/2);
             p = 2*(a-1) + m;
             q = 2*(b-1) + n;
 
             for w = 1:2
               for v = 1:2
                 ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                  N(j,i)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+                  N(i)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
               end;
             end;
           end;
         end;
       end;
     end;
-end;
 
-    % Second, the negative terms.
-%     for a = 1:6
-for i=1:12
-  a = ceil(i / 2);
-  for j=1:2
+      % Second, the negative terms.
+    for i = 1:12
       for b = 1:9
         for m = 1:2
           for n = 1:2
+            a = ceil(i/2);
             p = 2*(a-1) + m;
             q = 2*(b-1) + n;
 
             for w = 1:2
               for v = 1:2
                 ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
-                  N(j,i)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+                  N(i)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
               end
             end
           end
         end
       end
-  end
-end;
+    end
+
   case 2              % perfect plasticity
     warning('MATLAB:XFEM:main_xfem',...
         'There exists no code for perfect plasticity, yet.')
@@ -356,7 +359,7 @@ end;
 end;
 
 ke_nit = [zeros(6,18);
-          ke_nit_sub]
+          ke_nit_sub];
 
 % Build id array
 nodes = node(:,parent);
