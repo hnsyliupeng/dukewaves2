@@ -181,10 +181,30 @@ switch IFdatasetp
     case 15
         p = [-3 -2.6; 7 -2.6; 2 6.4];       % 3 grains
     case 16
-        p = [10.5 1;12.5 -1;12.5 3];       % 3 grains
+        p = [10.5 1.5;12.5 -0.5;12.5 3.5];       % 3 grains
     case 17
         p = [-1.0 0.05; 20.0 3.05; -1.0 6.05];    % 3 grains for
                                                 % Hertzian_Contact_2
+    case 18
+        p = [12.0 -2.0; 41.0 0.0; 12 2.5];    % 3 grains for
+                                                % frictionless_sliding_anal
+                                                % yt_1
+    case 19
+        p = [100 0; 110 0; 105 9]; % interfaces far away from domain --> only one grain
+    case 20
+        p = [12.0 -2.0; 41.0 0.0; 12 2.00001];    % 3 grains for
+                                                % frictionless_sliding_anal
+                                                % yt_1
+    case 21
+        p = [-1.0 -2.0; 100.0 0.0; -1 2.00001];    % 3 grains for
+                                                % frictionless_sliding_anal
+                                                % yt_3
+    case 22
+        p = [-1.0 -2.0; 100.0 0.0; -1 2.0];    % 3 grains for
+                                                % frictionless_sliding_anal
+                                                % yt_4
+    case 23
+        p = [-1.0 0.0; 6.0 0.5; -1 1.0];    % 3 grains for square
 
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...

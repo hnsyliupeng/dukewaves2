@@ -1,8 +1,25 @@
-function [force_values,force_id] = NBCintegrate(BOUNDARY,FORCE,DOFs1,DOFs2)
+% NBCintegrate.m
+%
+% CALL: NBCintegrate(BOUNDARY,FORCE,DOFs1,DOFs2)
+% 
 % Integrate over a single, uncut element edge to get the nodal forces, that
 % have to be assembled into 'big_force'
+%
+% Input parameters
+%   BOUNDARY          structure, that describes the boundary edge
+%                     (integration domain)
+%   FORCE             stucture, that describes the traction, that is given
+%                     in this element edge
+%   DOFs1             global degrees of freedom for node 1 of element edge
+%   DOFs2             global degrees of freedom for node 2 of element edge
+%
+% Returned variables
+%   force_values      element load vector (nodal forces)
+%   force_id          ID array for assembly
 
 % Author: Matthias Mayr (05/2010)
+
+function [force_values,force_id] = NBCintegrate(BOUNDARY,FORCE,DOFs1,DOFs2)
 
 if strcmpi(FORCE.shape,'constant')
     % compute length of Neumann boundary
@@ -46,8 +63,8 @@ elseif strcmp(FORCE.shape,'linear')
     traction_y = @(x) my*x + ty;
         
     % get coords of element nodes
-    p1 = BOUNDARY.coords(1,:)
-    p2 = BOUNDARY.coords(2,:)
+    p1 = BOUNDARY.coords(1,:);
+    p2 = BOUNDARY.coords(2,:);
     
     % Get real coordinates of gauss points
     xgp1 = 0.5*(1-gauss(1))*p1(1)+0.5*(1+gauss(1))*p2(1);
@@ -116,8 +133,8 @@ elseif strcmp(FORCE.shape,'parabolic')
         y*(y-0.5*len)/(len)*(0.5*len) * fy1;
     
     % get coords of element nodes
-    p1 = BOUNDARY.coords(1,:)
-    p2 = BOUNDARY.coords(2,:)
+    p1 = BOUNDARY.coords(1,:);
+    p2 = BOUNDARY.coords(2,:);
     
     % Get real coordinates of gauss points
     xgp1 = 0.5*(1-gauss(1))*p1(1)+0.5*(1+gauss(1))*p2(1);

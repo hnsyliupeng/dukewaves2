@@ -7,10 +7,10 @@ hold on;
 
 % plot initial mesh
 for e=1:numele
-   plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.9 0.9 0.9],...
+   plot(x(node(1:3,e)),y(node(1:3,e)),'Color',[0.8 0.8 0.8],...
        'LineWidth',0.1)
    plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
-       'Color',[0.9 0.9 0.9],'LineWidth',1.0)
+       'Color',[0.8 0.8 0.8],'LineWidth',1.0)
 end;
 
 

@@ -1,4 +1,4 @@
-% Input File 'inp_frictionless_sliding1_72_18.m'
+% Input File 'inp_osz_frictionless_sliding_linear_forces_72_18.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -94,6 +94,12 @@ IFDirichletBCs = 8;
 % 15    hatshaped_x_forces_72_18_NBC.m
 % 16    parabolic_x_forces_72_18_NBC.m
 IFNeumannBCs = 15;
+%
+% method of giving NBCs
+% ID    Description
+% 0     nodal forces (integration done by user, only not-enriched nodes)
+% 1     tractions given as functions
+IFneumann = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -104,7 +110,8 @@ IFNeumannBCs = 15;
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 % 4     3 grains with different material properties
-IFMatSet = 1;
+% 6     Two grains (nue1 = 0.3, nue2 = nue3 = 0.0, Ei = 1000.0)
+IFMatSet = 3;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -113,13 +120,13 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche =1.0e+7;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

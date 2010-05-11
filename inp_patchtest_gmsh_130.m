@@ -48,7 +48,7 @@ IFfilename_msh_file = 'patchtest_130';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;%4;
+IFdatasetp = 16;%11;%4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -132,13 +132,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+3;
+IFnitsche = 1.0e+5;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

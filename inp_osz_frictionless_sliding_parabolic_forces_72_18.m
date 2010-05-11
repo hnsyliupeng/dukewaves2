@@ -1,4 +1,4 @@
-% Input File 'inp_frictionless_sliding1_72_18.m'
+% Input File 'inp_osz_frictionless_sliding_parabolic_forces_72_18.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %

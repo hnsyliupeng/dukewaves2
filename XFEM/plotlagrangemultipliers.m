@@ -222,7 +222,7 @@ switch IFsliding_switch  % different plot routines for sliding / no sliding
            plot([x(node(3,e)) x(node(1,e))],[y(node(3,e)) y(node(1,e))],...
                'Color',[0.9 0.9 0.9],'LineWidth',0.1)
         end;
-
+        
         % loop over all interfaces
         for i = 1:size(seg_cut_info,1)      % every interface 'i'
             for e = 1:size(seg_cut_info,2)  % every cut element 'e' in 
