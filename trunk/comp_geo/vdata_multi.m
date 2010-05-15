@@ -186,7 +186,7 @@ switch IFdatasetp
         p = [-1.0 0.05; 20.0 3.05; -1.0 6.05];    % 3 grains for
                                                 % Hertzian_Contact_2
     case 18
-        p = [12.0 -2.0; 41.0 0.0; 12 2.5];    % 3 grains for
+        p = [12.0 -2.0; 41.0 0.0; 12 2.0];    % 3 grains for
                                                 % frictionless_sliding_anal
                                                 % yt_1
     case 19
@@ -205,7 +205,22 @@ switch IFdatasetp
                                                 % yt_4
     case 23
         p = [-1.0 0.0; 6.0 0.5; -1 1.0];    % 3 grains for square
-
+    case 24
+        p = [2.0 -1.0; 3.0 -1; 4 5.0];    % 3 grains for beam_TM2
+    case 25
+        p = [0 0; 16 0; 8 9];       % 2 grains for frictionless_sliding_analyt_6
+    case 26
+        p = [0 3; 3*sin(pi/4) 3*cos(pi/4); 10 20];       % 2 grains for frictionless_sliding_analyt_7
+    case 27
+        p = [-23 0; 18 15; 18 -15];       % 2 grains for frictionless_sliding_analyt_8
+    case 28
+        p = [6 -2; 8 3; 10 -2];   
+    case 29
+        p = [0.2 -0.55; -0.8 1.05; 0.2 2.65];   % 3 grains for frictionless_sliding_analyt_2
+                                                % unstructured mesh
+    case 30
+        p = [0.2 -1.55; -0.8 0.05; 0.2 1.65];   % 3 grains for frictionless_sliding_analyt_2
+                                                % structured mesh
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

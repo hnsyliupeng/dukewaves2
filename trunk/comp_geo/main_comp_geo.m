@@ -24,6 +24,13 @@ switch IFmeshstructure
             'Unvalid mesh structure ID "IFmeshstructure" in input file');
 end;
 
+% get boundary descriptions to be able to apply NBCs via integration for
+% structured meshing
+if IFmeshstructure == 0 && IFneumann == 1 
+  filename = fullfile('BoundaryDescriptions',IFboundarydescription);
+  run(filename);
+end;
+
 % fill matrix 'p'
 vdata_multi;
 
@@ -252,6 +259,7 @@ for i = 1:length(vx) % Loop over all interfaces
         seg_cut_info(i,j).grains = interface_grains(i).grains;
         seg_cut_info(i,j).positive_grain = positive_grain;
         seg_cut_info(i,j).negative_grain = negative_grain;
+        seg_cut_info(i,j).interface = i;
     
     end
 end

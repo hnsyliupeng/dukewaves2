@@ -1,20 +1,35 @@
 % DBCs
 
-% x-direction
+% upper left corner
 dispbc(1,1) = 1;
+% dispbc(2,1) = 1;
+
+% upper right corner
+dispbc(1,4) = 1;
+% dispbc(2,4) = 1;
+
+% bottom left corner
 dispbc(1,2) = 1;
-% dispbc(1,3) = 1;
-
-% dispbc(1,22) = 1;
-% dispbc(1,5) = 1;
-% dispbc(1,4) = 1;
-
-
-% y-direction
 dispbc(2,2) = 1;
-for i=23:100
-  dispbc(2,i) = 1;
+
+% bottom right corner
+dispbc(1,3) = 1;
+dispbc(2,3) = 1;
+
+% left boundary
+for i=101:118
   dispbc(1,i) = 1;
+%   dispbc(2,i) = 1;
 end;
 
-dispbc(2,3) = 1;
+% right boundary
+for i=5:22
+  dispbc(1,i) = 1;
+%   dispbc(2,i) = 1;
+end;
+
+% bottom boundary
+for i=23:100
+  dispbc(1,i) = 1;
+  dispbc(2,i) = 1;
+end;
