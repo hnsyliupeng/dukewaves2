@@ -56,7 +56,7 @@ for i = 1:size(seg_cut_info,1)      % every interface 'i'
       % get lagrange multiplier for this subsegment (x and y)
       lag = seg_cut_info(i,e).lagmult;
       
-      if IFmethod == 0% || IFmethod == 2
+      if IFmethod == 0 %|| IFmethod == 2
         % use Lagrange multipliers or Nithsche's emthod to enforce 
         % constraints at interface ('lag' is already dotted with normal)
         lag_normal = lag(1);

@@ -104,7 +104,6 @@ end
 
 % end points of intersection - direction doesn't matter - this is for the
 % segment jacobian calculation
-
 if all(size(intersection) == [2 2])     % no triple junction in the element
     % get the two intersection points
     p1 = intersection(1,:);

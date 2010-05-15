@@ -48,7 +48,7 @@ IFnldivy = 18;
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 19;%4;
+IFdatasetp = 4;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -103,6 +103,10 @@ IFNeumannBCs = 8;
 % 1     Two grains (nue1 = 0.0, nue2 = 0.3, E1 = E2 = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
+% 4     3 grains with different material properties
+% 5     3 grains with same material properties (nue = 0.3, E = 200.0)
+% 6     Two grains (nue1 = 0.3, nue2 = nue3 = 0.0, Ei = 1000.0)
+% 7     3 grains, one of them very stiff ( E --> inf )
 IFMatSet = 1;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
@@ -112,7 +116,7 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;

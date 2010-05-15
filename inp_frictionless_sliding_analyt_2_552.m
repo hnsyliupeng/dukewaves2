@@ -50,7 +50,7 @@ IFfilename_msh_file = 'rectangle_552';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 19;
+IFdatasetp = 29;%29;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -142,7 +142,7 @@ IFneumann = 1;
 % 4     3 grains with different material properties
 % 5     3 grains with same material properties (nue = 0.3, E = 200.0)
 % 6     Two grains (nue1 = 0.3, nue2 = nue3 = 0.0, Ei = 1000.0)
-IFMatSet = 0;
+IFMatSet = 3;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -151,13 +151,13 @@ IFMatSet = 0;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+3;
+IFnitsche = 1.0e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
