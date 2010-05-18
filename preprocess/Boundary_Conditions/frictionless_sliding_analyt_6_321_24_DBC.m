@@ -1,21 +1,23 @@
 % DBCs
 
+num_x = 321;
+num_y = 24;
+
 % center nodes on both ends
 dispbc(1,4) = 1;
-dispbc(1,571) = 1;
+dispbc(1,(num_x+1)*(num_y+1)-ceil(num_y/2)) = 1;
 
 dispbc(2,4) = 1;
-dispbc(2,571) = 1;
-
+dispbc(2,(num_x+1)*(num_y+1)-ceil(num_y/2)) = 1;
 
 % left boundary
-for i=1:6
+for i=1:num_y+1
   dispbc(1,i) = 1;
 %   dispbc(2,i) = 1;
 end;
 
 % right boundary
-for i=568:574
+for i=num_x*(num_y+1) + 1:(num_x+1)*(num_y+1)
   dispbc(1,i) = 1;
 %   dispbc(2,i) = 1;
 end;

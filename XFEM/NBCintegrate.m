@@ -59,7 +59,7 @@ elseif strcmp(FORCE.shape,'linear')
     ty = fy1;
     
     % define function for linear traction
-    traction_x = @(x) mx*x + tx;
+    traction_x = @(x) mx*(x+len/2) + tx;
     traction_y = @(x) my*x + ty;
         
     % get coords of element nodes

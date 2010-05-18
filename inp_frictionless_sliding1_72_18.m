@@ -116,13 +116,13 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+5;
+IFpenalty = 1.0e+7;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+2;
+IFnitsche = 0;%1.0e+2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

@@ -208,7 +208,7 @@ switch IFdatasetp
     case 24
         p = [2.0 -1.0; 3.0 -1; 4 5.0];    % 3 grains for beam_TM2
     case 25
-        p = [0 0; 16 0; 8 9];       % 2 grains for frictionless_sliding_analyt_6
+        p = [4 2; 12 2; 8 8];       % 2 grains for frictionless_sliding_analyt_6
     case 26
         p = [0 3; 3*sin(pi/4) 3*cos(pi/4); 10 20];       % 2 grains for frictionless_sliding_analyt_7
     case 27

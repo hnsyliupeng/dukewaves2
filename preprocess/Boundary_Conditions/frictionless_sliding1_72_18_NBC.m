@@ -10,7 +10,7 @@
 
 
 % maximum load in x-direction
-maxload = 100;
+maxload = -1;
 
 
 % nodal load
