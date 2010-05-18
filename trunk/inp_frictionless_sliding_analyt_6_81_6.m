@@ -6,10 +6,7 @@
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
 % Example to compare with analytical solution to show oszillations and
-% their stabilization for frictionless sliding. Rectangular domain with 
-% spherical cavitiy (according to [Timoshenko p. 396 ff]). 
-% Length x height = 8 x 8. radius a = 0.5. unstructured mesh. 1840
-% elements. Symmetry of domain is used (only a half is modelled).
+% their stabilization for frictionless sliding. Similar to TM2 Tutorium 9.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -43,6 +40,11 @@ IFheight = 1;
 IFnldivx = 81;
 IFnldivy = 6;
 %
+
+% filename for boundary description file for structured meshing and NBCs 
+% via integration
+IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
+%
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
 IFfilename_msh_file = 'quarterring_2';      % NO FILE EXTENSION '.msh'
@@ -52,7 +54,7 @@ IFfilename_msh_file = 'quarterring_2';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 19;%25;%19;
+IFdatasetp = 25;%25;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -145,7 +147,7 @@ IFNeumannBCs = 36;
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 0;
+IFneumann = 1;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -168,7 +170,7 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;

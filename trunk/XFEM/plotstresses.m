@@ -19,7 +19,7 @@ ymin = min(Y);
 %% plot xx-stresses
 % open a new figure
 figure(1);
-subplot(311);
+% subplot(311);
 % axis equal;
 hold on;
 title('xx-stress');
@@ -101,8 +101,8 @@ hold off;
 
 %% plot yy-stresses
 % open a new figure
-% figure(2);
-subplot(312);
+figure(2);
+% subplot(312);
 % axis equal;
 hold on;
 title('yy-stress');
@@ -183,8 +183,8 @@ hold off;
 
 %% plot xy-stresses
 % open a new figure
-% figure(3);
-subplot(313);
+figure(3);
+% subplot(313);
 % axis equal;
 hold on;
 title('xy-stress');

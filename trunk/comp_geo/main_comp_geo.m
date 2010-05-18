@@ -8,6 +8,10 @@ disp('generation of background mesh...');
 % load data from input file 'xfeminputdata_comp_geo.mat'
 load xfeminputdata_comp_geo.mat
 
+% check, if all needed variables are given in the input file
+if exist('IFneumann','var') == 0, IFneumann = 0; end; % default to restore 
+                                    % compatibility with older input files
+
 %gets array of points p for the voronoi diagram
 switch IFmeshstructure
     case 0

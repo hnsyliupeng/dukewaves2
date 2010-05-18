@@ -119,13 +119,13 @@ switch IFDirichletBCs
   case 33
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_5_144_DBC');
   case 34
-    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_80_5_DBC');
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_81_6_DBC');
   case 35
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_7_DBC');
   case 36
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_4_7337_DBC');
   case 37
-    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_81_13_DBC');
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_81_12_DBC');
   case 38
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_300_DBC');
   case 39
@@ -144,6 +144,38 @@ switch IFDirichletBCs
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_4758_DBC');
   case 46
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_14398_DBC');
+  case 47
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_6220_DBC');
+  case 48
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_31424_DBC');
+  case 49
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_41_3_DBC');
+  case 50
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_161_12_DBC');
+  case 51
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_321_24_DBC');
+  case 52
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_641_48_DBC');
+  case 53
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_1281_96_DBC');
+  case 54
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_534_DBC');
+  case 55
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3622_DBC');
+  case 56
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_41_6_DBC');
+  case 57
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_81_20_DBC');
+  case 58
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_121_30_DBC');
+  case 59
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_161_40_DBC');
+  case 60
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_321_80_DBC');
+  case 61
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_41_10_DBC');
+  case 62
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_21_6_DBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -224,13 +256,13 @@ switch IFNeumannBCs
   case 35
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_5_144_NBC');
   case 36
-    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_80_5_NBC');
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_81_6_NBC');
   case 37
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_7_NBC');
   case 38
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_4_7337_NBC');
   case 39
-    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_81_13_NBC');
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_81_12_NBC');
   case 40
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_300_NBC');
   case 41
@@ -249,6 +281,38 @@ switch IFNeumannBCs
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_4758_NBC');
   case 48
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_14398_NBC');
+  case 49
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_6220_NBC');
+  case 50
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_2_31424_NBC');
+  case 51
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_41_3_NBC');
+  case 52
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_161_12_NBC');
+  case 53
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_321_24_NBC');
+  case 54
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_641_48_NBC');
+  case 55
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_6_1281_96_NBC');
+  case 56
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_534_NBC');
+  case 57
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3622_NBC');
+  case 58
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_41_6_NBC');
+  case 59
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_81_20_NBC');
+  case 60
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_121_30_NBC');
+  case 61
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_161_40_NBC');
+  case 62
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_321_80_NBC');
+  case 63
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_41_10_NBC');
+  case 64
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_21_6_NBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

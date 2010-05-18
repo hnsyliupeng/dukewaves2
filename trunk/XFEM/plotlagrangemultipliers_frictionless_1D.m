@@ -1,13 +1,16 @@
 % Due to the frictionless sliding, there is no tangential lagrange
 % multiplier. So, only one plot will be generated.
 
+% plot analytical solution
+% figure(2);hold on;line([-1 1],[2 -2],'Color','r','LineWidth',2)
+
 % create a new figure (no subplots due to frictionless sliding)
 figure(2);      
 hold on;
 set(2,'Name','Lagrange multipliers (frictionless sliding)');
-title('normal direction');
-xlabel('coordinate');
-ylabel('value of Lagrange multiplier');
+% title('normal direction');
+ylabel('y-coordinate');
+xlabel('traction value');
 % axis([0 16 -1 3]);
 
 % loop over all interfaces
@@ -69,8 +72,11 @@ for i = 1:size(seg_cut_info,1)      % every interface 'i'
 
       % plot interface
 %       line(xcoord,[lag_normal lag_normal]);
-      plot(xcoord,[lag_normal lag_normal],'-','LineWidth',3);  % horizontal interface
-%       plot(ycoord,[lag_normal lag_normal],'-','LineWidth',3);    % vertical interface
+%       plot(xcoord,[lag_normal lag_normal],'-','LineWidth',3);  % horizontal interface
+      plot([lag_normal lag_normal],ycoord,'-','LineWidth',3);    % vertical interface
     end;
   end;
 end;  
+
+% give a legend
+% legend('analytical','simulation');
