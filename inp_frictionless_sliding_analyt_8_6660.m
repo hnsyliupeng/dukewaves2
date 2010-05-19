@@ -1,4 +1,4 @@
-% Input File 'inp_frictionless_sliding_analyt_8_534.m'
+% Input File 'inp_frictionless_sliding_analyt_8_6660.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -7,7 +7,7 @@
 %**************************************************************************
 % Example to compare with analytical solution to show oszillations and
 % their stabilization for frictionless sliding. Rectangular domain. 
-% Length x height = 16 x 4. unstructured mesh. 543 elements. Pure
+% Length x height = 16 x 4. unstructured mesh. 6660 elements. Pure
 % bending.
 %**************************************************************************
 %
@@ -36,11 +36,11 @@ IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
 IFlength = 16;
-IFheight = 2;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 81;
-IFnldivy = 13;
+IFnldivx = 21;
+IFnldivy = 6;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -48,7 +48,7 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'patchtest_534';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'patchtest_6660';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
@@ -119,7 +119,17 @@ IFdatasetp = 25;%25;%19;
 % 52    frictionless_sliding_analyt_6_641_48_DBC.m
 % 53    frictionless_sliding_analyt_6_1281_96_DBC.m
 % 54    frictionless_sliding_analyt_8_534_DBC.m
-IFDirichletBCs = 54;
+% 55    frictionless_sliding_analyt_8_3622_DBC.m
+% 56    frictionless_sliding_analyt_8_41_6_DBC.m
+% 57    frictionless_sliding_analyt_8_81_20_DBC.m
+% 58    frictionless_sliding_analyt_8_121_30_DBC.m
+% 59    frictionless_sliding_analyt_8_161_40_DBC.m
+% 60    frictionless_sliding_analyt_8_321_80_DBC.m
+% 61    frictionless_sliding_analyt_8_41_10_DBC.m
+% 62    frictionless_sliding_analyt_8_21_6_DBC.m
+% 63    frictionless_sliding_analyt_8_1604_DBC.m
+% 64    frictionless_sliding_analyt_8_6660_DBC.m
+IFDirichletBCs = 64;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -180,7 +190,17 @@ IFDirichletBCs = 54;
 % 54    frictionless_sliding_analyt_6_641_48_NBC.m
 % 55    frictionless_sliding_analyt_6_1281_96_NBC.m
 % 56    frictionless_sliding_analyt_8_534_NBC.m
-IFNeumannBCs = 56;
+% 57    frictionless_sliding_analyt_8_3622_DBC.m
+% 58    frictionless_sliding_analyt_8_41_6_DBC.m
+% 59    frictionless_sliding_analyt_8_81_20_DBC.m
+% 60    frictionless_sliding_analyt_8_121_30_DBC.m
+% 61    frictionless_sliding_analyt_8_161_40_DBC.m
+% 62    frictionless_sliding_analyt_8_321_80_DBC.m
+% 63    frictionless_sliding_analyt_8_41_10_DBC.m
+% 64    frictionless_sliding_analyt_8_21_6_DBC.m
+% 65    frictionless_sliding_analyt_8_1604_DBC.m
+% 66    frictionless_sliding_analyt_8_6660_DBC.m
+IFNeumannBCs = 66;
 %
 % method of giving NBCs
 % ID    Description
@@ -215,7 +235,7 @@ IFmethod = 0;
 IFpenalty = 5.0e+7;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+2;
+IFnitsche = 1.0e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

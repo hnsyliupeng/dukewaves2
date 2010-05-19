@@ -176,6 +176,22 @@ switch IFDirichletBCs
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_41_10_DBC');
   case 62
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_21_6_DBC');
+  case 63
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_1604_DBC');
+  case 64
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_6660_DBC');
+  case 65
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_23174_DBC');
+  case 66
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_6660_DBC');
+  case 67
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_2020_DBC');
+  case 68
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_420_DBC');
+  case 69
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3706_DBC');
+  case 70
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_14766_DBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -313,6 +329,22 @@ switch IFNeumannBCs
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_41_10_NBC');
   case 64
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_21_6_NBC');
+  case 65
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_1604_NBC');
+  case 66
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_6660_NBC');
+  case 67
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_23174_NBC');
+  case 68
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_6660_NBC');
+  case 69
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding1_2020_NBC');
+  case 70
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_420_NBC');
+  case 71
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3706_NBC');
+  case 72
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_14766_NBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

@@ -15,14 +15,14 @@ if exist('IFneumann','var') == 0, IFneumann = 0; end; % default to restore
 %gets array of points p for the voronoi diagram
 switch IFmeshstructure
     case 0
-        structured          % call routine for structured meshing
+        structured;          % call routine for structured meshing
         nonphysnodevec = [];% there are no nonphysical nodes
     case 1
         warning('MATLAB:comp_geo:meshstructure','Unstructured meshing might bring up some problems.');
-        unstructured        % call routine for unstructured meshing
+        unstruct;        % call routine for unstructured meshing
         nonphysnodevec = [];% there are no nonphysical nodes
     case 2
-        readmeshfromGMSH    % read a mesh from a gmsh-mesh-file '*.msh'
+        readmeshfromGMSH;    % read a mesh from a gmsh-mesh-file '*.msh'
     otherwise
         error('MATLAB:comp_geo:main_comp_geo',...
             'Unvalid mesh structure ID "IFmeshstructure" in input file');

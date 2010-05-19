@@ -27,7 +27,7 @@ if strcmpi(FORCE.shape,'constant')
     
     % constant force --> apply half of 'FORCE.values' on each node
     force_values = 0.5 * [FORCE.values(1) FORCE.values(2) ...
-        FORCE.values(1) FORCE.values(2)] ./ len;
+        FORCE.values(1) FORCE.values(2)];% ./ len;
     force_id = [DOFs1(1) DOFs1(2) DOFs2(1) DOFs2(2)];
 elseif strcmp(FORCE.shape,'linear')
     % Now, use 2-point-gauss-integration to evaluate the integral over the
