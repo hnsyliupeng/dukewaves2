@@ -5,13 +5,13 @@
 FORCE(1) = struct('shape','','values',[],'nodes',[],'coords',[]);
 FORCE(1).shape = 'linear';
 FORCE(1).values = [-1 0;1 0];
-FORCE(1).nodes = [4:22 3];
+FORCE(1).nodes = [3 178:185 4 186:193 5];
 
 % left boundary
 FORCE(2) = struct('shape','','values',[],'nodes',[],'coords',[]);
 FORCE(2).shape = 'linear';
 FORCE(2).values = [1 0;-1 0];
-FORCE(2).nodes = [2 101:118 1];
+FORCE(2).nodes = [6 95:102 1 103:110 2];
 
 % % right boundary
 % FORCE(3) = struct('shape','','values',[],'nodes',[],'coords',[]);

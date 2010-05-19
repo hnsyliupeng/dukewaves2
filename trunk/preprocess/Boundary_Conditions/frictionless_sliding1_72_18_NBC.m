@@ -10,17 +10,17 @@
 
 
 % maximum load in x-direction
-maxload = -1;
+totalload = -1;   % 'totalload' = 'constant traction' * 'length of load'
 
 
 % nodal load
-nodeload = maxload/18;
+nodeload = totalload/18;
 
 
 force = zeros(2,numnod);
 
 
-% Right hand side - constant stress
+% Right hand side - constant traction
 force(1,1369)=nodeload/2;
 for i=1370:1386
     force(1,i)=nodeload;

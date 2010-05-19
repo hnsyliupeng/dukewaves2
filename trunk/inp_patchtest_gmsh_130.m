@@ -48,7 +48,7 @@ IFfilename_msh_file = 'patchtest_130';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 16;%11;%4;
+IFdatasetp = 4;%11;%4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -132,7 +132,7 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+5;
@@ -159,7 +159,7 @@ IFsliding_switch = 0;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 1;
+IFSolverType = 0;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;

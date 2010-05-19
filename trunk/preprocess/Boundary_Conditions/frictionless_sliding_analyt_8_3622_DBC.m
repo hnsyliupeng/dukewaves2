@@ -1,15 +1,18 @@
 % DBCs
 
 % fix middle of upper boundary
-dispbc(1,157) = 1;
-dispbc(2,157) = 1;
-% dispbc(1,158) = 1;
-dispbc(2,158) = 1;
+dispbc(1,1904) = 1;
+dispbc(2,1904) = 1;
+dispbc(1,1825) = 1;
+dispbc(2,1825) = 1;
 
-% dispbc(1,532) = 1;
-dispbc(2,532) = 1;
-% dispbc(1,1898) = 1;
-dispbc(2,1898) = 1;
+dispbc(1,830) = 1;
+dispbc(2,830) = 1;
+dispbc(1,202) = 1;
+dispbc(2,202) = 1;
+
+dispbc(1,13) = 1;
+dispbc(1,110) = 1;
 
 % % fix center of domain
 % dispbc(1,87) = 1;

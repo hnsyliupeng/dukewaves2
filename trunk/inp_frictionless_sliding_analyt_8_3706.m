@@ -1,14 +1,12 @@
-% Input File 'inp_frictionless_sliding_analyt_8_534.m'
+% Input File 'inp_frictionless_sliding_analyt_8_3706.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Example to compare with analytical solution to show oszillations and
-% their stabilization for frictionless sliding. Rectangular domain. 
-% Length x height = 16 x 4. unstructured mesh. 543 elements. Pure
-% bending.
+% Comparison to analytical solution for frictionless Sliding. Rectangular 
+% domain. Length x height = 16 x 4. unstructured mesh. 3706 elements.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -36,11 +34,11 @@ IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
 IFlength = 16;
-IFheight = 2;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 81;
-IFnldivy = 13;
+IFnldivx = 21;
+IFnldivy = 6;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -48,7 +46,7 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'patchtest_534';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'patchtest_3706';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
@@ -119,7 +117,22 @@ IFdatasetp = 25;%25;%19;
 % 52    frictionless_sliding_analyt_6_641_48_DBC.m
 % 53    frictionless_sliding_analyt_6_1281_96_DBC.m
 % 54    frictionless_sliding_analyt_8_534_DBC.m
-IFDirichletBCs = 54;
+% 55    frictionless_sliding_analyt_8_3622_DBC.m
+% 56    frictionless_sliding_analyt_8_41_6_DBC.m
+% 57    frictionless_sliding_analyt_8_81_20_DBC.m
+% 58    frictionless_sliding_analyt_8_121_30_DBC.m
+% 59    frictionless_sliding_analyt_8_161_40_DBC.m
+% 60    frictionless_sliding_analyt_8_321_80_DBC.m
+% 61    frictionless_sliding_analyt_8_41_10_DBC.m
+% 62    frictionless_sliding_analyt_8_21_6_DBC.m
+% 63    frictionless_sliding_analyt_8_1604_DBC.m
+% 64    frictionless_sliding_analyt_8_6660_DBC.m
+% 65    frictionless_sliding_analyt_8_23174_DBC.m
+% 66    frictionless_sliding1_6660_DBC.m
+% 67    frictionless_sliding1_2020_DBC.m
+% 68    frictionless_sliding_analyt_8_420_DBC.m
+% 69    frictionless_sliding_analyt_8_3706_DBC.m
+IFDirichletBCs = 69;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -180,7 +193,22 @@ IFDirichletBCs = 54;
 % 54    frictionless_sliding_analyt_6_641_48_NBC.m
 % 55    frictionless_sliding_analyt_6_1281_96_NBC.m
 % 56    frictionless_sliding_analyt_8_534_NBC.m
-IFNeumannBCs = 56;
+% 57    frictionless_sliding_analyt_8_3622_NBC.m
+% 58    frictionless_sliding_analyt_8_41_6_NBC.m
+% 59    frictionless_sliding_analyt_8_81_20_NBC.m
+% 60    frictionless_sliding_analyt_8_121_30_NBC.m
+% 61    frictionless_sliding_analyt_8_161_40_NBC.m
+% 62    frictionless_sliding_analyt_8_321_80_NBC.m
+% 63    frictionless_sliding_analyt_8_41_10_NBC.m
+% 64    frictionless_sliding_analyt_8_21_6_NBC.m
+% 65    frictionless_sliding_analyt_8_1604_NBC.m
+% 66    frictionless_sliding_analyt_8_6660_NBC.m
+% 67    frictionless_sliding_analyt_8_23174_NBC.m
+% 68    frictionless_sliding1_6660_NBC.m
+% 69    frictionless_sliding1_2020_NBC.m
+% 70    frictionless_sliding_analyt_8_420_NBC.m
+% 71    frictionless_sliding_analyt_8_3706_NBC.m
+IFNeumannBCs = 71;
 %
 % method of giving NBCs
 % ID    Description
@@ -193,7 +221,7 @@ IFneumann = 1;
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
 % 0     24 grains with same material properties (nue = 0.3, E = 1000.0)
-% 1     Two grains (nue1 = 0.0, nue2 = 0.3, nue3 = 0.3, Ei = 1000.0)
+% 1     Two grains (nue1 = 0.3, nue2 = 0.0, nue3 = 0.3, Ei = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 % 4     3 grains with different material properties
@@ -209,13 +237,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+7;
+IFpenalty = 1.0e+4;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+2;
+IFnitsche = 1.0e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

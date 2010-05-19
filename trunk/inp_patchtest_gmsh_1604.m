@@ -1,4 +1,4 @@
-% Input File 'inp_patchtest_enr_NBC_8_2.m'
+% Input File 'inp_patchtest_gmsh_1604.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -49,7 +49,7 @@ IFfilename_msh_file = 'patchtest_1604';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 16;%11;%4;
+IFdatasetp = 4;%11;%4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -158,7 +158,7 @@ IFsliding_switch = 0;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 1;
+IFSolverType = 0;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;

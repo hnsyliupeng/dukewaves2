@@ -369,41 +369,41 @@ switch IFneumann
                   big_force(force_id(k)) + force_values(k);
               end;
            else
-            if cutlist(BOUNDARY(1,i).ele) == 2
-              % element is intersected by one interface
-
-              % get interface, that cuts the element
-              for k = 1:size(seg_cut_info,1)    % loop over interfaces 'k'
-                for e = 1:size(seg_cut_info,2)  % loop over elements 'e'
-                  % if element 'e' is a boundary element
-                  if seg_cut_info(k,e).elemno == BOUNDARY(1,i).ele
-                    seg_cut_ind = [k e];
-                  end;
-                end;
-              end;
-
-              % get nodenumbers of current boundary element
-              nodenumbers = BOUNDARY(1,i).nodes;
-
-              % get DOFs of the two nodes
-              DOFs1 = id_eqns(BOUNDARY(i).nodes(1),1:4);
-              DOFs2 = id_eqns(BOUNDARY(i).nodes(2),1:4);
-
-              % get element load vector and ID array for
-              % assembling into 'big_force'
-              [force_values,force_id] = ...
-                NBCintegrate_enriched(BOUNDARY(1,i),FORCE(1,j),DOFs1, ...
-                DOFs2,seg_cut_info(seg_cut_ind(1),seg_cut_ind(2)), ...
-                NODEINFO_ARR(BOUNDARY(1,i).nodes), ...
-                id_dof(BOUNDARY(1,i).nodes,:));
-
-              % assemble into 'big_force'
-              for k=1:2;%length(force_id)
-                big_force(force_id(k)) = ...
-                  big_force(force_id(k)) + force_values(k);
-              end;
-
-            end;
+%             if cutlist(BOUNDARY(1,i).ele) == 2
+%               % element is intersected by one interface
+% 
+%               % get interface, that cuts the element
+%               for k = 1:size(seg_cut_info,1)    % loop over interfaces 'k'
+%                 for e = 1:size(seg_cut_info,2)  % loop over elements 'e'
+%                   % if element 'e' is a boundary element
+%                   if seg_cut_info(k,e).elemno == BOUNDARY(1,i).ele
+%                     seg_cut_ind = [k e];
+%                   end;
+%                 end;
+%               end;
+% 
+%               % get nodenumbers of current boundary element
+%               nodenumbers = BOUNDARY(1,i).nodes;
+% 
+%               % get DOFs of the two nodes
+%               DOFs1 = id_eqns(BOUNDARY(i).nodes(1),1:4);
+%               DOFs2 = id_eqns(BOUNDARY(i).nodes(2),1:4);
+% 
+%               % get element load vector and ID array for
+%               % assembling into 'big_force'
+%               [force_values,force_id] = ...
+%                 NBCintegrate_enriched(BOUNDARY(1,i),FORCE(1,j),DOFs1, ...
+%                 DOFs2,seg_cut_info(seg_cut_ind(1),seg_cut_ind(2)), ...
+%                 NODEINFO_ARR(BOUNDARY(1,i).nodes), ...
+%                 id_dof(BOUNDARY(1,i).nodes,:));
+% 
+%               % assemble into 'big_force'
+%               for k=1:2;%length(force_id)
+%                 big_force(force_id(k)) = ...
+%                   big_force(force_id(k)) + force_values(k);
+%               end;
+% 
+%             end;
           end;
         end;
       end;
