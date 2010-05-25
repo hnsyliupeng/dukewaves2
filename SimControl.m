@@ -15,15 +15,15 @@ clc; close all; clear all;
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 % determine, which parts get executed. 0 = false, 1 = true
-EXEC_comp_geo = 0;          % generate a new background mesh
-EXEC_preprocess = 0;        % apply new BCs
+EXEC_comp_geo = 1;          % generate a new background mesh
+EXEC_preprocess = 1;        % apply new BCs
 EXEC_XFEM = 1;              % solve
 
 % set the filename of the input file without file extension '.m', that has 
 % to be used.
 %
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_frictionless_sliding_analyt_8_14766';   % NO FILE EXTENSION '.m'
+filename_input_file = 'inp_beambending_24_6';   % NO FILE EXTENSION '.m'
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 

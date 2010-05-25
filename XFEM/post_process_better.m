@@ -9,8 +9,8 @@
 %   x               x-coordinates of all nodes
 %   y               y-coordinates of all nodes
 %   e               global element ID
-%   dis             global displacement vector (base + enriched DOFs)
-%   disp_vec
+%   dis             global displacement vector (re-assembled)
+%   disp_vec        
 %   id_dof          stores, which DOFs are enriched once or twice
 %   cutlist         lists, which DOFs are enriched
 %   maxngrains      number of grains in discretization (Minimum: 3)
