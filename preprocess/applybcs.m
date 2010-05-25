@@ -12,8 +12,8 @@
 % directory is changed by a 'cd'-command.
 %
 % Input Parameters:
-%   x
-%   y
+%   x               x-coordinates of all nodes
+%   y               y-coordinates of all nodes
 %   numnod          number of nodes in discretization
 %   beam_l
 %   beam_h
