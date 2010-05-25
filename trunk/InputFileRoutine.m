@@ -273,6 +273,10 @@ IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
 IFconvtol = 1.0e-8;
+%
+% vector with pseudo-time-steps (always between '0' and '1')
+IFtime = linspace(0,1,30);  % vector creation without 'linspace'-command
+                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

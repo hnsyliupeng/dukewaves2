@@ -1,25 +1,41 @@
-% Two dimensional polycrystal XFEM code
+%% Two dimensional polycrystal XFEM code
 % G-FEM Based on the paper by Simone, Duarte and Van der Giesseb
 % All other ideas by Dolbow
 % Jessica Sanders, Summer 2006 (SNL) - Summer 2007
-
-% load input parameters from 'xfemintutdata_xfem.mat'
+%% LOAD INPUT PARAMETERS FROM 'xfemintutdata_xfem.mat'
 load xfeminputdata_xfem.mat
-
-% Set default values to all not defined input parameters
+% ----------------------------------------------------------------------- %
+%% LOAD MODEL DATA
+load my_new_mesh_with_BCs.mat
+% ----------------------------------------------------------------------- %
+%% Set default values to all not defined input parameters
 if exist('IFmethod','var') == 0, IFmethod = 0;end;  % Lagrange multipliers
 if exist('IFpenalty','var') == 0, IFpenalty = 3.0e+5;end;   % Penalty-Parameter
 if exist('IFnitsche','var') == 0, IFnitsche = 3.0e+5;end;   % Stabilization-Parameter
-
-% assign input parameters to local variables
+if exist('IFtime','var') == 0, IFtime = [0 1];end;    % load steps
+%% ASSIGN INPUT PARAMETERS TO LOCAL VARIABLES
+% sliding parameters
 sliding_switch = IFsliding_switch;
 
-% LOAD MODEL DATA
-load my_new_mesh_with_BCs.mat
-
+% time / load stepping parameters & displacement increments for each
+% loadstep
+if length(IFtime) > 1
+  time = IFtime;
+  dis_increment = zeros(2*numnod,1,(length(time)-1));
+else
+  time = [0 1];
+  dis_increment = zeros(2*numnod,1,1);
+end;
 % ----------------------------------------------------------------------- %
-    
-% DETERMINE NODAL ENRICHMENTS
+%% INITIALIZE (1)
+% diplacement vector with separated base and enriched DOFs before
+% re-assembling
+old_ndisp = zeros(numnod,6);
+
+% vector for 'Lagrange multipliers' (= tractions at interface)
+lagmult = [];
+% ----------------------------------------------------------------------- %
+%% DETERMINE NODAL ENRICHMENTS
 
 % determine nodes to be enriched and with which fncs
 % loop over nodes, then loop over grains
@@ -67,8 +83,7 @@ end
 clear last i;
 
 % ----------------------------------------------------------------------- %
-
-% ID ARRAY FOR EQUATION NUMBERING
+%% ID ARRAY FOR EQUATION NUMBERING
 
 % Data structures for setting up the extended stiffness matrix and
 % determining its size
@@ -112,26 +127,7 @@ end
 numeqns = max(max(id_eqns));
 
 % ----------------------------------------------------------------------- %
-% % PREPARE ASSEMBLY OF FORCE VECTOR 'big_force'
-% % get enriched nodes with NBCs on it
-% DOFs_x_NBCs = find(force(1,:));     % nodes with NBC in x-direction
-% DOFs_y_NBCs = find(force(2,:));     % nodes with NBC in y-direction
-% 
-% % get enriched dofs of those nodes
-% % get enriches nodes with x- and y-DBCs
-% % index of those nodes in DOFs_x_NBCs, that have a first enrichment
-% enr_DOFs_x_NBCs = find(id_eqns(DOFs_x_NBCs,3) ~= 0); 
-% % index of those nodes in DOFs_y_NBCs, that have a first enrichment
-% enr_DOFs_y_NBCs = find(id_eqns(DOFs_y_NBCs,4) ~= 0);    
-% % index of those nodes in DOFs_y_NBCs, that have a second enrichment
-% enr_DOFs_x_NBCs2 = find(id_eqns(DOFs_x_NBCs,5) ~= 0);   
-% % index of those nodes in DOFs_y_NBCs, that have a second enrichment
-% enr_DOFs_y_NBCs2 = find(id_eqns(DOFs_y_NBCs,6) ~= 0);   
-
-
-% ----------------------------------------------------------------------- %
-
-%ASSEMBLY OF STIFFNESS
+%% PREPARE ASSEMBLY OF STIFFNESS
 
 disp('assembling stiffness ...');
 
@@ -254,6 +250,8 @@ numeqns = numeqns + extra_eqns_DBC;
 bigk = spalloc(numeqns,numeqns,numele*36);
 ndof = 2; % number of standard degrees of freedon per node
 
+% ----------------------------------------------------------------------- %
+%% ASSEMBLE ELASTIC CONTRIBUTION TO GOBAL STIFFNESS MATRIX 'bigk'
 % Get local stiffness matrices
 % loop over elements
 
@@ -283,7 +281,22 @@ end
 clear rbk cbk re ce nlink id ke i e j;
 
 % ----------------------------------------------------------------------- %
-% ASSEMBLE EXTERNAL FORCING VECTOR
+%% PREPARE ASSEMBLY OF EXTERNAL FORCE VECTOR
+% % get enriched nodes with NBCs on it
+% DOFs_x_NBCs = find(force(1,:));     % nodes with NBC in x-direction
+% DOFs_y_NBCs = find(force(2,:));     % nodes with NBC in y-direction
+% 
+% % get enriched dofs of those nodes
+% % get enriches nodes with x- and y-DBCs
+% % index of those nodes in DOFs_x_NBCs, that have a first enrichment
+% enr_DOFs_x_NBCs = find(id_eqns(DOFs_x_NBCs,3) ~= 0); 
+% % index of those nodes in DOFs_y_NBCs, that have a first enrichment
+% enr_DOFs_y_NBCs = find(id_eqns(DOFs_y_NBCs,4) ~= 0);    
+% % index of those nodes in DOFs_y_NBCs, that have a second enrichment
+% enr_DOFs_x_NBCs2 = find(id_eqns(DOFs_x_NBCs,5) ~= 0);   
+% % index of those nodes in DOFs_y_NBCs, that have a second enrichment
+% enr_DOFs_y_NBCs2 = find(id_eqns(DOFs_y_NBCs,6) ~= 0);   
+
 % For not enriched nodes, the nodal force given in 'force' can be assigned
 % to 'big_force' at the right position. For enriched nodes, the element
 % load vector has to be computed via integration, because the nodal forces
@@ -298,7 +311,8 @@ clear rbk cbk re ce nlink id ke i e j;
 if exist('IFneumann','var') == 0,IFneumann = 0; end;
 
 big_force = zeros(numeqns,1);
-
+% ----------------------------------------------------------------------- %
+%% ASSEMBLE EXTERNAL GLOBAL FORCE VECTOR 'big_force'
 % select method of applying Neumann BCs
 switch IFneumann
   case 0  % give nodal forces in input file
@@ -411,13 +425,17 @@ switch IFneumann
     otherwise
 end;
 
-
-
+% store maximum external load vector
+big_force_max = big_force;
 
 % clear some temporary variables
 clear slot n j;
 % ----------------------------------------------------------------------- %
-% APPLY CONSTRAINS AT INTERFACES
+%% INITIALZE (2)
+% sum of all incremental solution vectors
+fdisp_sum = zeros(size(big_force'));
+% ----------------------------------------------------------------------- %
+%% APPLY CONSTRAINS AT INTERFACES
 
 % Method is chosen by paramter 'IFmethod'
 switch IFmethod
@@ -649,69 +667,7 @@ switch IFmethod
       'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
 end;
 % ----------------------------------------------------------------------- %
-
-% % LOOP OVER "ENRICHED SURFACES" AND APPLY BCS THERE
-% % This is only necessary if we are applying Dirichlet boundary conditions
-% % on enriched nodes, and required an extensive input setup.  This works,
-% % but isn't well constructed.  Those boundary conditions should only be
-% % used if absolutely necessary.
-% 
-% if (bc_enr)         % The switch indicating we have enriched nodes with bcs
-%     
-%     temp = size(bigk,2);
-% 
-%     bigk(temp+2*num_enr_surf,1) = 0;            % Resize bigk
-%     bigk(1,temp+2*num_enr_surf) = 0;
-% 
-%     for i = 1:num_enr_surf                      % Loop over sub surfaces
-%         
-%         
-%         [ke_con,id_node,id_lag,fe_con] =...
-%         enr_constraints(node,x,y,i,id_eqns,id_dof,enr_surf,temp,ubar,dispbc,nodegrainmap);
-% 
-%         ke_con = ke_con';
-% 
-%         nlink = size(ke_con,1);
-%         %
-%         % assemble ke_pen into bigk
-%         %
-%         for m=1:nlink
-%             for n=1:2
-%                 rbk = id_node(m);
-%                 cbk = id_lag(n);
-%                 re = m;
-%                 ce = n;
-%                 if (rbk ~= 0) && (cbk ~= 0) 
-%                     bigk(rbk,cbk) = bigk(rbk,cbk) + ke_con(re,ce);
-%                     bigk(cbk,rbk) = bigk(cbk,rbk) + ke_con(re,ce);
-%                 end
-%             end
-%         end
-%         %
-%         % assemble force into RHS
-%         %
-%         big_force(id_lag(1)) = fe_con(1);
-%         big_force(id_lag(2)) = fe_con(2);         
-%     end
-%     for i = num_enr_surf:-1:1    
-%         if enr_surf(i).xy(2) ~= 1
-%             bigk(temp+2*i,:) = [];
-%             bigk(:,temp+2*i) = [];
-%             big_force(temp + 2*i) = [];
-%         end
-%         if enr_surf(i).xy(1) ~= 1
-%             bigk(temp+2*i-1,:) = [];
-%             bigk(:,temp+2*i-1) = [];
-%             big_force(temp + 2*i-1) = [];
-%         end
-%     end
-% end
-% 
-% % clear some temporary variables
-% clear cbk rbk temp re ce;
-
-% ----------------------------------------------------------------------- %
-% ENFORCE DISPLACEMENT BOUNDARY CONDITIONS 
+%% ENFORCE DISPLACEMENT BOUNDARY CONDITIONS 
 
 for n=1:numnod
   for j=1:ndof
@@ -745,8 +701,7 @@ end
 clear m m2 m3 temp;
 
 % ----------------------------------------------------------------------- %
-% ADD CONASTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHES
-% NODES
+%% ADD CONASTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHED NODES
 % Order of assembly:
 %   1. x-DBCs of first enriched nodes
 %   2. y-DBCs of first enriched nodes
@@ -829,13 +784,13 @@ for i=1:size(extra_constr_y2,1)
   % set value for prescribed displacement
   big_force(rbk) = ubar(2,extra_constr_y2(i,3));
 end;
-
-
-
-
 % ----------------------------------------------------------------------- %
-% FIX NONPHYSICAL NODES (due to gmsh-meshes)
-
+%% FIX NONPHYSICAL NODES (due to gmsh-meshes)
+% When using GMSH for mesh generation (unstructured meshes), there might be
+% some nodes, that are only needed for geometry purposes, not for meshing
+% (e.g. the center point of circles). These are referred to as "nonphysical
+% nodes". The corresponding equations have to be eliminated in the global
+% equations system.
 for i = nonphysnodevec
   dofvec_temp = id_eqns(i,:); % get global DOF-numbers for nonphysical node
   for j=dofvec_temp
@@ -845,109 +800,142 @@ end;
 
 % clear some temporary variables
 clear dofvec_temp;
-
 % ----------------------------------------------------------------------- %
-% APPLY NEUMANN BOUNDARY CONDITIONS
+%% LOAD STEPPING LOOP (BEGIN)
+% The deformed state will be computed via a incremental loading procedure.
+% So, several interim states are computed. To be able to compare with the
+% initial state, the inital x- and y-coordinates have to be stored in
+% seperate variables. The nodal coordinates will be updated at the end of
+% each load step iteration. The displacement increments will be saved to
+% 'dis_increment'
+x_orig = x; % x-coordinate
+y_orig = y; % y-coordinate
 
-% ----------------------------------------------------------------------- %
+% loop over all load / time steps (pseudo-time). The vector with time steps
+% is given in the input file: 'IFtime'. Its first element is always a '0'.
+for timestep = 1:(length(time)-1)
+  disp(['load step ' num2str(timestep)]);
+  % --------------------------------------------------------------------- %
+  %% GET GLOBAL FORCE VECTOR FOR CURRENT LOAD STEP
+  % get the current load increment
+  big_force = big_force_max * (time(timestep+1)-time(timestep));
+  % --------------------------------------------------------------------- %
+  %% SOLVE (NEWTON-RAPHSON-SCHEME BEGIN)
+  % Due to the non-linearity of plasticity or driction, an iterative solver
+  % is necessary. A Newton-Raphson-Scheme is applied.
+  
+  % Fdisp will be a vector with the solution for all global degrees of
+  % freedom, with "base" and enriched degrees of freedom separated.
 
+  % iterative solving via a Newton-Raphson-Scheme
+  % set some default values (if they are not set via input file)
+  if IFmaxiter==1;maxiter = 25;end;  % set 'maxiter=25' (default)
+  if IFconvtol==0;convtol = 1.0e-5;end;% set 'convtols=1e-5' (default)
 
-% LINEAR SOLVE AND RE-ASSEMBLE SOLUTION 
+  % initialize some variables
+  solu = zeros(size(big_force));            % set a start vector
+  iter = 0;                                 % iteration index for newton-scheme
 
-% solve stiffness equations
+  % store old solution to enable update
+  old_solu = solu;
 
-disp('solving ...');
+  while 1         % maximum number of iterations = maxiter
+    % add '1' to the iteration index
+    iter = iter + 1;
+    % ------------------------------------------------------------------- %
+    %% SOLVE (NEWTON-RAPHSON-SCHEME END)
+    % compute the increment vector 'delta'
+    delta = -old_solu + bigk\big_force; 
 
-% Fdisp will be a vector with the solution for all global degrees of
-% freedom, with "base" and enriched degrees of freedom separated.
+    % update the solution-vector
+    solu = solu + delta;
 
-switch IFSolverType
-  case 0                          % explicit solver
-    disp('    Solver: explicit');
-    disp(['    Condition number in L1-norm:  ' num2str(condest(bigk))]);
-    fdisp = big_force'/bigk;    % fdisp is a row-vector
-  case 1                          % implicit solver (Newton-scheme)
-    disp('Solver: implicit');
+    % print some information about the current iteration step
+    step_info = ['  Newton step: ' num2str(iter) '    Res-Norm: '...
+        num2str(norm(delta))];
+    disp(step_info);
 
-    % implizit solving via a Newton-Raphson-Scheme
-    % set some default values (if they are not set via input file)
-    if IFmaxiter==1;maxiter = 25;end;  % set 'maxiter=25' (default)
-    if IFconvtol==0;convtol = 1.0e-5;end;% set 'convtols=1e-5' (default)
+    % convergence check
+    if norm(delta) < IFconvtol;break;end;
 
-    % initialize some variables
-    solu = zeros(size(big_force));            % set a start vector
-    iter = 0;                                 % iteration index for newton-scheme
-
-    % store old solution to enable update
+    % save displacement to 'old_solu'
     old_solu = solu;
 
-    while 1         % maximum number of iterations = maxiter
-      % add '1' to the iteration index
-      iter = iter + 1;
-
-      % compute the increment vector 'delta'
-      delta = -old_solu + bigk\big_force; 
-
-      % update the solution-vector
-      solu = solu + delta;
-
-      % print some information about the current iteration step
-      step_info = ['  Newton step: ' num2str(iter) '    Res-Norm: '...
-          num2str(norm(delta))];
-      disp(step_info);
-
-      % convergence check
-      if norm(delta) < IFconvtol;break;end;
-
-      % save displacement to 'old_solu'
-      old_solu = solu;
-
-      if iter > IFmaxiter
-        error('MATLAB:XFEM:main_xfem',...
-            'Newton did not converge in %d iterations.', IFmaxiter);
-      end;
+    if iter > IFmaxiter
+      error('MATLAB:XFEM:main_xfem',...
+          'Newton did not converge in %d iterations.', IFmaxiter);
     end;
-    fdisp = solu';      % fdisp is a row-vector
+  end;
+  % transpose 'solu'
+  fdisp = solu';      % fdisp is a row-vector
 
-    % clear some temporary variables
-    clear solu step_info delta old_solu iter;
-  otherwise
-    error('MATLAB:XFEM:main_xfem',...
-      'Unvalid solver type ID. Choose a valid ID or add an additional solver in "main_xfem.m".');
-end;
+  % sum 'fdisp' over all loadsteps
+  fdisp_sum = fdisp_sum + fdisp;
+  
+  % clear some temporary variables
+  clear solu step_info delta old_solu iter;
+  % --------------------------------------------------------------------- %
+  %% RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
+  % Reassemble displacement vector  - Enriched nodes need to have their
+  % degrees of freedom added to end up representing a total displacement.
+  % The extra degrees of freedom should only be added if the node is enriched
+  % with the grain in which it resides.  
 
-% Reassemble displacement vector  - Enriched nodes need to have their
-% degrees of freedom added to end up representing a total displacement.
-% The extra degrees of freedom should only be added if the node is enriched
-% with the grain in which it resides.  
+  % ndisp(i,:) are all of the solutions (base and enriched) at node i
+  ndisp = zeros(numnod,6);
 
-% ndisp(i,:) are all of the solutions (base and enriched) at node i
-ndisp = zeros(numnod,6);
+  % dis is a vector with traditional FEM numbering, and the final solution
+  % for each node. It stores the nodal displacements
+  dis = zeros(2*numnod,1);
 
-% dis is a vector with traditional FEM numbering, and the final solution
-% for each node. It stores the nodal displacements
-dis = zeros(2*numnod,1);
-
-for i = 1:numeqns
-  [nnode,doff] = find(id_eqns == i);
-  ndisp(nnode,doff) = fdisp(i);
-end
-old_ndisp = ndisp;
-for i = 1:numnod
-  grain = nodegrainmap(i);
-  for j = 3:6
-    if id_dof(i,j) ~= grain
-      ndisp(i,j) = 0;
-    end
+  for i = 1:numeqns
+    [nnode,doff] = find(id_eqns == i);
+    ndisp(nnode,doff) = fdisp(i);
   end
-  dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
-  dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
-end
+  
+  % 'old_ndisp' stores displacement in base and enriched DOFs separated
+  old_ndisp = old_ndisp + ndisp;    % update every load step
+  
+  for i = 1:numnod
+    grain = nodegrainmap(i);
+    for j = 3:6
+      if id_dof(i,j) ~= grain
+        ndisp(i,j) = 0;
+      end
+    end
+    dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
+    dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
+  end
+  % --------------------------------------------------------------------- %
+  %% UPDATE AT END OF LOAD-STEP-LOOP
+  % update nodal coordinates
+  for i=1:numnod                % loop over all nodes
+    x(i) = x(i) + dis(2*i-1);   % update x-coordinate
+    y(i) = y(i) + dis(2*i);     % update y-coordinate
+  end;
+  
+  % store increment of displacement for each load step
+  dis_increment(:,1,timestep) = dis;
+  % --------------------------------------------------------------------- %
+  %% LOAD STEPPING LOOP (END)
+end;
+% ----------------------------------------------------------------------- %
+%% COMPUTE GLOBAL DISPLACEMENT VECTOR
 
-%--------------------------------------------------------------------------
-
-% POST-PROCESS
-
+% compute global displacement vector as difference between deformed and
+% initial state
+for i=1:numnod                      % loop over all nodes 
+  dis(2*i-1) = x(i) - x_orig(i);    % x-coordinate
+  dis(2*i) = y(i) - y_orig(i);      % y-coordinate
+end;
+% ----------------------------------------------------------------------- %
+%% LOAD INITIAL STATE
+% load initial state to to postprocessing. The deformed state can be
+% obtained by adding the displacement 'dis' to the initial configuration.
+x = x_orig; % x-coordinates of nodes
+y = y_orig; % y-coordinates of nodes
+% ----------------------------------------------------------------------- %
+%% POST-PROCESS: STRESSES
 disp('postprocessing ...');
 
 % compute stresses 'stress' and strains 'strain' at center of each element
@@ -976,14 +964,14 @@ end
 
 % clear some temporary variables
 clear stresse straine maxstress_vec minstress_vec i e f j;
-
-
+% ----------------------------------------------------------------------- %
+%% POST PROCESS: TRACTIONS AT INTERFACE
 % computing the internal forces in the interface depends on the method of
 % constraint enforcing
 switch IFmethod 
   case 0              % Lagrange multipliers
     % extract vector with lagrange multipliers from 'fdisp'
-    lagmult = fdisp(old_size+1:old_size + 2*multipliers);
+    lagmult = fdisp_sum(old_size+1:old_size + 2*multipliers);
 
     % assign lagrange multipliers into 'seg_cut_info'
     % a subsegment is defined uniquely by interface and element ID
@@ -1014,9 +1002,6 @@ switch IFmethod
     % get penalty parameter
     penalty = IFpenalty;
 
-    %initialize
-    lagmult = [];
-
     for i = 1:size(seg_cut_info,1)     % for every interface
       for e = 1:size(seg_cut_info,2) % for every cut element in that interface
         % initialize variable for lagrange multiplier in 'seg_cut_info'
@@ -1038,7 +1023,7 @@ switch IFmethod
              get_lag_mults_for_penalty(node,x,y,parent_el, ...
              id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
              seg_cut_info(i,e).xint, ...
-             INTERFACE_MAP(i).endpoints,penalty,fdisp);
+             INTERFACE_MAP(i).endpoints,penalty,fdisp_sum);
 
           lagmult = [lagmult seg_cut_info(i,e).lagmult];
         end;
@@ -1051,9 +1036,6 @@ switch IFmethod
   case 2                  % Nitsche's method
     % Compute Lagrange multipliers via 
     %                       'lambda = alpha * [[u]] - <sigma>*normal'
-
-    %initialize
-    lagmult = [];
 
     % get stabilization parameter
     penalty = IFnitsche;
@@ -1098,7 +1080,7 @@ switch IFmethod
             get_lag_mults_for_penalty(node,x,y,parent_el, ...
             id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
             seg_cut_info(i,e).xint, ...
-            INTERFACE_MAP(i).endpoints,penalty,fdisp);
+            INTERFACE_MAP(i).endpoints,penalty,fdisp_sum);
               
           % compute Nitsche-part
           lagmult_nit = sigma_avg * normal;
@@ -1113,17 +1095,15 @@ switch IFmethod
       end;
     end;
 
-      % clear some temporary variables
-      clear pn_nodes neg_g pos_g i e parent_el;
+    % clear some temporary variables
+    clear pn_nodes neg_g pos_g i e parent_el lagmult_nit lagmult_pen ...
+      normal sigma_avg sigma1 sigma2 grain1 grain2;
   otherwise
     error('MATLAB:XFEM:UnvalidID',...
       'Unvalid method ID. Choose a valid ID or add an additional case to switch-case-structure.');
 end;
 % ----------------------------------------------------------------------- %
-
-
-
-
+%% FINISH SOLVING PROCESS
 %  disp('saving to results file ...');
 
 %  save my_results_files.mat x y node dis fdisp numele numnod cutlist...
