@@ -8,7 +8,7 @@ load xfeminputdata_xfem.mat
 %% LOAD MODEL DATA
 load my_new_mesh_with_BCs.mat
 % ----------------------------------------------------------------------- %
-%% Set default values to all not defined input parameters
+%% SET DAFAULT VALUES TO ALL NOT DEFINED INPUT PARAMETERS
 if exist('IFmethod','var') == 0, IFmethod = 0;end;  % Lagrange multipliers
 if exist('IFpenalty','var') == 0, IFpenalty = 3.0e+5;end;   % Penalty-Parameter
 if exist('IFnitsche','var') == 0, IFnitsche = 3.0e+5;end;   % Stabilization-Parameter
@@ -277,6 +277,9 @@ for e = 1:numele
   end
 end
 
+% store elastic contribution to stiffnes matrix
+bigk_el = bigk;
+
 % clear some temporary variables
 clear rbk cbk re ce nlink id ke i e j;
 
@@ -434,6 +437,16 @@ clear slot n j;
 %% INITIALZE (2)
 % sum of all incremental solution vectors
 fdisp_sum = zeros(size(big_force'));
+
+% initialize sliding state flags 'slidestate' in 'seg_cut_info'
+%   flag    description
+%   0       stick
+%   1       slip
+for i=1:size(seg_cut_info,1)
+  for e=1:size(seg_cut_info,2)
+    seg_cut_info(i,e).slidestate = 0; % initialize as 'stick'
+  end;
+end;
 % ----------------------------------------------------------------------- %
 %% APPLY CONSTRAINS AT INTERFACES
 
@@ -450,10 +463,10 @@ switch IFmethod
     for i = 1:size(seg_cut_info,1)     % for every interface
       for e = 1:size(seg_cut_info,2) % for every cut element in that interface
         if seg_cut_info(i,e).elemno ~= -1
-
+          % get global element ID
           parent_el = seg_cut_info(i,e).elemno;
 
-%         % Count the extra degree of freedom we're at
+  %         % Count the extra degree of freedom we're at
           ex_dofs = ex_dofs + 1;         
           lag_surf = [lag_surf; ex_dofs i parent_el];  % mapping between lagrange 
                                           % multipliers and IDs of cut elements
@@ -467,51 +480,56 @@ switch IFmethod
           neg_g = seg_cut_info(i,e).negative_grain;
 
           [pn_nodes] =... 
-               get_positive_new(parent_el,pos_g,neg_g);
+             get_positive_new(parent_el,pos_g,neg_g);
 
 
-           % Get local constraint equations
-           [ke_lag,id_node,id_lag] =...
-             gen_lagrange(node,x,y,parent_el,id_eqns,id_dof,pn_nodes...
-             ,pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint...
-             ,INTERFACE_MAP(i).endpoints);
+          % Get local constraint equations
+          [ke_lag,id_node,id_lag] =...
+            gen_lagrange(node,x,y,parent_el,id_eqns,id_dof,pn_nodes, ...
+            pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint, ...
+            INTERFACE_MAP(i).endpoints);
 
-            % If the problem includes sliding, dot with the normal
-            switch sliding_switch
-              case 0
-              case 1          % frictionless sliding
-                ke_lag = ke_lag * seg_cut_info(i,e).normal;
-                ke_lag = [ke_lag zeros(12,1)];
-              case 2              % perfect plasticity
-                warning('MATLAB:XFEM:main_xfem',...
-                    'There exists no code for perfect plasticity, yet.')
-              case 3              % frictional contact (Coulomb)
-                warning('MATLAB:XFEM:main_xfem',...
-                    'There exists no code for frictional contact (Coulomb), yet.')
-              otherwise
-                warning('MATLAB:XFEM:main_xfem',...
-                    'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-            end;
+          % If the problem includes sliding, dot with the normal
+          switch sliding_switch
+            case 0
+            case 1          % frictionless sliding
+              ke_lag = ke_lag * seg_cut_info(i,e).normal;
+              % build full matrix
+              ke_lag_temp = [ke_lag zeros(12,1)];
+              % assign full matrix
+              ke_lag = ke_lag_temp;
+              % clear temporary variable
+              clear ke_lag_temp
+            case 2              % perfect plasticity
+              warning('MATLAB:XFEM:main_xfem',...
+                  'There exists no code for perfect plasticity, yet.')
+            case 3              % frictional contact (Coulomb)
+              warning('MATLAB:XFEM:main_xfem',...
+                  'There exists no code for frictional contact (Coulomb), yet.')
+            otherwise
+              warning('MATLAB:XFEM:main_xfem',...
+                  'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+          end;
 
-            nlink = size(ke_lag,1);
-            %
-            % assemble ke_lag into bigk
-            %
-            for m=1:nlink
-              for n=1:2
-                rbk = id_node(m);
-                cbk = id_lag(n);
-                re = m;
-                ce = n;
-                if (rbk ~= 0) && (cbk ~= 0) 
-                  % The constraint equations
-                  bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
-                  % The transpose are the equilibrium terms
-                  bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
-                end
+          nlink = size(ke_lag,1);
+          %
+          % assemble ke_lag into bigk
+          %
+          for m=1:nlink
+            for n=1:2
+              rbk = id_node(m);
+              cbk = id_lag(n);
+              re = m;
+              ce = n;
+              if (rbk ~= 0) && (cbk ~= 0) 
+                % The constraint equations
+                bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
+                % The transpose are the equilibrium terms
+                bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
               end
             end
           end
+        end
       end
     end;
 
@@ -811,6 +829,9 @@ clear dofvec_temp;
 x_orig = x; % x-coordinate
 y_orig = y; % y-coordinate
 
+% get a copy of the initial state of 'seg_cut_info'
+seg_cut_info_orig = seg_cut_info;
+
 % loop over all load / time steps (pseudo-time). The vector with time steps
 % is given in the input file: 'IFtime'. Its first element is always a '0'.
 for timestep = 1:(length(time)-1)
@@ -913,6 +934,33 @@ for timestep = 1:(length(time)-1)
     x(i) = x(i) + dis(2*i-1);   % update x-coordinate
     y(i) = y(i) + dis(2*i);     % update y-coordinate
   end;
+  
+%   % update intersection points
+%   for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
+%     for e=1:size(seg_cut_info,2)  % loop over all cut elements 'e'
+%       if seg_cut_info(i,e).elemno ~= -1 % only, if there is no triple junction
+%         % get global node IDs of nodes of current element
+%         ele_nodes = node(:,seg_cut_info(i,e).elemno)
+% 
+%         % get initial x- and y-coordinates of nodes of the element
+%         x_coords = x_orig(ele_nodes);
+%         y_coords = y_orig(ele_nodes);
+% 
+%         % get global DOFs of these nodes
+%         DOF_1 = id_eqns(node(1,seg_cut_info(i,e).elemno),1:2);  % first node
+%         DOF_2 = id_eqns(node(2,seg_cut_info(i,e).elemno),1:2);  % second node
+%         DOF_3 = id_eqns(node(3,seg_cut_info(i,e).elemno),1:2);  % third node
+% 
+%         % get total displacement for these nodes
+%         dis_nodes = [dis(DOF_1); dis(DOF_2); dis(DOF_3)];
+% 
+%         % compute new intersection points
+%         seg_cut_info(i,e).xint = ...
+%           updateintersectionpoints(seg_cut_info_orig(i,e),x_coords, ...
+%           y_coords,dis_nodes);
+%       end;
+%     end;
+%   end;
   
   % store increment of displacement for each load step
   dis_increment(:,1,timestep) = dis;

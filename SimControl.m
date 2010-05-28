@@ -23,7 +23,7 @@ EXEC_XFEM = 1;              % solve
 % to be used.
 %
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_beambending_24_6';   % NO FILE EXTENSION '.m'
+filename_input_file = 'inp_patchtest_24_6';   % NO FILE EXTENSION '.m'
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 
