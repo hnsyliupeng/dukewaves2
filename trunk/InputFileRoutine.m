@@ -1,19 +1,20 @@
-% Input File 'inp_frictionless_sliding_analyt_8_14766.m'
+% Input File 'inp_plasticity_2_ref_200_200.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Comparison to analytical solution for frictionless Sliding. Rectangular 
-% domain. Length x height = 16 x 4. unstructured mesh. 14766 elements.
+% Rectangular domain with prescribed traction on right boundary as 
+% reference solution for comparison with 'plasticity_2'-examples.
+% Length x height =4 x 4. 200 x 200 elements
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
 % strored in this file. Save it to an own file, afterwards.
 %
 
-% Author: Matthias Mayr (05/2010)
+% Author: Matthias Mayr (06/2010)
 
 %--------------------------------------------------------------------------
 % PARAMETERS FOR BACKGROUND MESH
@@ -24,7 +25,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 2;
+IFmeshstructure = 0;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -33,12 +34,12 @@ IFmeshstructure = 2;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 16;
+IFlength = 4;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 21;
-IFnldivy = 6;
+IFnldivx = 200;
+IFnldivy = 200;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +54,7 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 25;%25;%19;
+IFdatasetp = 19;%31;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -133,7 +134,10 @@ IFdatasetp = 25;%25;%19;
 % 68    frictionless_sliding_analyt_8_420_DBC.m
 % 69    frictionless_sliding_analyt_8_3706_DBC.m
 % 70    frictionless_sliding_analyt_8_14766_DBC.m
-IFDirichletBCs = 70;
+% 71    plasticity_1_7_7_DBC.m
+% 72    plasticity_2_21_10_DBC.m
+% 73    plasticity_2_ref_200_200_DBC.m
+IFDirichletBCs = 73;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -210,7 +214,11 @@ IFDirichletBCs = 70;
 % 70    frictionless_sliding_analyt_8_420_NBC.m
 % 71    frictionless_sliding_analyt_8_3706_NBC.m
 % 72    frictionless_sliding_analyt_8_14766_NBC.m
-IFNeumannBCs = 72;
+% 73    plasticity_1_7_7_NBC.m
+% 74    no_external_loads.m
+% 75    plasticity_2_21_10_NBC.m
+% 76    plasticity_2_ref_200_200_NBC.m
+IFNeumannBCs = 76;
 %
 % method of giving NBCs
 % ID    Description
@@ -239,7 +247,7 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+7;
@@ -255,7 +263,10 @@ IFnitsche = 1.0e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
+% 
+% Set a yield stress for plasticity
+IFyieldstress = 30;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -275,7 +286,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,30);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

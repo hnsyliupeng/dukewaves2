@@ -1,5 +1,8 @@
 % nit_stiff.m
 %
+% CALL: nit_stiff(node,x,y,parent,id_eqns,id_dof,pn_nodes,pos_g,neg_g,...
+%         normal,intersection,endpoints, IFsliding_switch,slidestate)
+%
 % Computes the Nitsche contribution to the global stiffnes matrix for
 % element 'parent'. Also, an id-array for assembly is computed.
 %
@@ -19,6 +22,7 @@
 %                       element edges)
 %   normal              normal vector to the interface
 %   IFsliding_switch    indicates, which kind of sliding is chosen
+%   slidestate          current sliding state of this subsegment (0 or 1)
 %
 % Returned parameters
 %   ke_nit              element "stiffness" matrix for Nitsche contribution
@@ -28,7 +32,7 @@
 
 function [ke_nit,id] =...
     nit_stiff(node,x,y,parent,id_eqns,id_dof,pn_nodes,pos_g,neg_g,...
-    normal,intersection,endpoints, IFsliding_switch)
+    normal,intersection,endpoints, IFsliding_switch,slidestate)
 
 % ----------------------------------------------------------------------- %
 
@@ -348,8 +352,104 @@ switch IFsliding_switch
     end
 
   case 2              % perfect plasticity
-    warning('MATLAB:XFEM:main_xfem',...
-        'There exists no code for perfect plasticity, yet.')
+    % compute 'ke_nit_sub' depending on current slide state (stick or slip)
+    if slidestate == 0      % stick
+      % equates to fully tied case
+     
+      % Computation via nested for-loops, since cijkl is a 4-tensor
+      % First, the positive terms.
+      for a = 1:6
+        for b = 1:9
+          for m = 1:2
+            for n = 1:2
+              p = 2*(a-1) + m;
+              q = 2*(b-1) + n;
+
+              for w = 1:2
+                for v = 1:2
+                  ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                    N(a)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+                end
+              end
+            end
+          end
+        end
+      end
+
+      % Second, the negative terms.
+      for a = 1:6
+        for b = 1:9
+          for m = 1:2
+            for n = 1:2
+              p = 2*(a-1) + m;
+              q = 2*(b-1) + n;
+
+              for w = 1:2
+                for v = 1:2
+                  ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                    N(a)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+                end
+              end
+            end
+          end
+        end
+      end
+    elseif slidestate == 1  % slip
+      % equates to frictionless sliding case
+       
+      % Computation via nested for-loops, since cijkl is a 4-tensor.
+      % For frictionless sliding, the 'N' and 'cijkl * strain' have to be
+      % doted with the normal. 
+
+      % construct a real matrix 'N'
+      Nvec = N;
+      clear N;
+      N = [Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6) 0;
+           0       Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6)];
+
+      % dot 'N' with the normal due to frictionless sliding
+      N = normal' * N;
+
+      % First, the positive terms.
+      for i = 1:12
+        for b = 1:9
+          for m = 1:2
+            for n = 1:2
+              a = ceil(i/2);
+              p = 2*(a-1) + m;
+              q = 2*(b-1) + n;
+
+              for w = 1:2
+                for v = 1:2
+                  ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                    N(i)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+
+        % Second, the negative terms.
+      for i = 1:12
+        for b = 1:9
+          for m = 1:2
+            for n = 1:2
+              a = ceil(i/2);
+              p = 2*(a-1) + m;
+              q = 2*(b-1) + n;
+
+              for w = 1:2
+                for v = 1:2
+                  ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                    N(i)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+                end
+              end
+            end
+          end
+        end
+      end
+    end;
   case 3              % frictional contact (Coulomb)
     warning('MATLAB:XFEM:main_xfem',...
       'There exists no code for frictional contact (Coulomb), yet.')

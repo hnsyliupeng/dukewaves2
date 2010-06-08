@@ -11,7 +11,6 @@ force(1,173) = load;
 force(1,174) = load;
 force(1,175) = load/2;
 
-% forces in y-direction
 
 
 % % Input data for integrating the NBCs

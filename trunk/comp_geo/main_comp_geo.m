@@ -229,7 +229,7 @@ for i = 1:length(vx) % Loop over all interfaces
   p1 = [vx(2,i) vy(2,i)];
   p2 = [vx(1,i) vy(1,i)];
 
-  value = halfplane_contains_point_2d ( p1, p2, [p(trial_grain,1) p(trial_grain,2)] );
+  value = halfplane_contains_point_2d(p1,p2,[p(trial_grain,1) p(trial_grain,2)]);
     
   if value
    positive_grain = trial_grain;

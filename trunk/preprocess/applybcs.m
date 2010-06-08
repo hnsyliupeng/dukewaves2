@@ -192,6 +192,12 @@ switch IFDirichletBCs
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3706_DBC');
   case 70
     filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_14766_DBC');
+  case 71
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_1_7_7_DBC');
+  case 72
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_2_21_10_DBC');
+  case 73
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_2_ref_200_200_DBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -345,6 +351,14 @@ switch IFNeumannBCs
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3706_NBC');
   case 72
     filename_NBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_14766_NBC');
+  case 73
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','plasticity_1_7_7_NBC');
+  case 74
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','no_external_loads');
+  case 75
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','plasticity_2_21_10_NBC');
+  case 76
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','plasticity_2_ref_200_200_NBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
