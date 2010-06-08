@@ -221,6 +221,8 @@ switch IFdatasetp
     case 30
         p = [0.2 -1.55; -0.8 0.05; 0.2 1.65];   % 3 grains for frictionless_sliding_analyt_2
                                                 % structured mesh
+    case 31
+        p = [0 0; 8 0; 4 9];       % 2 grains for plasticity_2
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

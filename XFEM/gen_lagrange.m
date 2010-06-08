@@ -1,3 +1,32 @@
+% gen_lagrange.m
+%
+% CALL: ge_lagrange(node,x,y,parent,id_eqns,id_dof,pn_nodes,pos_g, ...
+%         neg_g,numeqns,ex_dof,intersection,endpoints)
+%
+% Computes the contributiont to the global stiffnes matrix 'bigk' due to
+% the lagrange multipliers at the interface.
+%
+% Input parameters
+%   node            mapping between nodes and elements
+%   x               x-coordinates of all nodes
+%   y               y-coordinates of all nodes
+%   parent          global ID of current element
+%   id_eqns         mapping between nodes and global DOFs
+%   id_dof          mapping between nodes and their 'enriching' grains
+%   pn_nodes
+%   pos_g           positively enriched grain
+%   neg_g           negatively enriched grain
+%   numeqns 
+%   ex_dof
+%   intersection    intersection points of interfaces and element edges
+%   endpoints       points, that define an interface
+%
+% Returned variables
+%   ke              stiffnes contribution of this element
+%   id_node         id-array to assemble the stiffnes contribution
+%   id_lag          id-array to assemble additional constraint equations
+%
+
 function [ke,id_node,id_lag] =... 
     gen_lagrange(node,x,y,parent,id_eqns,id_dof,...
                  pn_nodes,pos_g,neg_g,numeqns,ex_dof,intersection,endpoints)
@@ -16,61 +45,51 @@ nodes = node(:,parent);
 
 % Get coordinates of parent element
 for m=1:3
-    jep = node(m,parent); xep(m) = x(jep); yep(m) = y(jep);
+  jep = node(m,parent); xep(m) = x(jep); yep(m) = y(jep);
 end
 
 flg = [0 0 0 0 0 0];
 
 % First enrichment
 for n = 1:3     % loop over nodes
-    
-    % Get the "first" enrichment of node
-    
-    enrich1(n) = id_dof(nodes(n),3);
-    
-    if enrich1(n) == pos_g
-    
-        if (pn_nodes(n,1) == 1)
-            flg(n) = 1;
-        else
-            flg(n) = 0;
-        end
-      
-    elseif enrich1(n) == neg_g
-        
-        if (pn_nodes(n,2) == 1)
-            flg(n) = -1;
-        else
-            flg(n) = 0;
-        end        
+  % Get the "first" enrichment of node
+  enrich1(n) = id_dof(nodes(n),3);
+
+  if enrich1(n) == pos_g
+    if (pn_nodes(n,1) == 1)
+      flg(n) = 1;
+    else
+      flg(n) = 0;
     end
+  elseif enrich1(n) == neg_g
+    if (pn_nodes(n,2) == 1)
+      flg(n) = -1;
+    else
+      flg(n) = 0;
+    end        
+  end
 end
 
 
 % Second Enrichment
 for n = 1:3     % loop over nodes
-    
-    % Get the "second" enrichment of nodes
-    
-    enrich2(n) = id_dof(nodes(n),5);  
-    
-    if enrich2(n) == pos_g  % If this enrichment corresponds 
-                            % to the positive grain
-    
-        if (pn_nodes(n,1) == 1)
-            flg(3 + n) = 1;
-        else
-            flg(3 + n) = 0;
-        end
-      
-    elseif enrich2(n) == neg_g
-        
-        if (pn_nodes(n,2) == 1)
-            flg(3 + n) = -1;
-        else
-            flg(3 + n) = 0;
-        end        
+  % Get the "second" enrichment of nodes
+  enrich2(n) = id_dof(nodes(n),5);  
+
+  if enrich2(n) == pos_g  % If this enrichment corresponds 
+                          % to the positive grain
+    if (pn_nodes(n,1) == 1)
+      flg(3 + n) = 1;
+    else
+      flg(3 + n) = 0;
     end
+  elseif enrich2(n) == neg_g
+    if (pn_nodes(n,2) == 1)
+      flg(3 + n) = -1;
+    else
+      flg(3 + n) = 0;
+    end        
+  end
 end
 
 
@@ -78,21 +97,21 @@ end
 % segment jacobian calculation
 
 if all(size(intersection) == [2 2])
-    p1 = intersection(1,:);
-    p2 = intersection(2,:);
+  p1 = intersection(1,:);
+  p2 = intersection(2,:);
 elseif all(size(intersection) == [1 2])
-    p1 = intersection(1,:);
-    
-    % Second endpoint of segment is also end point of interface
-    endpoint = endpoints(1,:);
-    
-    inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
-    
-    if inside
-        p2 = endpoint;
-    else
-        p2 = endpoints(2,:);
-    end
+  p1 = intersection(1,:);
+
+  % Second endpoint of segment is also end point of interface
+  endpoint = endpoints(1,:);
+
+  inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
+
+  if inside
+    p2 = endpoint;
+  else
+    p2 = endpoints(2,:);
+  end
 end
       
 
@@ -108,31 +127,33 @@ N = zeros(2,12);
 
 % loop over Gauss points to assemble N
 for g = 1:2
-    % Get real coordinates of gauss points
-    xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
-    yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
-    
-    for b = 1:3     % Evaluate shape functions
-        % Get coorindates of area opposite node of concern
-        for m=1:3
-            jes = node(m,parent); xes(m) = x(jes); yes(m) = y(jes);
-        end
+  % Get real coordinates of gauss points
+  xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
+  yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
 
-        xes(b) = xn; yes(b) = yn;
-
-        Area = det([[1 1 1]' xep' yep'])/2;
-        Larea = det([[1 1 1]' xes' yes'])/2;
-    
-        % Evaluate shape function
-        N(1,2*b-1) = N(1,2*b-1) + Larea/Area*seg_jcob*weights(g);    % First enrichment
-        N(2,2*b)   = N(2,2*b)   + Larea/Area*seg_jcob*weights(g);
-        N(1,2*b+5) = N(1,2*b+5) + Larea/Area*seg_jcob*weights(g);    % Second enrichment
-        N(2,2*b+6) = N(2,2*b+6) + Larea/Area*seg_jcob*weights(g);
+  for b = 1:3     % Evaluate shape functions
+    % Get coorindates of area opposite node of concern
+    for m=1:3
+      jes = node(m,parent);
+      xes(m) = x(jes); 
+      yes(m) = y(jes);
     end
+
+    xes(b) = xn; yes(b) = yn;
+
+    Area = det([[1 1 1]' xep' yep'])/2;
+    Larea = det([[1 1 1]' xes' yes'])/2;
+
+    % Evaluate shape function
+    N(1,2*b-1) = N(1,2*b-1) + Larea/Area*seg_jcob*weights(g);    % First enrichment
+    N(2,2*b)   = N(2,2*b)   + Larea/Area*seg_jcob*weights(g);
+    N(1,2*b+5) = N(1,2*b+5) + Larea/Area*seg_jcob*weights(g);    % Second enrichment
+    N(2,2*b+6) = N(2,2*b+6) + Larea/Area*seg_jcob*weights(g);
+  end
 end
 
 for c = 1:6
-    N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
+  N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
 end
     
 ke = N';
