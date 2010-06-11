@@ -1,8 +1,8 @@
 % DBCs
 
 % mesh data
-num_x = 21;
-num_y = 10;
+num_x = 81;
+num_y = 40;
 
 % left boundary
 for i=1:(num_y + 1)
@@ -11,7 +11,7 @@ for i=1:(num_y + 1)
 end;
 
 % right boundary
-displacement = 0.1;%0.5-0.022191764346110;%0.5;%0.001;
+displacement = 0.01;%0.5-0.022191764346110;%0.5;%0.001;
 for i=1:(num_y + 1)
   nodeID = num_x * (num_y + 1) + i;
   dispbc(1,nodeID) = 1;

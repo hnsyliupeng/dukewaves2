@@ -86,7 +86,7 @@ IFmethod = 1;
 IFpenalty = 5.0e+5;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+5;
+IFnitsche = 4.5e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -96,7 +96,10 @@ IFnitsche = 1.0e+5;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2;
+% 
+% Set a yield stress for plasticity
+IFyieldstress = 0.4;%20;%1;%0.03;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -113,10 +116,10 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-3;
+IFconvtol = 1.0e-12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,5);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,301);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

@@ -4,12 +4,12 @@
 % for a single interface
 
 % plot analytical solution
-% figure(2);hold on;line([-1 1],[2 -2],'Color','r','LineWidth',2)
+% figure(3);hold on;line([-1 1],[2 -2],'Color','r','LineWidth',2)
 
 % create a new figure (no subplots due to frictionless sliding)
-figure(2);      
+figure(3);      
 hold on;
-set(2,'Name','Lagrange multipliers in tangential direction');
+set(3,'Name','Lagrange multipliers in tangential direction');
 % title('normal direction');
 ylabel('y-coordinate');
 xlabel('traction value');
@@ -72,6 +72,11 @@ for i = 1:size(seg_cut_info,1)      % every interface 'i'
         lag_tangential = lag * tangent;
       end;
 
+%       if exist('seg_cut_info(i,e).slidestate','var')
+        if seg_cut_info(i,e).slidestate == 1
+          lag_tangential = IFyieldstress * sign(lag_tangential);
+        end;
+%       end;
       % plot interface
 %       line(xcoord,[lag_tangential lag_tangential]);
 %       plot(xcoord,[lag_tangential lag_tangential],'-','LineWidth',3);  % horizontal interface
