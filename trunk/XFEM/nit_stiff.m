@@ -461,7 +461,7 @@ end;
 ke_nit = [zeros(6,18);
           ke_nit_sub];
 
-% Build id array
+% Build id array to prepare assembly
 nodes = node(:,parent);
 id(1)  = id_eqns(nodes(1),1);  % original x dof
 id(2)  = id_eqns(nodes(1),2);  % original y dof

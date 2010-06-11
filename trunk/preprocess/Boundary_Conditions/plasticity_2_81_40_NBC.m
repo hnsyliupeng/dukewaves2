@@ -1,8 +1,8 @@
 % NBCs
 
 % mesh data
-num_x = 21;
-num_y = 10;
+num_x = 81;
+num_y = 40;
 
 % get nodes of right boundary
 tractionnodes = [];
@@ -14,5 +14,5 @@ end;
 % define traction
 FORCE(1) = struct('shape','','values',[],'nodes',[],'coords',[]);
 FORCE(1).shape = 'constant';
-FORCE(1).values = [0 0];
+FORCE(1).values = [1 0];
 FORCE(1).nodes = tractionnodes;

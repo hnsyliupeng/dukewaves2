@@ -1,19 +1,20 @@
-% Input File 'inp_frictionless_sliding_analyt_6_81_6.m'
+% Input File 'inp_plasticity_2_81_40.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Example to compare with analytical solution to show oszillations and
-% their stabilization for frictionless sliding. Similar to TM2 Tutorium 9.
+% Rectangular domain with prescribed displacement generate a shear stress 
+% state to test perfect plasticity. 
+% Length x height = 8 x 4. 81 x 40 elements
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
 % strored in this file. Save it to an own file, afterwards.
 %
 
-% Author: Matthias Mayr (05/2010)
+% Author: Matthias Mayr (06/2010)
 
 %--------------------------------------------------------------------------
 % PARAMETERS FOR BACKGROUND MESH
@@ -33,28 +34,27 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 16;
-IFheight = 1;
+IFlength = 8;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
 IFnldivx = 81;
-IFnldivy = 6;
+IFnldivy = 40;
 %
-
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
 IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'quarterring_2';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 25;%25;%19;
+IFdatasetp = 31;%31;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -99,7 +99,47 @@ IFdatasetp = 25;%25;%19;
 % 33    frictionless_sliding_analyt_5_144_DBC.m
 % 34    frictionless_sliding_analyt_6_80_5_DBC.m
 % 35    frictionless_sliding_analyt_7_DBC.m
-IFDirichletBCs = 34;
+% 36    frictionless_sliding_analyt_4_7337_DBC.m
+% 37    frictionless_sliding_analyt_8_81_13_DBC.m
+% 38    frictionless_sliding_analyt_2_300_DBC.m
+% 39    frictionless_sliding_analyt_2_9188_DBC.m
+% 40    frictionless_sliding_analyt_2_72_18_DBC.m
+% 41    frictionless_sliding_analyt_2_122_DBC.m
+% 42    frictionless_sliding_analyt_2_246_DBC.m
+% 43    frictionless_sliding_analyt_2_814_DBC.m
+% 44    frictionless_sliding_analyt_2_1854_DBC.m
+% 45    frictionless_sliding_analyt_2_4758_DBC.m
+% 46    frictionless_sliding_analyt_2_14398_DBC.m
+% 47    frictionless_sliding_analyt_2_6220_DBC.m
+% 48    frictionless_sliding_analyt_2_31424_DBC.m
+% 49    frictionless_sliding_analyt_6_41_3_DBC.m
+% 50    frictionless_sliding_analyt_6_161_12_DBC.m
+% 51    frictionless_sliding_analyt_6_321_24_DBC.m
+% 52    frictionless_sliding_analyt_6_641_48_DBC.m
+% 53    frictionless_sliding_analyt_6_1281_96_DBC.m
+% 54    frictionless_sliding_analyt_8_534_DBC.m
+% 55    frictionless_sliding_analyt_8_3622_DBC.m
+% 56    frictionless_sliding_analyt_8_41_6_DBC.m
+% 57    frictionless_sliding_analyt_8_81_20_DBC.m
+% 58    frictionless_sliding_analyt_8_121_30_DBC.m
+% 59    frictionless_sliding_analyt_8_161_40_DBC.m
+% 60    frictionless_sliding_analyt_8_321_80_DBC.m
+% 61    frictionless_sliding_analyt_8_41_10_DBC.m
+% 62    frictionless_sliding_analyt_8_21_6_DBC.m
+% 63    frictionless_sliding_analyt_8_1604_DBC.m
+% 64    frictionless_sliding_analyt_8_6660_DBC.m
+% 65    frictionless_sliding_analyt_8_23174_DBC.m
+% 66    frictionless_sliding1_6660_DBC.m
+% 67    frictionless_sliding1_2020_DBC.m
+% 68    frictionless_sliding_analyt_8_420_DBC.m
+% 69    frictionless_sliding_analyt_8_3706_DBC.m
+% 70    frictionless_sliding_analyt_8_14766_DBC.m
+% 71    plasticity_1_7_7_DBC.m
+% 72    plasticity_2_21_10_DBC.m
+% 73    plasticity_2_ref_50_50_DBC.m
+% 74    plasticity_2_41_20_DBC.m
+% 75    plasticity_2_81_40_DBC.m
+IFDirichletBCs = 75;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -140,8 +180,49 @@ IFDirichletBCs = 34;
 % 34    frictionless_sliding_analyt_4_29229_NBC.m
 % 35    frictionless_sliding_analyt_5_144_NBC.m
 % 36    frictionless_sliding_analyt_6_80_5_NBC.m
-% 37    frictionless_sliding_analyt_8_NBC.m
-IFNeumannBCs = 36;
+% 37    frictionless_sliding_analyt_7_NBC.m
+% 38    frictionless_sliding_analyt_4_7337_NBC.m
+% 39    frictionless_sliding_analyt_8_81_13_NBC.m
+% 40    frictionless_sliding_analyt_2_300_NBC.m
+% 41    frictionless_sliding_analyt_2_9188_NBC.m
+% 42    frictionless_sliding_analyt_2_72_18_NBC.m
+% 43    frictionless_sliding_analyt_2_122_NBC.m
+% 44    frictionless_sliding_analyt_2_246_NBC.m
+% 45    frictionless_sliding_analyt_2_814_NBC.m
+% 46    frictionless_sliding_analyt_2_1854_NBC.m
+% 47    frictionless_sliding_analyt_2_4758_NBC.m
+% 48    frictionless_sliding_analyt_2_14398_NBC.m
+% 49    frictionless_sliding_analyt_2_6220_NBC.m
+% 50    frictionless_sliding_analyt_2_31424_NBC.m
+% 51    frictionless_sliding_analyt_6_41_3_NBC.m
+% 52    frictionless_sliding_analyt_6_161_12_NBC.m
+% 53    frictionless_sliding_analyt_6_321_24_NBC.m
+% 54    frictionless_sliding_analyt_6_641_48_NBC.m
+% 55    frictionless_sliding_analyt_6_1281_96_NBC.m
+% 56    frictionless_sliding_analyt_8_534_NBC.m
+% 57    frictionless_sliding_analyt_8_3622_NBC.m
+% 58    frictionless_sliding_analyt_8_41_6_NBC.m
+% 59    frictionless_sliding_analyt_8_81_20_NBC.m
+% 60    frictionless_sliding_analyt_8_121_30_NBC.m
+% 61    frictionless_sliding_analyt_8_161_40_NBC.m
+% 62    frictionless_sliding_analyt_8_321_80_NBC.m
+% 63    frictionless_sliding_analyt_8_41_10_NBC.m
+% 64    frictionless_sliding_analyt_8_21_6_NBC.m
+% 65    frictionless_sliding_analyt_8_1604_NBC.m
+% 66    frictionless_sliding_analyt_8_6660_NBC.m
+% 67    frictionless_sliding_analyt_8_23174_NBC.m
+% 68    frictionless_sliding1_6660_NBC.m
+% 69    frictionless_sliding1_2020_NBC.m
+% 70    frictionless_sliding_analyt_8_420_NBC.m
+% 71    frictionless_sliding_analyt_8_3706_NBC.m
+% 72    frictionless_sliding_analyt_8_14766_NBC.m
+% 73    plasticity_1_7_7_NBC.m
+% 74    no_external_loads.m
+% 75    plasticity_2_21_10_NBC.m
+% 76    plasticity_2_ref_50_50_NBC.m
+% 77    plasticity_2_41_20_NBC.m
+% 78    plasticity_2_81_40_NBC.m
+IFNeumannBCs = 78;
 %
 % method of giving NBCs
 % ID    Description
@@ -154,7 +235,7 @@ IFneumann = 1;
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
 % 0     24 grains with same material properties (nue = 0.3, E = 1000.0)
-% 1     Two grains (nue1 = 0.0, nue2 = 0.3, nue3 = 0.3, Ei = 1000.0)
+% 1     Two grains (nue1 = 0.3, nue2 = 0.0, nue3 = 0.3, Ei = 1000.0)
 % 2     24 grains with different material properties
 % 3     24 grains with same material properties (nue = 0.0, E = 1000.0)
 % 4     3 grains with different material properties
@@ -170,13 +251,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
 IFpenalty = 5.0e+7;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+5;
+IFnitsche = 1.0e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -189,7 +270,7 @@ IFnitsche = 1.0e+5;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 0.006;
+IFyieldstress = 0.03;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -200,16 +281,16 @@ IFyieldstress = 0.006;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 1;
+IFSolverType = 0;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-12;
+IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,501);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1001);  % vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
