@@ -1,8 +1,8 @@
 % DBCs
 
 % mesh data
-num_x = 50;
-num_y = 50;
+num_x = 20;
+num_y = 20;
 
 % left boundary
 for i=1:(num_y + 1)

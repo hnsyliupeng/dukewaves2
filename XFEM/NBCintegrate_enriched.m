@@ -187,26 +187,24 @@ elseif strcmp(FORCE.shape,'parabolic')
   weights = [5/9 8/9 5/9];
 
   % compute jacobian
-  jac = norm(BOUNDARY.coords(1,:) - BOUNDARY.coords(2,:))/2;
+  jac = norm(BOUNDARY.coords(1,:) - BOUNDARY.coords(2,:)) / 2;
 
 
   % comput length of Neumann boundary
   len = norm(FORCE.coords(1,:) - FORCE.coords(2,:));
+  lenhalf = len / 2; % equals to 'h' from description above
 
   % construct function, that describes Lagrange polynomial for parabolic
   % force distribution
-  fx1 = FORCE.values(1,1);    % value of x-force on one end
-  fy1 = FORCE.values(1,2);    % value of y-force on one end
-  fx2 = FORCE.values(2,1);    % value of x-force on other end
-  fy2 = FORCE.values(2,2);    % value of y-force on other end
+  fx = FORCE.values(1,1);    % value of x-force at vertex
+  fy = FORCE.values(1,2);    % value of y-force at vertex
 
-  % define function for linear traction (via Lagrange polynomials)
-  traction_x = @(x) (x-0.5*len)*(x-len)/(-0.5*len)*(-len) * fx1 + ...
-      x*(x-len)/(0.5*len)*(-0.5*len) * fx2 + ...
-      x*(x-0.5*len)/(len)*(0.5*len) * fx1;
-  traction_y = @(y) (y-0.5*len)*(y-len)/(-0.5*len)*(-len) * fy1 + ...
-      y*(y-len)/(0.5*len)*(-0.5*len) * fy2 + ...
-      y*(y-0.5*len)/(len)*(0.5*len) * fy1;
+  % define functions for prabolic traction distribution
+  % x-traction as a function of x (set to zero)
+  traction_x = @(x) 0;
+
+  % y-traction as a function of y
+  traction_y = @(y) (-1) * fy / (lenhalf^2) * (y^2) + fy;
 
   % get coords of element nodes
   p1 = BOUNDARY.coords(1,:);
@@ -221,9 +219,9 @@ elseif strcmp(FORCE.shape,'parabolic')
   ygp3 = 0.5*(1-gauss(3))*p1(2)+0.5*(1+gauss(3))*p2(2);
 
   % evaluate traction vector 'h' at gauss points
-  hgp1 = [feval(traction_x,ygp1);feval(traction_y,xgp1)]; 
-  hgp2 = [feval(traction_x,ygp2);feval(traction_y,xgp2)]; 
-  hgp3 = [feval(traction_x,ygp3);feval(traction_y,xgp3)]; 
+  hgp1 = [feval(traction_x,xgp1);feval(traction_y,ygp1)]; 
+  hgp2 = [feval(traction_x,xgp2);feval(traction_y,ygp2)]; 
+  hgp3 = [feval(traction_x,xgp3);feval(traction_y,ygp3)]; 
 
   % Due to linear triangular elements, every shape function along an
   % element edge is linear: N_1 = 0.5(1 - xsi), N_2 = 0.5(1 + xsi)

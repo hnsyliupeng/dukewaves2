@@ -97,57 +97,57 @@ elseif strcmp(FORCE.shape,'linear')
     force_id = [DOFs1(1) DOFs1(2) DOFs2(1) DOFs2(2)];
     
 elseif strcmp(FORCE.shape,'parabolic')
-    % Now, use 3-point-gauss-integration to evaluate the integral over the
-    % Neumman boundary: \int _{\Gamma _h} w _i h _i d \Gamma
-    % with  w   test function
-    %       h   traction vector
+    % In order to simplify the computation, only symmetric parabolic forces
+    % with end values equal to zero are admitted. So, only the vertex
+    % values have to be given in the loading efinition.
     %
-    % The parabolic traction distribution is computed via 2 given values at
-    % the one end and in the middle of the parabel. Lagrange polynomials
-    % are used to get a function.
+    % The parabolic traction distribution is computed via the given vertex 
+    % values in the middle of the parabel. A parameterized function is used
+    % to evaluate the load value at each gauss point. 
+    %   load(x) = - s / h^2 * x^2 + s;
+    %   load(y) = - s / h^2 * y^2 + s;
+    % where 's' denotes the vertex value and h the half length of the
+    % boundary, on which the load is applied.
     
     % define some values for 2-point-gauss integration
     gauss = [-sqrt(3/5) 0 sqrt(3/5)];
     weights = [5/9 8/9 5/9];
     
     % compute jacobian
-    jac = norm(BOUNDARY.coords(1,:) - BOUNDARY.coords(2,:))/2;
-    
+    jac = norm(BOUNDARY.coords(1,:) - BOUNDARY.coords(2,:)) / 2;
     
     % comput length of Neumann boundary
     len = norm(FORCE.coords(1,:) - FORCE.coords(2,:));
+    lenhalf = len / 2; % equals to 'h' from description above
     
     % construct function, that describes Lagrange polynomial for parabolic
     % force distribution
-    fx1 = FORCE.values(1,1);    % value of x-force on one end
-    fy1 = FORCE.values(1,2);    % value of y-force on one end
-    fx2 = FORCE.values(2,1);    % value of x-force on other end
-    fy2 = FORCE.values(2,2);    % value of y-force on other end
+    fx = FORCE.values(1,1);    % value of x-force at vertex
+    fy = FORCE.values(1,2)    % value of y-force at vertex
+        
+    % define functions for prabolic traction distribution
+    % x-traction as a function of x (set to zero)
+    traction_x = @(x) 0;
     
-    % define function for linear traction (via Lagrange polynomials)
-    traction_x = @(x) (x-0.5*len)*(x-len)/(-0.5*len)*(-len) * fx1 + ...
-        x*(x-len)/(0.5*len)*(-0.5*len) * fx2 + ...
-        x*(x-0.5*len)/(len)*(0.5*len) * fx1;
-    traction_y = @(y) (y-0.5*len)*(y-len)/(-0.5*len)*(-len) * fy1 + ...
-        y*(y-len)/(0.5*len)*(-0.5*len) * fy2 + ...
-        y*(y-0.5*len)/(len)*(0.5*len) * fy1;
+    % y-traction as a function of y
+    traction_y = @(y) (-1) * fy / (lenhalf^2) * (y^2) + fy;
     
     % get coords of element nodes
-    p1 = BOUNDARY.coords(1,:);
-    p2 = BOUNDARY.coords(2,:);
+    p1 = BOUNDARY.coords(1,:)
+    p2 = BOUNDARY.coords(2,:)
     
     % Get real coordinates of gauss points
     xgp1 = 0.5*(1-gauss(1))*p1(1)+0.5*(1+gauss(1))*p2(1);
-    ygp1 = 0.5*(1-gauss(1))*p1(2)+0.5*(1+gauss(1))*p2(2);
+    ygp1 = 0.5*(1-gauss(1))*p1(2)+0.5*(1+gauss(1))*p2(2)
     xgp2 = 0.5*(1-gauss(2))*p1(1)+0.5*(1+gauss(2))*p2(1);
-    ygp2 = 0.5*(1-gauss(2))*p1(2)+0.5*(1+gauss(2))*p2(2);
+    ygp2 = 0.5*(1-gauss(2))*p1(2)+0.5*(1+gauss(2))*p2(2)
     xgp3 = 0.5*(1-gauss(3))*p1(1)+0.5*(1+gauss(3))*p2(1);
-    ygp3 = 0.5*(1-gauss(3))*p1(2)+0.5*(1+gauss(3))*p2(2);
+    ygp3 = 0.5*(1-gauss(3))*p1(2)+0.5*(1+gauss(3))*p2(2)
     
     % evaluate traction vector 'h' at gauss points
-    hgp1 = [feval(traction_x,ygp1);feval(traction_y,xgp1)]; 
-    hgp2 = [feval(traction_x,ygp2);feval(traction_y,xgp2)]; 
-    hgp3 = [feval(traction_x,ygp3);feval(traction_y,xgp3)]; 
+    hgp1 = [feval(traction_x,xgp1);feval(traction_y,ygp1)] 
+    hgp2 = [feval(traction_x,xgp2);feval(traction_y,ygp2)]
+    hgp3 = [feval(traction_x,xgp3);feval(traction_y,ygp3)] 
     
     % Due to linear triangular elements, every shape function along an
     % element edge is linear: N_1 = 0.5(1 - xsi), N_2 = 0.5(1 + xsi)
@@ -171,7 +171,7 @@ elseif strcmp(FORCE.shape,'parabolic')
         0 N_31 0 N_32];
     
     force_values = Ngp1' * hgp1 * jac * weights(1) + ... 
-        Ngp2' * hgp2 * jac * weights(2) + Ngp3' * hgp3 * jac * weights(3);
+        Ngp2' * hgp2 * jac * weights(2) + Ngp3' * hgp3 * jac * weights(3)
     force_id = [DOFs1(1) DOFs1(2) DOFs2(1) DOFs2(2)];
     
 else

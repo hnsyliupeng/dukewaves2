@@ -9,7 +9,7 @@ x_def = [];
 y_def = [];
 
 % create a new figure
-figure;
+figure(10);
 hold on;
 
 % plot initial mesh

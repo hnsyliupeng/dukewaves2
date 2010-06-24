@@ -14,5 +14,5 @@ end;
 % define traction
 FORCE(1) = struct('shape','','values',[],'nodes',[],'coords',[]);
 FORCE(1).shape = 'constant';
-FORCE(1).values = [1 0];
+FORCE(1).values = [0 0];
 FORCE(1).nodes = tractionnodes;
