@@ -179,13 +179,15 @@ end;
 tang_traction_max = IFyieldstress * seg_cut_info.tangent;% * he;
 
 % compute nodal force values
-force_values = N' * tang_traction_max;
+force_values = N' * tang_traction_max * seg_jcob;
 
 % Set all nodal forces to zero, whose nodes don't reside in the enriching 
 % grain
 for i=1:3
   if id_dof(i,3) ~= NODEINFO_ARR(1,i).grain
     force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
+%     force_values([2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
+%     force_values([2*i 2*i-1]) = force_values([2*i 2*i-1]) * (-1);
   end;
 end;
 

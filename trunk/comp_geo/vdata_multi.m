@@ -223,6 +223,10 @@ switch IFdatasetp
                                                 % structured mesh
     case 31
         p = [0 0; 8 0; 4 9];       % 2 grains for plasticity_2
+    case 32
+        p = [ 70.0 0; 10.0 -3.0; 10.0 3.0];    % horizontal interface at y=0
+    case 33
+        p = [0 0; 4 0; 2 9];    % vertival interface at x=2
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

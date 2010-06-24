@@ -45,7 +45,7 @@ IFnldivy = 18;
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 4;
+IFdatasetp = 32;%4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -71,7 +71,7 @@ IFNeumannBCs = 2;
 % database 'preprocess\MaterialProperties.m'
 % ID    Description
 % 0     
-IFMatSet = 0;
+IFMatSet = 3;%0;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -96,10 +96,10 @@ IFnitsche = 4.5e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 2;
+IFsliding_switch = 0;
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 0.4;%20;%1;%0.03;
+IFyieldstress = 0.035;%20;%1;%0.03;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -119,7 +119,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,301);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

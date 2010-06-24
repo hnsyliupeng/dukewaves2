@@ -1,4 +1,4 @@
-% Input File 'inp_plasticity_2_ref_200_200.m'
+% Input File 'inp_plasticity_2_ref_50_50.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -7,7 +7,7 @@
 %**************************************************************************
 % Rectangular domain with prescribed traction on right boundary as 
 % reference solution for comparison with 'plasticity_2'-examples.
-% Length x height =4 x 4. 200 x 200 elements
+% Length x height =4 x 4. 50 x 50 elements
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -38,8 +38,8 @@ IFlength = 4;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 50;
-IFnldivy = 50;
+IFnldivx = 20;
+IFnldivy = 20;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
