@@ -72,8 +72,16 @@ for i = 1:size(seg_cut_info,1)      % every interface 'i'
 
       % plot interface
 %       line(xcoord,[lag_normal lag_normal]);
+      subplot(211);
+      title('horizontal interface');
+      hold on;
       plot(xcoord,[lag_normal lag_normal],'-','LineWidth',3);  % horizontal interface
-%       plot([lag_normal lag_normal],ycoord,'-','LineWidth',3);    % vertical interface
+      hold off;
+      subplot(212);
+      title('vertical interface');
+      hold on;
+      plot([lag_normal lag_normal],ycoord,'-','LineWidth',3);    % vertical interface
+      hold off;
     end;
   end;
 end;  

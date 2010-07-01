@@ -45,7 +45,7 @@ IFnldivy = 18;
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 32;%4;
+IFdatasetp = 4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -116,7 +116,7 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-12;
+IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command

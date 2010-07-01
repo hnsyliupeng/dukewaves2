@@ -51,6 +51,62 @@ else
   time = [0 1];
   dis_increment = zeros(2*numnod,1,1);
 end;
+
+% inp_plasticity_4_40_21
+%
+% upper boundary
+num_x = 40;
+num_y = 21;
+dispbc2 = zeros(2,numnod);
+ubar2 = zeros(2,numnod);
+dispbc3 = zeros(2,numnod);
+
+for i = 1:(num_x +1)
+  nodeID = i*(num_y + 1) - num_y;
+  dispbc2(1,nodeID) = 1;
+  ubar2(1,nodeID) = 0.008;
+  dispbc2(2,nodeID) = 1;
+%   ubar2(2,nodeID) = 0.0;
+%     dispbc3(2,nodeID) = 1;
+end;
+% fix the bottom block
+for i=1:10
+  for j=0:(num_x)
+    nodeID = j*22 + i + 12;
+    dispbc2(1,nodeID) = 1;
+    dispbc2(2,nodeID) = 1;
+  end;
+end;
+time2 = IFtime2;
+%}
+
+% inp_plasticity_4_80_41
+%{
+% upper boundary
+num_x = 80;
+num_y = 41;
+dispbc2 = zeros(2,numnod);
+ubar2 = zeros(2,numnod);
+dispbc3 = zeros(2,numnod);
+
+for i = 1:(num_x +1)
+  nodeID = i*(num_y + 1) - num_y;
+  dispbc2(1,nodeID) = 1;
+  ubar2(1,nodeID) = 0.008;
+  dispbc2(2,nodeID) = 1;
+%   ubar2(2,nodeID) = 0.0;
+%     dispbc3(2,nodeID) = 1;
+end;
+% fix the bottom block
+for i=1:10
+  for j=0:(num_x)
+    nodeID = j*42 + i + 22;
+    dispbc2(1,nodeID) = 1;
+    dispbc2(2,nodeID) = 1;
+  end;
+end;
+time2 = IFtime2;
+%}
 % ----------------------------------------------------------------------- %
 %% INITIALIZE (1)
 % flag for changes in 'slidestate'-flags
@@ -59,6 +115,7 @@ slidestateconv = [];
 % diplacement vector with separated base and enriched DOFs before
 % re-assembling
 old_ndisp = zeros(numnod,6);
+current_old_ndisp = zeros(numnod,6);
 
 % vector for current displacements during the solution process
 current_dis = zeros(1,2*numnod);
@@ -513,6 +570,8 @@ y_orig = y; % y-coordinate
 % get a copy of the initial state of 'seg_cut_info'
 seg_cut_info_orig = seg_cut_info;
 
+old_solu = zeros(numeqns,1);
+
 % loop over all load / time steps (pseudo-time). The vector with time steps
 % is given in the input file: 'IFtime'. Its first element is always a '0'.
 for timestep = 1:(length(time)-1)
@@ -527,7 +586,7 @@ for timestep = 1:(length(time)-1)
   big_force_loadstep = big_force_max * (time(timestep+1)-time(timestep));
   
   % This is also the global force vector for the first newton step.
-  big_force = big_force_loadstep;
+  big_force_ext = big_force_loadstep;
 %   big_force(find(big_force))
   % --------------------------------------------------------------------- %
   %% SOLVE (QUASI-NEWTON-SCHEME BEGIN)
@@ -539,23 +598,41 @@ for timestep = 1:(length(time)-1)
   % interface, which depend on the sliding case 'IFsliding_switch'
   
   % 'fdisp' will be a vector with the solution for all global degrees of
-  % freedom, with "base" and enriched degrees of freedom separated.
+  % freedom, with "base" and "enriched" degrees of freedom separated.
 
   % iterative solving via a Quasi-Newton-Scheme
   
   % initialize some variables
-  solu = zeros(size(big_force));            % set a start vector
-  iter = 0;                                 % iteration index for newton-scheme
-
-  % store old solution to enable update
-  old_solu = solu;
+  iter = 1;                       % iteration index for newton-scheme
+  slidestateconv = 'false';       % shows, if there 'slidestate'-flags are 
+                                  % converged
+  solu = zeros(size(big_force));  % solution-vector for Newton-scheme
+  old_solu = zeros(size(big_force));  % solution-vector for Newton-scheme for previous step
+  
+  % initialize 'slidestateconv' only in first Newton-step
+  % These flags indicate, if there are changes in the 'active set' 
+  % in comparison with the previous iteration step 
+  %   0 ... changes
+  %   1 ... no changes
+  for i=1:size(seg_cut_info,1)            % loop over interface
+    for e=1:size(seg_cut_info,2)          % loop over elements
+      if seg_cut_info(i,e).elemno ~= -1   % only cut elements
+        % initialize
+        seg_cut_info(i,e).slidestateconv = 0;  
+        
+%         if timestep == 1
+          % initialize all elements to 'stick'
+          seg_cut_info(i,e).slidestate = 0;
+%         end;
+      end;
+    end;
+  end;
   
   % loop for Quasi-Newton-Scheme
-  while 1         % maximum number of iterations = maxiter
-    % add '1' to the iteration index
-    iter = iter + 1;
-    % ------------------------------------------------------------------- %
-    %% APPLY CONSTRAINTS AT INTERFACES (DEPENDING ON METHOD)
+  while 1%(res_norm > IFconvtol && delta_norm > IFconvtol && ...
+%       ener_norm > IFconvtol) || strcmp(slidestateconv,'false')
+  % --------------------------------------------------------------------- %
+    %% IMPOSE CONSTRAINTS AT INTERFACES (DEPENDING ON METHOD)
 
     % load elastic contribution of global stiffness matrix, which is 
     % identical in every loadstep
@@ -611,8 +688,9 @@ for timestep = 1:(length(time)-1)
               % stiffnes contribution 'ke_lag' has to be modified depending
               % on 'IFsliding_switch'
               switch sliding_switch
-                case 0
-                case 1              % frictionless sliding
+                case 0  % fully tied case (no sliding at all)
+                  % no modifications necessary
+                case 1  % frictionless sliding
                   % dot with normal vector
                   ke_lag = ke_lag * seg_cut_info(i,e).normal;
                   
@@ -624,7 +702,7 @@ for timestep = 1:(length(time)-1)
                   
                   % clear temporary variable
                   clear ke_lag_temp
-                case 2              % perfect plasticity
+                case 2  % perfect plasticity
                   % compute 'ke_pen' depending on current slide state (stick or slip)
                   if seg_cut_info(i,e).slidestate == 0      % stick
                     % equates to fully tied case --> no modification of
@@ -653,7 +731,7 @@ for timestep = 1:(length(time)-1)
                     error('MATLAB:XFEM:UnvalidState', ...
                       'Current slide state is not valid!');
                   end;
-                case 3              % frictional contact (Coulomb)
+                case 3  % frictional contact (Coulomb)
                   warning('MATLAB:XFEM:main_xfem',...
                       'There exists no code for frictional contact (Coulomb), yet.')
                 otherwise
@@ -869,298 +947,117 @@ for timestep = 1:(length(time)-1)
           'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
     end;
     % ------------------------------------------------------------------- %
-    %% APPLY DISPLACEMENT BOUNDARY CONDITIONS 
-    % Due to an interative solver, prescribed displacements (unequal to 
-    % zero) are only allowed in the first iteration step.
-   
-    for n=1:numnod  % loop over all nodes
-      for j=1:ndof  % loop over all nodal DOFs
-% The following commented block is the original one from Jessica Sanders,
-% but it doesn't treat prescribed boundary conditions (unequal to zero) in
-% combination with an iterative solver correctly.
-%{
-        if (dispbc(j,n) == 1)        
-          m  = id_eqns(n,j);
-          m2 = id_eqns(n,j+2);
-          m3 = id_eqns(n,j+4);
-          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
-            temp = size(bigk,2);
-            bigk(m,:) = zeros(1,temp);
-            big_force = big_force - (ubar(j,n)*bigk(:,m));
-            bigk(:,m) = zeros(temp,1);
-            bigk(m,m) = 1.0;
-            big_force(m) = ubar(j,n);
-          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
-            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-              n;
-              temp = size(bigk,2);
-              bigk(m,:) = zeros(1,temp);
-              big_force = big_force - (ubar(j,n)*bigk(:,m));
-              bigk(:,m) = zeros(temp,1);
-              bigk(m,m) = 1.0;
-              big_force(m) = ubar(j,n);
-            end
-          end
-%}
-          % This is a modificated code, that skips the prescribed 
-          % displacements for iteration steps iter > 1.
-          if (dispbc(j,n) == 1)          
-            m  = id_eqns(n,j);
-            m2 = id_eqns(n,j+2);
-            m3 = id_eqns(n,j+4);
-            if (m2 == 0) && (m3 == 0)       % If the node is unenriched
-              temp = size(bigk,2);
-              bigk(m,:) = zeros(1,temp);
-              if (iter == 1) || (ubar(j,n) == 0) && ...
-                  ((IFsliding_switch == 0) || (IFsliding_switch == 1))
-                big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
-                  (time(timestep + 1) - time(timestep)));
-              elseif IFsliding_switch == 2
-                big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
-                  (time(timestep + 1) - time(timestep)));
-              end;
-              
-              bigk(:,m) = zeros(temp,1);
-              bigk(m,m) = 1.0;
-              big_force(m) = ubar(j,n) * (time(timestep + 1) - ...
-                  time(timestep));
-            elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
-              if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-                n;
-                temp = size(bigk,2);
-                bigk(m,:) = zeros(1,temp);
-                if (iter == 1) || (ubar(j,n) == 0) && ...
-                  ((IFsliding_switch == 0) || (IFsliding_switch == 1))
-                  big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
-                    (time(timestep + 1) - time(timestep)));
-                elseif IFsliding_switch == 2
-                  big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
-                    (time(timestep + 1) - time(timestep)));
-                end;
-                
-                bigk(:,m) = zeros(temp,1);
-                bigk(m,m) = 1.0;
-                big_force(m) = ubar(j,n) * (time(timestep+1) - ...
-                    time(timestep));
-              end;
+    %% CHECK YIELD CONDITIONS
+    % copy the external forces, since they global force vector might
+    % change, if there are prescribed displacements
+    big_force = big_force_ext;
+    
+    % A return mapping is not nevessary for the fully tied case and the
+    % frictionless sliding case, but for all other cases.
+    switch IFsliding_switch
+      case 0  % fully tied case
+        % The fully tied case is posed as a fully elastic problem with a
+        % perfect bond. There are no yield conditions to check.
+      case 1  % frictionless sliding
+        % The frictionless sliding case is posed as a fully elastic problem
+        % with a prefect bond in normal direction at the interface. There
+        % are no yield conditions to check.
+      case 2  % perfect plasticity
+        % The plastic effects can only occur in tangential direction at the
+        % interface. So, here a yield condition has to be checked to
+        % decide, if a subsegment is in a 'stick' or a 'slip' state.
+        %% COMPUTE CURRENT GLOBAL DISPLACEMENT VECTOR
+        % compute global displacement vector as difference between current
+        % and initial state
+        for i=1:numnod                           % loop over all nodes 
+          current_dis(2*i-1) = x(i) - x_orig(i); % x-coordinate of node i
+          current_dis(2*i) = y(i) - y_orig(i);   % y-coordinate of node i
+        end;
+
+%         % RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
+%         % Reassemble displacement vector  - Enriched nodes need to have their
+%         % degrees of freedom added to end up representing a total displacement.
+%         % The extra degrees of freedom should only be added if the node is enriched
+%         % with the grain in which it resides.  
+% 
+%         % ndisp(i,:) are all of the solutions (base and enriched) at node i
+%         current_ndisp = zeros(numnod,6);
+% 
+%         % dis is a vector with traditional FEM numbering, and the final solution
+%         % for each node. It stores the nodal displacements
+%         current_dis = zeros(2*numnod,1);
+% 
+%         for i = 1:numeqns
+%           [nnode,doff] = find(id_eqns == i);
+%           current_ndisp(nnode,doff) = solu(i);
+%         end
+% 
+%         % 'old_ndisp' stores displacement in base and enriched DOFs separated
+%         current_old_ndisp = current_old_ndisp + current_ndisp;    % update every load step
+% 
+%         for i = 1:numnod
+%           grain = nodegrainmap(i);
+%           for j = 3:6
+%             if id_dof(i,j) ~= grain
+%               current_ndisp(i,j) = 0;
+%             end
+%           end
+%           current_dis(2*i-1) = current_ndisp(i,1) + current_ndisp(i,3) + current_ndisp(i,5);
+%           current_dis(2*i) = current_ndisp(i,2) + current_ndisp(i,4) + current_ndisp(i,6);
+%         end
+%         % ------------------------------------------------------------- %
+        %% COMPUTE STRESSES ALONG THE INTERFACE
+%         disp('compute stresses along the interface ...');
+
+        % compute stresses 'stress_interface' and strains 'strain_interface' at
+        % center of each intersected element along the interface. Stresses for
+        % not-intersected elements are not computed, since they are not of
+        % interest here.
+        % Structure of 'stress_interface':
+        %   Dimension: numelex6x3
+        %   Index 1:    'stress_intercace' for element 'e'
+        %   Index 2:    column 1    global element ID
+        %               column 2    x-coordinate of element centroid
+        %               column 3    y-coordinate of element centroid
+        %               column 4    xx-stress at element centroid
+        %               column 5    yy-stress at element centroid
+        %               column 6    xy-stress at element centroid
+        %   Index 3:    ID of grain, to which these values belong to
+        stress_interface = zeros(numele,6,maxngrains);
+
+        % 'strain_interface' has an equivalent structure
+        strain_interface = zeros(numele,6,maxngrains+1);
+
+        % loop over interfaces 'i'
+        for i=1:size(seg_cut_info,1)
+          % loop over elements 'e'
+          for e=1:size(seg_cut_info,2)
+            % only cut elements
+            if seg_cut_info(i,e).elemno ~= -1
+              % get current element ID
+              eleID = seg_cut_info(i,e).elemno;
+
+              % compute stress and strain in current element
+              [straine,stresse] = post_process_better(node,x_orig, ...
+                y_orig,eleID,current_dis,current_old_ndisp,id_dof,cutlist, ...
+                maxngrains,INT_INTERFACE);
+
+              % assign 'stresse' to 'stress_interface'
+              stress_interface(eleID,1:6,:) = stresse;
+
+              % assign 'straine' to 'strain_interface'
+              strain_interface(eleID,1:6,:) = straine;
             end;
           end;
-      end;
-    end;
+        end;
 
-    % clear some temporary variables
-    clear m m2 m3 temp;
-
-    % ------------------------------------------------------------------- %
-    %% ADD CONSTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHED NODES
-    % Order of assembly:
-    %   1. x-DBCs of first enriched nodes
-    %   2. y-DBCs of first enriched nodes
-    %   3. x-DBCs of second enriched nodes (if existing)
-    %   4. y-DBCs of second enriched nodes (if existing)
-
-    % x-DBCs (first enrichment)
-    for i=1:size(extra_constr_x,1)
-      % get global base dof 'b_dof' and global enriched dof 'e_dof'
-      b_dof = extra_constr_x(i,1);
-      e_dof = extra_constr_x(i,2);
-
-      % put in extra equation as row-equation
-      rbk = old_size + 2*multipliers + i;
-      bigk(rbk,b_dof) = 1.0;
-      bigk(rbk,e_dof) = 1.0;
-
-      % put in extra equation as column-equation (as transpose)
-      bigk(b_dof,rbk) = 1.0;
-      bigk(e_dof,rbk) = 1.0;
-
-      % set value for prescribed displacement
-      big_force(rbk) = ubar(1,extra_constr_x(i,3));
-    end;
-
-    % y-DBCs (first enrichment)
-    for i=1:size(extra_constr_y,1)
-      % get global base dof 'b_dof' and global enriched dof 'e_dof'
-      b_dof = extra_constr_y(i,1);
-      e_dof = extra_constr_y(i,2);
-
-      % put in extra equation as row-equation
-      rbk = old_size + 2*multipliers + extra_eqns_DBCx + i;
-      bigk(rbk,b_dof) = 1.0;
-      bigk(rbk,e_dof) = 1.0;
-
-      % put in extra equation as column-equation (as transpose)
-      bigk(b_dof,rbk) = 1.0;
-      bigk(e_dof,rbk) = 1.0;
-
-      % set value for prescribed displacement
-      big_force(rbk) = ubar(2,extra_constr_y(i,3));
-    end;
-
-    % x-DBCs (second enrichment)
-    for i=1:size(extra_constr_x2,1)
-      % get global base dof 'b_dof' and global enriched dof 'e_dof'
-      b_dof = extra_constr_x2(i,1);
-      e_dof = extra_constr_x2(i,2);
-
-      % put in extra equation as row-equation
-      rbk = old_size + 2*multipliers + extra_eqns_DBCx + extra_eqns_DBCy + i;
-      bigk(rbk,b_dof) = 1.0;
-      bigk(rbk,e_dof) = 1.0;
-
-      % put in extra equation as column-equation (as transpose)
-      bigk(b_dof,rbk) = 1.0;
-      bigk(e_dof,rbk) = 1.0;
-
-      % set value for prescribed displacement
-      big_force(rbk) = ubar(1,extra_constr_x2(i,3));
-    end;
-
-    % y-DBCs (second enrichment)
-    for i=1:size(extra_constr_y2,1)
-      % get global base dof 'b_dof' and global enriched dof 'e_dof'
-      b_dof = extra_constr_y2(i,1);
-      e_dof = extra_constr_y2(i,2);
-
-      % put in extra equation as row-equation
-      rbk = old_size + 2*multipliers + extra_eqns_DBCx + ...
-        extra_eqns_DBCx + extra_eqns_DBCy + extra_eqns_DBCx2 + i;
-      bigk(rbk,b_dof) = 1.0;
-      bigk(rbk,e_dof) = 1.0;
-
-      % put in extra equation as column-equation (as transpose)
-      bigk(b_dof,rbk) = 1.0;
-      bigk(e_dof,rbk) = 1.0;
-
-      % set value for prescribed displacement
-      big_force(rbk) = ubar(2,extra_constr_y2(i,3));
-    end;
-    % ------------------------------------------------------------------- %
-    %% FIX NONPHYSICAL NODES (due to gmsh-meshes)
-    % When using GMSH for mesh generation (unstructured meshes), there might be
-    % some nodes, that are only needed for geometry purposes, not for meshing
-    % (e.g. the center point of circles). These are referred to as "nonphysical
-    % nodes". The corresponding equations have to be eliminated in the global
-    % equations system.
-    for i = nonphysnodevec  % 'nonphysnodevec' is empty, if there are no 
-                            % non-physical nodes
-      dofvec_temp = id_eqns(i,:); % get global DOF-numbers for nonphysical node
-      for j=dofvec_temp
-        bigk(j,j)=1;
-      end;
-    end;
-
-    % clear some temporary variables
-    clear dofvec_temp i j;
-    % ------------------------------------------------------------------- %
-    %% SOLVE (QUASI-NEWTON-SCHEME)
-    % compute the increment vector 'delta'
-    delta = -old_solu + bigk\big_force; 
-
-    % update the solution-vector
-    solu = solu + delta;
-
-    % print some information about the current iteration step
-    step_info = ['  Newton step: ' num2str(iter) '    Res-Norm: '...
-        num2str(norm(delta))];
-    disp(step_info);
-    % ------------------------------------------------------------------- %
-      %% CHECK YIELD CONDITIONS
-      % A return mapping is not nevessary for the fully tied case and the
-      % frictionless sliding case, but for all other cases.
-      switch IFsliding_switch
-        case 0  % fully tied case
-          % The fully tied case is posed as a fully elastic problem with a
-          % perfect bond. There are no yield conditions to check.
-        case 1  % frictionless sliding
-          % The frictionless sliding case is posed as a fully elastic problem
-          % with a prefect bond in normal direction at the interface. There
-          % are no yield conditions to check.
-        case 2  % perfect plasticity
-          % The plastic effects can only occur in tangential direction at the
-          % interface. So, here a yield condition has to be checked to
-          % decide, if a subsegment is in a 'stick' or a 'slip' state.
-          %% COMPUTE CURRENT GLOBAL DISPLACEMENT VECTOR
-          % compute global displacement vector as difference between current
-          % and initial state
-          for i=1:numnod                      % loop over all nodes 
-            current_dis(2*i-1) = x(i) - x_orig(i);    % x-coordinate
-            current_dis(2*i) = y(i) - y_orig(i);      % y-coordinate
-          end;
-          % --------------------------------------------------------------- %
-          %% COMPUTE STRESSES ALONG THE INTERFACE
-  %         disp('compute stresses along the interface ...');
-
-          % compute stresses 'stress_interface' and strains 'strain_interface' at
-          % center of each intersected element along the interface. Stresses for
-          % not-intersected elements are not computed, since they are not of
-          % interest here.
-          % Structure of 'stress_interface':
-          %   Dimension: numelex6x3
-          %   Index 1:    'stress_intercace' for element 'e'
-          %   Index 2:    column 1    global element ID
-          %               column 2    x-coordinate of element centroid
-          %               column 3    y-coordinate of element centroid
-          %               column 4    xx-stress at element centroid
-          %               column 5    yy-stress at element centroid
-          %               column 6    xy-stress at element centroid
-          %   Index 3:    ID of grain, to which these values belong to
-          stress = zeros(numele,6,maxngrains);
-          % 'strain' has an equivalent structure
-          strain = zeros(numele,6,maxngrains+1);
-          for i=1:size(seg_cut_info,1)            % loop over interface
-            for e=1:size(seg_cut_info,2)          % loop over elements
-              if seg_cut_info(i,e).elemno ~= -1   % only cut elements
-                % get current element ID
-                eleID = seg_cut_info(i,e).elemno;
-
-                % compute stress in current element
-                [straine,stresse] = post_process_better(node,x_orig, ...
-                  y_orig,eleID,current_dis,old_ndisp,id_dof,cutlist, ...
-                  maxngrains,INT_INTERFACE);
-
-                % assign 'stresse' to 'stress_interface'
-                stress_interface(eleID,1:6,:) = stresse;
-
-                % assign 'straine' to 'strain_interface'
-                strain_interface(eleID,1:6,:) = straine;
-              end;
-            end;
-          end;
-
-          % clear some temporary variables
-          clear stresse straine i e;
-          % --------------------------------------------------------------- %
-          %% UPDATE SLIDING STATE AND TRACTION OF EACH INTERSECTED ELEMENT 
-          % reset additional tractions at interface
-          big_force_traction = zeros(length(big_force),1);
-
-          % reset counter 'count'
-          count = 0;
-
-          %% initialize 'slidestateconv' only in first newton-step
-          if iter == 1
-            % These flags indicate, if there are changes in the 'active set' 
-            % in comparison with the previous iteration step 
-            %   0 ... changes
-            %   1 ... no changes
-            for i=1:size(seg_cut_info,1)            % loop over interface
-              for e=1:size(seg_cut_info,2)          % loop over elements
-                if seg_cut_info(i,e).elemno ~= -1   % only cut elements
-                  % counter for intersected elements
-                  count = count + 1;
-
-                  % initialize to 'no changes'
-                  slidestateconv(count) = 1;  
-                        % This will be checked later and changed, if necessary.
-                end;
-              end;
-            end;
-          end;
-
-          % reset counter 'count'
-          count = 0;
-          % ------------------------------------------------------------- %
+        % clear some temporary variables
+        clear stresse straine i e eleID;
+        % --------------------------------------------------------------- %
+        %% UPDATE SLIDING STATE AND TRACTION OF EACH INTERSECTED ELEMENT 
+        % initialize / reset additional tractions at interface due to
+        % plasticity
+        big_force_traction = zeros(length(big_force),1);
           %% update subsegments
           % loop over all intersected elements and update the
           % 'slidestate'-flags
@@ -1173,9 +1070,6 @@ for timestep = 1:(length(time)-1)
                 % sides of the interface can be different (especially when
                 % the materials are different), the greater traction vector
                 % has to be used for further computation.
-
-                % counter for intersected elements
-                count = count + 1;
 
                 % get current element ID
                 eleID = seg_cut_info(i,e).elemno; 
@@ -1323,66 +1217,62 @@ for timestep = 1:(length(time)-1)
 
                 % Determine sign of traction:
                 % The tangential traction hast to be applied in the opposite 
-                % direction of the tangential movement. Therefor, the last
-                % displacement increment of the current element has to be
-                % evaluated.
+                % direction of the tangential movement.
 
-                % get displacement increment of last iteration step, averaged
-                % at the center of the subsegment
-
-
-                % set sign of 'force_values'
-                if tang_traction' * tang_traction_max < 0
-  %                 disp('*********************************');
-                  force_values = force_values * (-1); 
-                end;
+%                 if tang_traction_max(1) > 0
+%                   force_values = force_values * (-1); 
+%                 end;
+                
+%                   % set sign of 'force_values'
+%                   if tang_traction' * tang_traction_max < 0
+%     %                 disp('*********************************');
+%                     force_values = force_values * (-1); 
+%                   end;
 
                 % check yield condition
-                if norm(tang_traction) > norm(tang_traction_max)
+                if norm(tang_traction) - IFyieldstress < 0% norm(tang_traction_max) < 0
+                  % "trial traction" <= "yield traction" --> elastic
+                  % deformation
+                  %% check, if 'slidestate' changes
+                  if seg_cut_info(i,e).slidestate == 1;
+                    seg_cut_info(i,e).slidestateconv = 0;  % change in 'slidestate'
+                  else
+                    seg_cut_info(i,e).slidestateconv = 1;  % no change in 'slidestate' 
+                  end;
+                  % --------------------------------------------------- %
+                  %% set 'slidestate'
+                  seg_cut_info(i,e).slidestate = 0;
+                  % --------------------------------------------------- %
+                else
                   % "trial traction" > "yield traction" --> plastic
                   % deformation
                   %% check, if 'slidestate' changes
                   if seg_cut_info(i,e).slidestate == 0;
-                    slidestateconv(count) = 0;  % change in 'slidestate'
+                    seg_cut_info(i,e).slidestateconv = 0;  % change in 'slidestate'
                   else
-                    slidestateconv(count) = 1;  % no change in 'slidestate'
+                    seg_cut_info(i,e).slidestateconv = 1;  % no change in 'slidestate'
                   end;
-                  % ------------------------------------------------------- %
+                  % --------------------------------------------------- %
                   %% set 'slidestate'
                   seg_cut_info(i,e).slidestate = 1;
-                  % ------------------------------------------------------- %
-                  %% assemble new tangential traction into local force vector
-                  % 'big_force_traction'
+                  % --------------------------------------------------- %
+                  %% assemble new tangential traction into local force vector 'big_force_traction'
                   % assemble 'force_values' into 'big_force_traction'
+                  % using the id-array 'force_id'
                   for j=1:length(force_values)
                     if force_id(j) ~= 0
                       big_force_traction(force_id(j)) = ...
                         big_force_traction(force_id(j)) + force_values(j);
                     end;
                   end;
-                  % ------------------------------------------------------- %
-                else
-                  % "trial traction" <= "yield traction" --> elastic
-                  % deformation
-                  %% check, if 'slidestate' changes
-                  if seg_cut_info(i,e).slidestate == 1;
-                    slidestateconv(count) = 0;  % change in 'slidestate'
-                  else
-                    slidestateconv(count) = 1;  % no change in 'slidestate' 
-                  end;
-                  % ------------------------------------------------------- %
-                  %% set 'slidestate'
-                  seg_cut_info(i,e).slidestate = 0;
-                  % ------------------------------------------------------- %
+                  % --------------------------------------------------- %
+                  % %
                 end;
               end;
             end;
           end;
-          % ------------------------------------------------------------- %
+          % ----------------------------------------------------------- %
           %% assemble plastic traction into global force vector
-          % reset counter
-          count = 0;
-
           % The assembling of the plastic tractions depends on the method of
           % constraint enforcement. 
           % Using Lagrange multipliers, there are extra variables for these
@@ -1424,11 +1314,30 @@ for timestep = 1:(length(time)-1)
             case 1  % penalty method
               % assemble interface tractions 'big_force_traction' into global 
               % force vector 'big_force'
-              big_force = big_force_loadstep + big_force_traction;% * (time(timestep+1)-time(timestep));
+              big_force = big_force_loadstep + big_force_traction * ...
+                (time(timestep+1)-time(timestep));
+% 
+% if timestep < 22
+%   big_force = big_force_loadstep + big_force_traction * ...
+%             (time(timestep+1)-time(timestep));
+% else
+%   big_force = big_force_loadstep + big_force_traction * ...
+%             (time2(timestep+1)-time2(timestep));
+% end
             case 2  % Nitsche's method
               % assemble interface tractions 'big_force_traction' into global 
               % force vector 'big_force'
-              big_force = big_force_loadstep + big_force_traction * (time(timestep+1)-time(timestep));
+              big_force = big_force_loadstep + big_force_traction * ...
+                (time(timestep+1)-time(timestep));
+              
+%               if timestep < 22
+%   big_force = big_force_loadstep + big_force_traction * ...
+%             (time(timestep+1)-time(timestep));
+% else
+%   big_force = big_force_loadstep + big_force_traction * ...
+%             (time2(timestep+1)-time2(timestep));
+% end
+
             otherwise
               error('MATLAB:XFEM:UnvalidID',...
                 'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
@@ -1436,49 +1345,401 @@ for timestep = 1:(length(time)-1)
 
           % assemble interface tractions 'big_force_traction' into global 
           % force vector 'big_force'
-          big_force = big_force_loadstep + big_force_traction * (time(timestep+1));%-time(timestep));
+%           big_force = big_force_loadstep + big_force_traction * ...
+%             (time(timestep+1));%-time(timestep));
+% big_force_traction(big_force_traction ~= 0)'
+
 
           % clear some temporary variables
           clear tang_traction tang_traction_max stress_interface ...
             force_values force_id grains i e he eleID elenodes DOFs;
           % --------------------------------------------------------------- %
-        case 3  % frictional contact (Coulomb)
-          warning('MATLAB:XFEM:main_xfem',...
-            'There exists no code for frictional contact (Coulomb), yet.')
-        otherwise
-          warning('MATLAB:XFEM:main_xfem',...
-            'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+      case 3  % frictional contact (Coulomb)
+        warning('MATLAB:XFEM:main_xfem',...
+          'There exists no code for frictional contact (Coulomb), yet.')
+      otherwise
+        warning('MATLAB:XFEM:main_xfem',...
+          'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
+    end;
+    % ------------------------------------------------------------------- %
+    %% IMPOSE DISPLACEMENT BOUNDARY CONDITIONS 
+    for n=1:numnod  % loop over all nodes
+      for j=1:ndof  % loop over all nodal DOFs
+        % The following commented block is the original procedure for
+        % imposing Dirichlet boundary conditions and was written by Jessica
+        % Sanders. It is not able to handle a load stepping scheme. So, a
+        % modified version is provided afterwards.
+%{
+          if (dispbc(j,n) == 1)        
+          m  = id_eqns(n,j);
+          m2 = id_eqns(n,j+2);
+          m3 = id_eqns(n,j+4);
+          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+            temp = size(bigk,2);
+            bigk(m,:) = zeros(1,temp);
+            big_force = big_force - (ubar(j,n)*bigk(:,m));
+            bigk(:,m) = zeros(temp,1);
+            bigk(m,m) = 1.0;
+            big_force(m) = ubar(j,n);
+          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+              n;
+              temp = size(bigk,2);
+              bigk(m,:) = zeros(1,temp);
+              big_force = big_force - (ubar(j,n)*bigk(:,m));
+              bigk(:,m) = zeros(temp,1);
+              bigk(m,m) = 1.0;
+              big_force(m) = ubar(j,n);
+            end
+          end
+        end
+%}
+% The following if-structure manages the imposing of Dirichlet boundary
+% conditions for a single load curve, where all loads are applied with the 
+% same load stepping scheme.
+% 
+%{
+        if (dispbc(j,n) == 1)          
+          m  = id_eqns(n,j);
+          m2 = id_eqns(n,j+2);
+          m3 = id_eqns(n,j+4);
+          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+            temp = size(bigk,2);
+            bigk(m,:) = zeros(1,temp);
+            big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
+              (time(timestep + 1) - time(timestep)));
+            bigk(:,m) = zeros(temp,1);
+            bigk(m,m) = 1.0;
+            big_force(m) = ubar(j,n) * (time(timestep + 1) - ...
+              time(timestep));
+          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+              n;
+              temp = size(bigk,2);
+              bigk(m,:) = zeros(1,temp);
+              big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
+                (time(timestep + 1) - time(timestep)));
+              bigk(:,m) = zeros(temp,1);
+              bigk(m,m) = 1.0;
+              big_force(m) = ubar(j,n) * (time(timestep+1) - ...
+                  time(timestep));
+            end;
+          end;
+        end;
+%}
+%
+if timestep < 22
+        if (dispbc(j,n) == 1)          
+          m  = id_eqns(n,j);
+          m2 = id_eqns(n,j+2);
+          m3 = id_eqns(n,j+4);
+          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+            temp = size(bigk,2);
+            bigk(m,:) = zeros(1,temp);
+            big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
+              (time(timestep + 1) - time(timestep)));
+            bigk(:,m) = zeros(temp,1);
+            bigk(m,m) = 1.0;
+            big_force(m) = ubar(j,n) * (time(timestep + 1) - ...
+              time(timestep));
+          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+              n;
+              temp = size(bigk,2);
+              bigk(m,:) = zeros(1,temp);
+              big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
+                (time(timestep + 1) - time(timestep)));
+              bigk(:,m) = zeros(temp,1);
+              bigk(m,m) = 1.0;
+              big_force(m) = ubar(j,n) * (time(timestep+1) - ...
+                  time(timestep));
+            end;
+          end;
+        end;
+else
+%   if (dispbc(j,n) == 1)          
+%           m  = id_eqns(n,j);
+%           m2 = id_eqns(n,j+2);
+%           m3 = id_eqns(n,j+4);
+%           if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+%             temp = size(bigk,2);
+%             bigk(m,:) = zeros(1,temp);
+%             big_force = big_force - (ubar(j,n) * bigk(:,m));
+%             bigk(:,m) = zeros(temp,1);
+%             bigk(m,m) = 1.0;
+%             big_force(m) = ubar(j,n);
+%           elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+%             if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+%               n;
+%               temp = size(bigk,2);
+%               bigk(m,:) = zeros(1,temp);
+%               big_force = big_force - (ubar(j,n) * bigk(:,m));
+%               bigk(:,m) = zeros(temp,1);
+%               bigk(m,m) = 1.0;
+%               big_force(m) = ubar(j,n);
+%             end;
+%           end;
+%         end;
+end
+%}
+        % The following if-structure manages the process of imposing
+        % Dirichlet boundary conditions for the case, that two different 
+        % load curves for different sets of DBCs are used.
+        
+%
+        % load second set of DBCs 
+        if timestep > 21
+        if (dispbc2(j,n) == 1)          
+          m  = id_eqns(n,j);
+          m2 = id_eqns(n,j+2);
+          m3 = id_eqns(n,j+4);
+          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+            temp = size(bigk,2);
+            bigk(m,:) = zeros(1,temp);
+            big_force = big_force - (ubar2(j,n) * bigk(:,m) * ...
+              (time2(timestep + 1) - time2(timestep)));
+            bigk(:,m) = zeros(temp,1);
+            bigk(m,m) = 1.0;
+            big_force(m) = ubar2(j,n) * (time2(timestep + 1) - ...
+              time2(timestep));
+          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+              n;
+              temp = size(bigk,2);
+              bigk(m,:) = zeros(1,temp);
+              big_force = big_force - (ubar2(j,n) * bigk(:,m) * ...
+                (time2(timestep + 1) - time2(timestep)));
+              bigk(:,m) = zeros(temp,1);
+              bigk(m,m) = 1.0;
+              big_force(m) = ubar2(j,n) * (time2(timestep+1) - ...
+                  time2(timestep));
+            end;
+          end;
+        end;
+        
+%         if (dispbc3(j,n) == 1)          
+%           m  = id_eqns(n,j);
+%           m2 = id_eqns(n,j+2);
+%           m3 = id_eqns(n,j+4);
+%           if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+%             temp = size(bigk,2);
+%             bigk(m,:) = zeros(1,temp);
+%             big_force = big_force - (0.007 * bigk(:,m)) * (time2(timestep + 1) - time2(timestep));%(ubar2(j,n) * bigk(:,m));
+%             bigk(:,m) = zeros(temp,1);
+%             bigk(m,m) = 1.0;
+%             big_force(m) = 0.007 * (time2(timestep + 1) - time2(timestep));%ubar2(j,n);
+%           elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+%             if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+%               n;
+%               temp = size(bigk,2);
+%               bigk(m,:) = zeros(1,temp);
+%               big_force = big_force - (0.007 * bigk(:,m)) * (time2(timestep + 1) - time2(timestep));%(ubar2(j,n) * bigk(:,m));
+%               bigk(:,m) = zeros(temp,1);
+%               bigk(m,m) = 1.0;
+%               big_force(m) = 0.007 * (time2(timestep + 1) - time2(timestep));%ubar2(j,n);
+%             end;
+%           end;
+%         end;
+        end
+        
+        
+%}
       end;
-      % ----------------------------------------------------------------- %
-      %% CHECK CONVERGENCE OF QUASI-NEWTON-SCHEME
-      % show convergence state of 'active set'
-  %     disp(['slidestateconv = ' num2str(all(slidestateconv))]);
+    end;
 
-      % store first displacement increment in order to use a relative
-      % increment measure for the convergence check
-      if iter  == 1
-        delta_null = norm(delta);
-      end;
-  
-      % convergence check
-      % The newton-scheme is assumed as converge, when the norm of the
-      % displacement-increment is smaller than a given convergence tolerance
-      % 'IFconvtol' and there are no changes in the sliding states in
-      % comparison to the previous iteration step.
-      if ((norm(delta)/delta_null) < IFconvtol) && (all(slidestateconv))
-        break;  % exit iteration loop, if convergence is achieved
-      end;
+    % clear some temporary variables
+    clear m m2 m3 temp;
 
-      % check, if number of maximum iterations is reached
-      if iter > IFmaxiter
-        error('MATLAB:XFEM:main_xfem',...
-            'Newton did not converge in %d iterations.', IFmaxiter);
-      end;
+    % ------------------------------------------------------------------- %
+    %% ADD CONSTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHED NODES
+    % Order of assembly:
+    %   1. x-DBCs of first enriched nodes
+    %   2. y-DBCs of first enriched nodes
+    %   3. x-DBCs of second enriched nodes (if existing)
+    %   4. y-DBCs of second enriched nodes (if existing)
 
-      % store 'solu' to 'old_solu' for next iteration
-      old_solu = solu;
-      % ----------------------------------------------------------------- %
+    % x-DBCs (first enrichment)
+    for i=1:size(extra_constr_x,1)
+      % get global base dof 'b_dof' and global enriched dof 'e_dof'
+      b_dof = extra_constr_x(i,1);
+      e_dof = extra_constr_x(i,2);
+
+      % put in extra equation as row-equation
+      rbk = old_size + 2*multipliers + i;
+      bigk(rbk,b_dof) = 1.0;
+      bigk(rbk,e_dof) = 1.0;
+
+      % put in extra equation as column-equation (as transpose)
+      bigk(b_dof,rbk) = 1.0;
+      bigk(e_dof,rbk) = 1.0;
+
+      % set value for prescribed displacement
+      big_force(rbk) = ubar(1,extra_constr_x(i,3));
+    end;
+
+    % y-DBCs (first enrichment)
+    for i=1:size(extra_constr_y,1)
+      % get global base dof 'b_dof' and global enriched dof 'e_dof'
+      b_dof = extra_constr_y(i,1);
+      e_dof = extra_constr_y(i,2);
+
+      % put in extra equation as row-equation
+      rbk = old_size + 2*multipliers + extra_eqns_DBCx + i;
+      bigk(rbk,b_dof) = 1.0;
+      bigk(rbk,e_dof) = 1.0;
+
+      % put in extra equation as column-equation (as transpose)
+      bigk(b_dof,rbk) = 1.0;
+      bigk(e_dof,rbk) = 1.0;
+
+      % set value for prescribed displacement
+      big_force(rbk) = ubar(2,extra_constr_y(i,3));
+    end;
+
+    % x-DBCs (second enrichment)
+    for i=1:size(extra_constr_x2,1)
+      % get global base dof 'b_dof' and global enriched dof 'e_dof'
+      b_dof = extra_constr_x2(i,1);
+      e_dof = extra_constr_x2(i,2);
+
+      % put in extra equation as row-equation
+      rbk = old_size + 2*multipliers + extra_eqns_DBCx + extra_eqns_DBCy + i;
+      bigk(rbk,b_dof) = 1.0;
+      bigk(rbk,e_dof) = 1.0;
+
+      % put in extra equation as column-equation (as transpose)
+      bigk(b_dof,rbk) = 1.0;
+      bigk(e_dof,rbk) = 1.0;
+
+      % set value for prescribed displacement
+      big_force(rbk) = ubar(1,extra_constr_x2(i,3));
+    end;
+
+    % y-DBCs (second enrichment)
+    for i=1:size(extra_constr_y2,1)
+      % get global base dof 'b_dof' and global enriched dof 'e_dof'
+      b_dof = extra_constr_y2(i,1);
+      e_dof = extra_constr_y2(i,2);
+
+      % put in extra equation as row-equation
+      rbk = old_size + 2*multipliers + extra_eqns_DBCx + ...
+        extra_eqns_DBCx + extra_eqns_DBCy + extra_eqns_DBCx2 + i;
+      bigk(rbk,b_dof) = 1.0;
+      bigk(rbk,e_dof) = 1.0;
+
+      % put in extra equation as column-equation (as transpose)
+      bigk(b_dof,rbk) = 1.0;
+      bigk(e_dof,rbk) = 1.0;
+
+      % set value for prescribed displacement
+      big_force(rbk) = ubar(2,extra_constr_y2(i,3));
+    end;
+    % ------------------------------------------------------------------- %
+    %% FIX NONPHYSICAL NODES (due to gmsh-meshes)
+    % When using GMSH for mesh generation (unstructured meshes), there might be
+    % some nodes, that are only needed for geometry purposes, not for meshing
+    % (e.g. the center point of circles). These are referred to as "nonphysical
+    % nodes". The corresponding equations have to be eliminated in the global
+    % equations system.
+    for i = nonphysnodevec  % 'nonphysnodevec' is empty, if there are no 
+                            % non-physical nodes
+      dofvec_temp = id_eqns(i,:); % get global DOF-numbers for nonphysical node
+      for j=dofvec_temp
+        bigk(j,j)=1;
+      end;
+    end;
+
+    % clear some temporary variables
+    clear dofvec_temp i j;
+    % ------------------------------------------------------------------- %
+    %% BUILD RESIDUAL
+    % The global stiffnes matrix is already built and the Dirichlet
+    % boundary conditions are imposed. A global force vector 'big_force' is
+    % assembled. So, now the residual 'residual' can be build.
+    residual = big_force - bigk * solu;
+    % ------------------------------------------------------------------- %
+    %% SOLVE (QUASI-NEWTON-SCHEME)
+    % compute the increment vector 'delta'
+    delta = bigk\residual; % no negative sign here, since 'residual' is 
+                           % considered as 'F_ext - F_int' (according to
+                           % Laursen's Book)
+
+    % update the solution-vector
+    solu = old_solu + delta;
+    
+%     % update the residual
+%     residual = big_force - bigk * solu;
+    
+    % store old solution to enable update
+    old_solu = solu;
+    % -------------------------------------------------------------------  %
+    %% CHECK CONVERGENCE OF QUASI-NEWTON-SCHEME      
+           
+    % show convergence state of 'active set'
+%     disp(['slidestateconv = ' num2str(all(slidestateconv))]);
+
+    % store first displacement increment in order to use a relative
+    % increment measure for the convergence check
+    if iter  == 1
+      delta_null = norm(delta);
+    end;
+
+    % convergence check
+    % The newton-scheme is assumed as converged, when the norms of the
+    % residual and of the displacement-increment are smaller than a given 
+    % convergence tolerance 'IFconvtol' and there are no changes in the 
+    % sliding states in comparison to the previous iteration step.
+
+    % compute normalized norm of residual
+    res_norm = norm(residual);% / res_null;
+
+    % compute normalized norm of diplacement inrement
+    delta_norm = norm(delta);% / delta_null;
+
+    % assume, that slidestates are converged
+    slidestateconv = 'true';   % assume, that slidestates are converged
+
+    % check, if slidestates are converged (not for pure elastic cases)
+    if ((IFsliding_switch ~= 0) && (IFsliding_switch ~= 1)) % no fully tied or frictionless interface
+      % loop over all interfaces 'i'
+      for i=1:size(seg_cut_info,1)
+        % loop over all elements
+        for e=1:size(seg_cut_info,2)
+          % only cut elements
+          if seg_cut_info(i,e).elemno ~= -1
+            if seg_cut_info(i,e).slidestateconv == 0
+              slidestateconv = 'false';
+              break;
+            end;
+          end;
+        end;
+      end;
+    end;
+
+    % print some information about the current iteration step
+    disp(['   Newton step: ' num2str(iter) '    Res-Norm: '...
+      num2str(res_norm) '   Displ-Norm: ' num2str(delta_norm) ...
+      '   Conv-State: ' slidestateconv]);
+
+    if (res_norm < IFconvtol) && (delta_norm < IFconvtol) && ...
+        (strcmp(slidestateconv,'true') == 1)
+      break;  % exit iteration loop, if convergence is achieved
+    end;
+
+    % check, if number of maximum iterations is reached
+    if iter > IFmaxiter
+      error('MATLAB:XFEM:main_xfem',...
+          'Newton did not converge in %d iterations.', IFmaxiter);
+    end;
+
+    % add '1' to the iteration index
+    iter = iter + 1;
+
+%       % store 'solu' to 'old_solu' for next iteration
+%       old_solu = solu;
+    % ----------------------------------------------------------------- %
   end;
+  
   % transpose 'solu'
   fdisp = solu';      % fdisp is a row-vector
 
@@ -1486,7 +1747,7 @@ for timestep = 1:(length(time)-1)
   fdisp_sum = fdisp_sum + fdisp;
   
   % clear some temporary variables
-  clear solu step_info delta old_solu iter;
+  clear solu delta iter;
   % --------------------------------------------------------------------- %
   %% RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
   % Reassemble displacement vector  - Enriched nodes need to have their
@@ -1520,7 +1781,7 @@ for timestep = 1:(length(time)-1)
     dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
   end
   % --------------------------------------------------------------------- %
-  %% UPDATE AT END OF LOAD-STEP-LOOP
+  %% UPDATE AT END OF EACH LOAD-STEP
   % update nodal coordinates
   for i=1:numnod                % loop over all nodes
     x(i) = x(i) + dis(2*i-1);   % update x-coordinate
@@ -1565,8 +1826,93 @@ for timestep = 1:(length(time)-1)
     case 1  % frictionless sliding
       % no updates necessary
     case 2  % perfect plasticity
-      % reset additional tractions at interface
+      %% reset additional tractions at interface
       big_force_traction = zeros(length(big_force),1);
+      % ----------------------------------------------------------------- %
+      %% visualize 'slidestate'-flags
+%       % create a new figure
+%       figure(30);
+%       hold on;
+% 
+%       % plot interfaces
+%       % loop over all interfaces
+%       for i=1:size(seg_cut_info,1)
+%         % loop over all elements
+%         for e=1:size(seg_cut_info,2)
+%           % only cut elements
+%           if seg_cut_info(i,e).elemno ~= -1
+%             % get 2 points, that determine the subsegment
+%             if all(size(seg_cut_info(i,e).xint) == [2 2])       % no triple junction in 'e'
+%                 p1 = seg_cut_info(i,e).xint(1,:);
+%                 p2 = seg_cut_info(i,e).xint(2,:);
+%             elseif all(size(seg_cut_info(i,e).xint) == [1 2])   % triple junction in 'e'
+%                 p1 = seg_cut_info(i,e).xint(1,:);
+% 
+%                 % Get coordinates of nodes of element
+%                 xep=zeros(1,3);
+%                 yep=zeros(1,3);
+%                 for m=1:3
+%                     jep = node(m,seg_cut_info(i,e).elemno); 
+%                     xep(m) = x(jep); 
+%                     yep(m) = y(jep);
+%                 end
+% 
+%                 % Second endpoint of segment is also end point of
+%                 % interface --> check, which one of the two endpoints
+%                 % of the interface lies in element 'e'
+% 
+%                 % get first endpoint
+%                 endpoint = INTERFACE_MAP(i).endpoints(1,:); 
+% 
+%                 % check, if it is in the element 'e'
+%                 inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
+% 
+%                 if inside       % endpoint is in element
+%                     p2 = endpoint;
+%                 else            % endpoint is not in element
+%                     p2 = INTERFACE_MAP(i).endpoints(2,:);
+%                 end;
+%             end;
+%             % now, p1 and p2 are the two nodes, that determine the
+%             % subsegment
+%             xcoord = [p1(1) p2(1)];
+%             ycoord = [p1(2) p2(2)];
+% 
+%             % set color depending on current slidestate
+%             stylecell = {'b','r'};
+% 
+%             % get 'index' for stylecell, depending on the 'slidestate'
+%             index = seg_cut_info(i,e).slidestate + 1;
+% 
+%             % check, if it is a horizontal or a vertical interface
+%             if abs(xcoord(1) - xcoord(2)) < abs(ycoord(1)-ycoord(2))
+%               % vertical interface
+%               if timestep < 22           
+%                 plot([time(timestep+1) time(timestep+1)],ycoord,stylecell{index},'LineWidth',3.0);   
+%               else
+%                 plot([time2(timestep+1) time2(timestep+1)],ycoord,stylecell{index},'LineWidth',3.0);   
+%               end
+%               xlabel('normalized pseudo-time');
+%               ylabel('y-coordinate');
+%             else
+%               % horizontal interface
+%               if timestep < 22            
+%                 plot(xcoord,[time(timestep+1) time(timestep+1)],stylecell{index},'LineWidth',3.0);       
+%               else
+%                 plot(xcoord,[time2(timestep+1) time2(timestep+1)],stylecell{index},'LineWidth',3.0);       
+%               end
+%               xlabel('x-coordinate');
+%               ylabel('normalized pseudo-time');
+%             end;
+%           end;
+%         end;
+%       end;
+% 
+%       % edit figure
+%       % legend('stick','slip');
+%       title('blue = stick, red = slip');
+%       hold off;
+      % ----------------------------------------------------------------------- %
       
       % plot
 %   figure(50)
@@ -1582,7 +1928,23 @@ for timestep = 1:(length(time)-1)
   plot(x(881)-x_orig(881),x(891)-x_orig(891),'*') 
 %   axis([-0.012 0.008 -0.0005 0.0025]);
   hold off;
-      
+% 
+%   figure(52)
+%   hold on;
+%   plot(x(881),y(881),'*') 
+%   hold off;
+
+% figure(51)
+%   hold on;
+%   plot(x(3361)-x_orig(3361),x(3381)-x_orig(3381),'*') 
+% %   axis([-0.012 0.008 -0.0005 0.0025]);
+%   hold off;
+%   
+%   figure(52)
+%   hold on;
+%   plot(x(1),y(1),'*') 
+% %   axis([-0.012 0.008 -0.0005 0.0025]);
+%   hold off;
     case 3  % frictional contact (Coulomb)
       warning('MATLAB:XFEM:main_xfem',...
         'There exists no code for frictional contact (Coulomb), yet.')

@@ -161,7 +161,7 @@ end
 for c = 1:6
     N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
 end
-
+% ----------------------------------------------------------------------- %
 %% treatment of different sliding cases
 switch IFsliding_switch
   case 0              % no sliding at all (fully constrained)
@@ -196,7 +196,7 @@ switch IFsliding_switch
     warning('MATLAB:XFEM:main_xfem',...
       'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
 end;
-        
+% ----------------------------------------------------------------------- %        
 %% Build id array
 nodes = node(:,parent);
 id(1) = id_eqns(nodes(1),3);  % 1st extra x dof

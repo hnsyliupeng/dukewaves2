@@ -240,8 +240,16 @@ for i=1:size(seg_cut_info,1)
       tang_gap = lagmult' * seg_cut_info(i,e).tangent;
       
       % plot tangential gap
+      subplot(211);
+      title('horizontal interface');
+      hold on;
       plot(xcoord,[tang_gap tang_gap],'-','LineWidth',3);  % horizontal interface
-%       plot([tang_gap tang_gap],ycoord,'-','LineWidth',3); % vertical interface
+      hold off;
+      subplot(212);
+      title('vertical interface');
+      hold on;
+      plot([tang_gap tang_gap],ycoord,'-','LineWidth',3); % vertical interface
+      hold off;
     
     end;
   end;
