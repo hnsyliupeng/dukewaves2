@@ -73,7 +73,7 @@ for i=1:size(seg_cut_info,1)
     end;
   end;
 end;
-
+% ----------------------------------------------------------------------- %
 %% edit figure
 xlabel('x-coordinate');
 ylabel('y-coordinate');

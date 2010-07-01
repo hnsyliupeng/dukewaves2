@@ -30,20 +30,23 @@
 function [force_values force_id tang_traction_max he] = ...
   getnodaltractionsplasticity(xcoords,ycoords,seg_cut_info, ...
   IFyieldstress,endpoints,id_dof,DOFs,NODEINFO_ARR)
-
-% Initialize
-xep = xcoords;
-yep = ycoords;
+%% Initialize
+xep = xcoords;    % x-coordinates of element's nodes
+yep = ycoords;    % y-coordinates of element's nodes
 
 enrich1 = zeros(1,3);
 enrich2 = zeros(1,3);
+
+N = zeros(2,18);  % shape function matrix for base DOFs and two possible 
+                  % enrichments
 
 % get intersection points
 intersection = seg_cut_info.xint;
 
 % get global ID of current element
 eleID = seg_cut_info.elemno;
-
+% ----------------------------------------------------------------------- %
+%% Prepare Gauss integration
 % Establish which nodes are "postively" enriched, and which reside in the 
 % "negative" grain
 pos_g = seg_cut_info.positive_grain;
@@ -116,9 +119,6 @@ elseif all(size(intersection) == [1 2]) % triple junction in the element
   end;
 end;
 
-% initialize
-N = zeros(2,18);
-
 % jacobian of segment to global
 he = sqrt((p1(1)-p2(1))^2 + (p1(2)-p2(2))^2);
 seg_jcob = he/2;
@@ -126,7 +126,8 @@ seg_jcob = he/2;
 % Gauss points on segments
 gauss = [-sqrt(3)/3 sqrt(3)/3];
 weights = [1 1];
-
+% ----------------------------------------------------------------------- %
+%% Assemble 'N'
 % The integration along the subsegment of the interface is done via Gauss'
 % quadrature. Since the shape functions are linear and the tangential
 % traction is constant in an element, you need two Gauss points for exact
@@ -169,12 +170,13 @@ end;
 % enrichments. If there is only one enrichment in this element, the
 % corresponding entries in N are set to zero by the latter for-loop.
 
-% set the base DOFs to zero, since the traction depends only on the
-% enriched DOFs
+% set the base DOFs to zero, since the traction due to plasticity has only 
+% to be assembled into the enriched degrees of freedom
 for c=1:6
   N(1:2,c) = 0;
 end;
-
+% ----------------------------------------------------------------------- %
+%% Compute traction and distribute them onto the nodes
 % vector of tangential traction (computed via yield stress)
 tang_traction_max = IFyieldstress * seg_cut_info.tangent;% * he;
 
@@ -183,17 +185,38 @@ force_values = N' * tang_traction_max * seg_jcob;
 
 % Set all nodal forces to zero, whose nodes don't reside in the enriching 
 % grain
-for i=1:3
-  if id_dof(i,3) ~= NODEINFO_ARR(1,i).grain
-    force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
+% for i=1:3
+%   if id_dof(i,3) ~= NODEINFO_ARR(1,i).grain
+%     force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
 %     force_values([2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
 %     force_values([2*i 2*i-1]) = force_values([2*i 2*i-1]) * (-1);
-  end;
-end;
-
-% set up the id-array
+%   end;
+% end;
+% ----------------------------------------------------------------------- %
+%% Build the id-array
 force_id = [DOFs(1,1:2) DOFs(2,1:2) DOFs(3,1:2) ... % base DOFs
   DOFs(1,3:4) DOFs(2,3:4) DOFs(3,3:4) ...           % first enrichment
-  DOFs(1,5:6) DOFs(2,5:6) DOFs(3,5:6)];             % second enrichment  
+  DOFs(1,5:6) DOFs(2,5:6) DOFs(3,5:6)];             % second enrichment 
 
+% force_id(1) = DOFs(1,1);  % base DOF x first node
+% force_id(2) = DOFs(1,2);  % base DOF y first node
+% force_id(3) = DOFs(2,1);  % base DOF x second node
+% force_id(4) = DOFs(2,2);  % base DOF y second node
+% force_id(5) = DOFs(3,1);  % base DOF x third node
+% force_id(6) = DOFs(3,2);  % base DOF y third node
+% 
+% force_id(7) = DOFs(1,3);  % first enriched DOF x first node
+% force_id(8) = DOFs(1,4);  % first enriched DOF y first node
+% force_id(9) = DOFs(2,3);  % first enriched DOF x second node
+% force_id(10) = DOFs(2,4); % first enriched DOF y second node
+% force_id(11) = DOFs(3,3); % first enriched DOF x third node
+% force_id(12) = DOFs(3,4); % first enriched DOF y third node
+% 
+% force_id(13) = DOFs(1,5); % second enriched DOF x first node
+% force_id(14) = DOFs(1,6); % second enriched DOF y first node
+% force_id(15) = DOFs(2,5); % second enriched DOF x second node
+% force_id(16) = DOFs(2,6); % second enriched DOF y second node
+% force_id(17) = DOFs(3,5); % second enriched DOF x third node
+% force_id(18) = DOFs(3,6); % second enriched DOF y third node
+% ----------------------------------------------------------------------- %
 end

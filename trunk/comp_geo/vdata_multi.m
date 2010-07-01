@@ -226,7 +226,9 @@ switch IFdatasetp
     case 32
         p = [ 70.0 0; 10.0 -3.0; 10.0 3.0];    % horizontal interface at y=0
     case 33
-        p = [0 0; 4 0; 2 9];    % vertival interface at x=2
+        p = [0 0; 4 0; 2 9];    % vertical interface at x=2
+    case 34
+        p = [0 0; 1.5 sqrt(3)/2; 1.5 -sqrt(3)/2; 3 0];    % example in 'Simone2006'
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

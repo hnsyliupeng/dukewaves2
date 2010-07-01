@@ -214,6 +214,10 @@ switch IFDirichletBCs
     filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_3_1000_41_DBC');
   case 81
     filename_DBC = fullfile(pwd,'Boundary_Conditions','InputFileRoutine_DBC');
+  case 82
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_4_40_21_DBC');
+  case 83
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_4_80_41_DBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;
@@ -391,6 +395,8 @@ switch IFNeumannBCs
     filename_NBC = fullfile(pwd,'Boundary_Conditions','plasticity_3_1000_41_NBC');
   case 84
     filename_NBC = fullfile(pwd,'Boundary_Conditions','InputFileRoutine_NBC');
+  case 85
+    filename_NBC = fullfile(pwd,'Boundary_Conditions','plasticity_4_40_21_NBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Neumann BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

@@ -50,7 +50,7 @@ IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 15;%11;
+IFdatasetp = 4;%15;%11;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -112,13 +112,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+8;
+IFpenalty = 5.0e+10;
 %
 % Nitsche Parameter
-IFnitsche = 0;
+IFnitsche = 1.0e+8;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -128,7 +128,10 @@ IFnitsche = 0;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2; 
+% 
+% Set a yield stress for plasticity
+IFyieldstress = 0.2;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -146,6 +149,10 @@ IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
 IFconvtol = 1.0e-8;
+%
+% vector with pseudo-time-steps (always between '0' and '1')
+IFtime = linspace(0,1,41);  %vector creation without 'linspace'-command
+                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 % NBCs
 
-load=10/6;
+load=0;%10/6;
 
 % forces in x-direction
 force(1,169) = load/2;

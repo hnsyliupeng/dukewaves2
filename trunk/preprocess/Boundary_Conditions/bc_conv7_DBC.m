@@ -15,8 +15,8 @@ dispbc(1,19) = 1;    % Lower corner
 % y fixed displacements
 dispbc(2,10) = 1;    % Center
 
-% fix entire left boundary
-for i=1:19
-  dispbc(1,i) = 1;
-  dispbc(2,i) = 1;
-end;
+% % fix entire left boundary
+% for i=1:19
+%   dispbc(1,i) = 1;
+%   dispbc(2,i) = 1;
+% end;

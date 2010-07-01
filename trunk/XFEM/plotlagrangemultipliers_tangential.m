@@ -111,8 +111,16 @@ for i = 1:size(seg_cut_info,1)      % every interface 'i'
 %       end;
       % plot interface
 %       line(xcoord,[lag_tangential lag_tangential]);
+      subplot(211);
+      title('horizontal interface');
+      hold on;
       plot(xcoord,[lag_tangential lag_tangential],'-','LineWidth',3);  % horizontal interface
-%       plot([lag_tangential lag_tangential],ycoord,'-','LineWidth',3);    % vertical interface
+      hold off;
+      subplot(212);
+      title('vertical interface');
+      hold on;
+      plot([lag_tangential lag_tangential],ycoord,'-','LineWidth',3);    % vertical interface
+      hold off;
     end;
   end;
 end;  
