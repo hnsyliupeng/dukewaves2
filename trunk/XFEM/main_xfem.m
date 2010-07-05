@@ -580,6 +580,9 @@ clear slot n j;
 %% INITIALZE (2)
 % sum of all incremental solution vectors
 fdisp_sum = zeros(size(big_force'));
+
+% total displacement vector of all DOFs
+totaldis = zeros(size(big_force));
 % ----------------------------------------------------------------------- %
 %% LOAD STEPPING LOOP (BEGIN)
 % The deformed state will be computed via a incremental loading procedure.
@@ -607,11 +610,10 @@ for timestep = 1:(length(time)-1)
   % 'big_force_loadstep' (contribution of external loads = NBCs) and
   % 'big_force_traction' (contribution of internal tractions at the
   % interface due to plasticity or frictional sliding).
-  big_force_loadstep = big_force_max * (time(timestep+1)-time(timestep));
+  big_force_loadstep = big_force_max * (time(timestep+1));%-time(timestep));
   
   % This is also the global force vector for the first newton step.
   big_force_ext = big_force_loadstep;
-%   big_force(find(big_force))
   % --------------------------------------------------------------------- %
   %% SOLVE (QUASI-NEWTON-SCHEME BEGIN)
   % Due to the non-linearity of plasticity or friction, an iterative solver
@@ -627,11 +629,15 @@ for timestep = 1:(length(time)-1)
   % iterative solving via a Quasi-Newton-Scheme
   
   % initialize some variables
-  iter = 1;                       % iteration index for newton-scheme
-  slidestateconv = 'false';       % shows, if there 'slidestate'-flags are 
-                                  % converged
-  solu = zeros(size(big_force));  % solution-vector for Newton-scheme
-  old_solu = zeros(size(big_force));  % solution-vector for Newton-scheme for previous step
+  iter = 1;                         % iteration index for newton-scheme
+  slidestateconv = 'false';         % shows, if there 'slidestate'-flags 
+                                    % are converged
+%   totaldis = zeros(size(big_force));% total displacement vector of all DOFs
+  deltanewton = zeros(size(big_force));   % displacement increment for Newton loop
+  deltaload = zeros(size(big_force));   % displacement increment for load step loop
+  
+  solu = zeros(size(big_force));    % solution-vector for Newton-scheme
+  old_solu = zeros(size(big_force));% solution-vector for Newton-scheme for previous step
   
   % initialize 'slidestateconv' only in first Newton-step
   % These flags indicate, if there are changes in the 'active set' 
@@ -991,12 +997,12 @@ for timestep = 1:(length(time)-1)
         % interface. So, here a yield condition has to be checked to
         % decide, if a subsegment is in a 'stick' or a 'slip' state.
         %% COMPUTE CURRENT GLOBAL DISPLACEMENT VECTOR
-        % compute global displacement vector as difference between current
-        % and initial state
-        for i=1:numnod                           % loop over all nodes 
-          current_dis(2*i-1) = x(i) - x_orig(i); % x-coordinate of node i
-          current_dis(2*i) = y(i) - y_orig(i);   % y-coordinate of node i
-        end;
+%         % compute global displacement vector as difference between current
+%         % and initial state
+%         for i=1:numnod                           % loop over all nodes 
+%           current_dis(2*i-1) = x(i) - x_orig(i); % x-coordinate of node i
+%           current_dis(2*i) = y(i) - y_orig(i);   % y-coordinate of node i
+%         end;
 
 %         % RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
 %         % Reassemble displacement vector  - Enriched nodes need to have their
@@ -1338,8 +1344,8 @@ for timestep = 1:(length(time)-1)
             case 1  % penalty method
               % assemble interface tractions 'big_force_traction' into global 
               % force vector 'big_force'
-              big_force = big_force_loadstep + big_force_traction * ...
-                (time(timestep+1)-time(timestep));
+              big_force = big_force_loadstep + big_force_traction;% * ...
+%                 (time(timestep+1));%-time(timestep));
 % 
 % if timestep < 22
 %   big_force = big_force_loadstep + big_force_traction * ...
@@ -1423,6 +1429,35 @@ big_force_traction2 = big_force_traction;
 % same load stepping scheme.
 % 
 %
+        if (dispbc(j,n) == 1)          
+          m  = id_eqns(n,j);
+          m2 = id_eqns(n,j+2);
+          m3 = id_eqns(n,j+4);
+          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
+            temp = size(bigk,2);
+            bigk(m,:) = zeros(1,temp);
+            big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
+              (time(timestep + 1)));% - time(timestep)));
+            bigk(:,m) = zeros(temp,1);
+            bigk(m,m) = 1.0;
+            big_force(m) = ubar(j,n) * (time(timestep + 1));% - ...
+%               time(timestep));
+          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
+            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
+              n;
+              temp = size(bigk,2);
+              bigk(m,:) = zeros(1,temp);
+              big_force = big_force - (ubar(j,n) * bigk(:,m) * ...
+                (time(timestep + 1)));% - time(timestep)));
+              bigk(:,m) = zeros(temp,1);
+              bigk(m,m) = 1.0;
+              big_force(m) = ubar(j,n) * (time(timestep+1));% - ...
+%                   time(timestep));
+            end;
+          end;
+        end;
+%}
+%{
         if (dispbc(j,n) == 1)          
           m  = id_eqns(n,j);
           m2 = id_eqns(n,j+2);
@@ -1680,58 +1715,61 @@ end
     % The global stiffnes matrix is already built and the Dirichlet
     % boundary conditions are imposed. A global force vector 'big_force' is
     % assembled. So, now the residual 'residual' can be build.
-    residual = big_force - bigk * solu;
+    residual = big_force - bigk * totaldis;
     % ------------------------------------------------------------------- %
     %% SOLVE (QUASI-NEWTON-SCHEME)
     % compute the increment vector 'delta'
-    delta = bigk\residual; % no negative sign here, since 'residual' is 
+    deltanewton = bigk\residual; % no negative sign here, since 'residual' is 
                            % considered as 'F_ext - F_int' (according to
                            % Laursen's Book)
     % ------------------------------------------------------------------- %
     %% UPDATE DISPLACEMENTS
-    % update the solution-vector
-    solu = old_solu + delta;
+    deltaload = deltaload + deltanewton;
+    totaldis = totaldis + deltanewton;
     
-    fdisp = delta';
-    
-    fdisp_sum = fdisp_sum + fdisp;
+%     % update the solution-vector
+%     solu = old_solu + delta;
+%     
+%     fdisp = delta';
+%     
+%     fdisp_sum = fdisp_sum + fdisp;
         
-    % Reassemble displacement vector  - Enriched nodes need to have their
-    % degrees of freedom added to end up representing a total displacement.
-    % The extra degrees of freedom should only be added if the node is enriched
-    % with the grain in which it resides.  
-
-    % ndisp(i,:) are all of the solutions (base and enriched) at node i
-    ndisp = zeros(numnod,6);
-
-    % dis is a vector with traditional FEM numbering, and the final solution
-    % for each node. It stores the nodal displacements
-    dis = zeros(2*numnod,1);
-
-    for i = 1:numeqns
-      [nnode,doff] = find(id_eqns == i);
-      ndisp(nnode,doff) = fdisp(i);
-    end
-
-    % 'old_ndisp' stores displacement in base and enriched DOFs separated
-    old_ndisp = old_ndisp + ndisp;    % update every load step
-
-    for i = 1:numnod
-      grain = nodegrainmap(i);
-      for j = 3:6
-        if id_dof(i,j) ~= grain
-          ndisp(i,j) = 0;
-        end
-      end
-      dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
-      dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
-    end
-
-    % update nodal coordinates
-    for i=1:numnod                % loop over all nodes
-      x(i) = x(i) + dis(2*i-1);   % update x-coordinate
-      y(i) = y(i) + dis(2*i);     % update y-coordinate
-    end;
+%     % Reassemble displacement vector  - Enriched nodes need to have their
+%     % degrees of freedom added to end up representing a total displacement.
+%     % The extra degrees of freedom should only be added if the node is enriched
+%     % with the grain in which it resides.  
+% 
+%     % ndisp(i,:) are all of the solutions (base and enriched) at node i
+%     ndisp = zeros(numnod,6);
+% 
+%     % dis is a vector with traditional FEM numbering, and the final solution
+%     % for each node. It stores the nodal displacements
+%     dis = zeros(2*numnod,1);
+% 
+%     for i = 1:numeqns
+%       [nnode,doff] = find(id_eqns == i);
+%       ndisp(nnode,doff) = fdisp(i);
+%     end
+% 
+%     % 'old_ndisp' stores displacement in base and enriched DOFs separated
+%     old_ndisp = old_ndisp + ndisp;    % update every load step
+% 
+%     for i = 1:numnod
+%       grain = nodegrainmap(i);
+%       for j = 3:6
+%         if id_dof(i,j) ~= grain
+%           ndisp(i,j) = 0;
+%         end
+%       end
+%       dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
+%       dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
+%     end
+% 
+%     % update nodal coordinates
+%     for i=1:numnod                % loop over all nodes
+%       x(i) = x(i) + dis(2*i-1);   % update x-coordinate
+%       y(i) = y(i) + dis(2*i);     % update y-coordinate
+%     end;
     
     % store old solution to enable update
     old_solu = solu;
@@ -1744,9 +1782,9 @@ end
     % store first displacement increment in order to use a relative
     % increment measure for the convergence check
     if iter  == 1
-      delta_null = norm(delta);
+      deltanewton_null = norm(deltanewton);
       res_null = norm(residual);
-      energ_null = residual' * delta;
+      energ_null = residual' * deltanewton;
     end;
 
     % convergence check
@@ -1759,10 +1797,10 @@ end
     res_norm = norm(residual) / res_null;
 
     % compute normalized norm of diplacement inrement
-    delta_norm = norm(delta) / delta_null;
+    deltanewton_norm = norm(deltanewton) / deltanewton_null;
     
     % compute normalized norm of energie
-    energ_norm = residual' * delta / energ_null;
+    energ_norm = residual' * deltanewton / energ_null;
 
     % assume, that slidestates are converged
     slidestateconv = 'true';   % assume, that slidestates are converged
@@ -1790,14 +1828,16 @@ end
     end;
     
     % plot evolution of slip-stick-area during Newton steps
-    plotslidestateevolutionNewton;  % call a subroutine
+    % Uncomment the following call to show possible oszillations during the
+    % Newton iterations.
+%     plotslidestateevolutionNewton;  % call a subroutine
 
     % print some information about the current iteration step
     iterdata = sprintf('\t Iter %d \t Res: %.4e \t Delta: %.4e \t Energ: %.4e \t Conv: %s', ...
-      iter,res_norm,delta_norm,energ_norm,slidestateconv);
+      iter,res_norm,deltanewton_norm,energ_norm,slidestateconv);
     disp(iterdata);
 
-    if (res_norm < IFconvtol) && (delta_norm < IFconvtol) && ...
+    if (res_norm < IFconvtol) && (deltanewton_norm < IFconvtol) && ...
       (energ_norm < IFconvtol) && (strcmp(slidestateconv,'true') == 1)
       break;  % exit iteration loop, if convergence is achieved
     end;
@@ -1816,14 +1856,14 @@ end
     % ----------------------------------------------------------------- %
   end;
   
-%   % transpose 'solu'
-%   fdisp = solu';      % fdisp is a row-vector
-% 
-%   % sum 'fdisp' over all loadsteps
-%   fdisp_sum = fdisp_sum + fdisp;
+  % transpose 'solu'
+  fdisp = totaldis';      % fdisp is a row-vector
+
+  % sum 'fdisp' over all loadsteps
+  fdisp_sum = fdisp_sum + fdisp;
   
   % clear some temporary variables
-%   clear solu delta iter;
+  clear solu delta iter;
   % --------------------------------------------------------------------- %
   %% RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
 %   % Reassemble displacement vector  - Enriched nodes need to have their
@@ -2032,13 +2072,45 @@ end
   %% LOAD STEPPING LOOP (END)
 end;
 % ----------------------------------------------------------------------- %
+%% RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
+  % Reassemble displacement vector  - Enriched nodes need to have their
+  % degrees of freedom added to end up representing a total displacement.
+  % The extra degrees of freedom should only be added if the node is enriched
+  % with the grain in which it resides.  
+
+  % ndisp(i,:) are all of the solutions (base and enriched) at node i
+  ndisp = zeros(numnod,6);
+
+  % dis is a vector with traditional FEM numbering, and the final solution
+  % for each node. It stores the nodal displacements
+  dis = zeros(2*numnod,1);
+
+  for i = 1:numeqns
+    [nnode,doff] = find(id_eqns == i);
+    ndisp(nnode,doff) = fdisp(i);
+  end
+  
+  % 'old_ndisp' stores displacement in base and enriched DOFs separated
+  old_ndisp = old_ndisp + ndisp;    % update every load step
+  
+  for i = 1:numnod
+    grain = nodegrainmap(i);
+    for j = 3:6
+      if id_dof(i,j) ~= grain
+        ndisp(i,j) = 0;
+      end
+    end
+    dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
+    dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
+  end
+  % --------------------------------------------------------------------- %
 %% COMPUTE GLOBAL DISPLACEMENT VECTOR
-% compute global displacement vector as difference between deformed and
-% initial state
-for i=1:numnod                      % loop over all nodes 
-  dis(2*i-1) = x(i) - x_orig(i);    % displacements of x-coordinates
-  dis(2*i) = y(i) - y_orig(i);      % displacements of y-coordinates
-end;
+% % compute global displacement vector as difference between deformed and
+% % initial state
+% for i=1:numnod                      % loop over all nodes 
+%   dis(2*i-1) = x(i) - x_orig(i);    % displacements of x-coordinates
+%   dis(2*i) = y(i) - y_orig(i);      % displacements of y-coordinates
+% end;
 % ----------------------------------------------------------------------- %
 %% LOAD INITIAL STATE
 % load initial state to do some postprocessing.

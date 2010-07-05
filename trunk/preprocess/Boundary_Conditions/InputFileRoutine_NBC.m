@@ -1,10 +1,10 @@
 % NBC
 
 % mesh data
-num_x = 181;
-num_y = 181;
+num_x = 61;%21;%61;
+num_y = 61;%21;%61;
 
-p = 1;
+p = 1/4;
 
 % % right boundary
 % tractionnodes = [];
@@ -36,8 +36,6 @@ p = 1;
 % FORCE(1).values = [p/num_x 0];
 % 
 % clear tractionnodes;
-
-
 
 % upper boundary
 tractionnodes = [];

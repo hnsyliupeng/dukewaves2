@@ -1,8 +1,8 @@
 % DBC
 
 % mesh data
-num_x = 61;%21;%61;
-num_y = 61;%21;%61;
+num_x = 81;%21;%61;%81;
+num_y = 101;%27;%77;%101;
 
 % % left boundary
 % for i=1:(num_y + 1)
@@ -37,12 +37,12 @@ end;
 % %   ubar(2,nodeID) = -0.1;
 % end;
 
-% % move upper block
-% for i=1:(num_x+1)
-%   for j=1:(num_y - num_x - 1)
-%     nodeID = (i-1) * (num_y + 1) + j;
-%     dispbc(1,nodeID) = 1;
-%     ubar(1,nodeID) = 0.01;
-%     dispbc(2,nodeID) = 1;
-%   end;
-% end;
+% move upper block
+for i=1:(num_x+1)
+  for j=1:(num_y - num_x - 1)
+    nodeID = (i-1) * (num_y + 1) + j;
+    dispbc(1,nodeID) = 1;
+    ubar(1,nodeID) = 0.01;
+    dispbc(2,nodeID) = 1;
+  end;
+end;
