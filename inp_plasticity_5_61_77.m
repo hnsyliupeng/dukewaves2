@@ -1,4 +1,4 @@
-% Input File 'inp_plasticity_5_21_27.m'
+% Input File 'inp_plasticity_5_61_77.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -34,11 +34,11 @@ IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
 IFlength = 4;
-IFheight = 4;
+IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 61;%21;%61;
-IFnldivy = 61;%21;%61;
+IFnldivx = 81;%21;%61;%81;
+IFnldivy = 101;%27;%77;%101;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +53,7 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 19;%35;%19;
+IFdatasetp = 35;%35;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -150,7 +150,7 @@ IFdatasetp = 19;%35;%19;
 % 85    Simone2006_14406_DBC.m
 % 86    plasticity_5_21_27
 % 87    plasticity_5_61_77
-IFDirichletBCs = 81;
+IFDirichletBCs = 87;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -242,7 +242,7 @@ IFDirichletBCs = 81;
 % 85    plasticity_4_40_21_NBC.m
 % 86    Simone2006_147_49_NBC.m
 % 87    Simone2006_14406_NBC.m
-IFNeumannBCs = 84;%84;%74;
+IFNeumannBCs = 74;%74
 %
 % method of giving NBCs
 % ID    Description
@@ -266,7 +266,7 @@ IFneumann = 0;
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
 % 11    3 grains, grain 3 much stiffer
-IFMatSet = 3;
+IFMatSet = 11;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -291,7 +291,7 @@ IFnitsche = 1.0e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
@@ -314,7 +314,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-10;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,21);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 % IFtime = [linspace(0,1,21) ones(1,21)];
 % IFtime2 = [zeros(1,21) linspace(0,1,21)];
