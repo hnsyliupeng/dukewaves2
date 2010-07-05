@@ -123,7 +123,7 @@ elseif strcmp(FORCE.shape,'parabolic')
     % construct function, that describes Lagrange polynomial for parabolic
     % force distribution
     fx = FORCE.values(1,1);    % value of x-force at vertex
-    fy = FORCE.values(1,2)    % value of y-force at vertex
+    fy = FORCE.values(1,2);    % value of y-force at vertex
         
     % define functions for prabolic traction distribution
     % x-traction as a function of x (set to zero)
@@ -133,21 +133,21 @@ elseif strcmp(FORCE.shape,'parabolic')
     traction_y = @(y) (-1) * fy / (lenhalf^2) * (y^2) + fy;
     
     % get coords of element nodes
-    p1 = BOUNDARY.coords(1,:)
-    p2 = BOUNDARY.coords(2,:)
+    p1 = BOUNDARY.coords(1,:);
+    p2 = BOUNDARY.coords(2,:);
     
     % Get real coordinates of gauss points
     xgp1 = 0.5*(1-gauss(1))*p1(1)+0.5*(1+gauss(1))*p2(1);
-    ygp1 = 0.5*(1-gauss(1))*p1(2)+0.5*(1+gauss(1))*p2(2)
+    ygp1 = 0.5*(1-gauss(1))*p1(2)+0.5*(1+gauss(1))*p2(2);
     xgp2 = 0.5*(1-gauss(2))*p1(1)+0.5*(1+gauss(2))*p2(1);
-    ygp2 = 0.5*(1-gauss(2))*p1(2)+0.5*(1+gauss(2))*p2(2)
+    ygp2 = 0.5*(1-gauss(2))*p1(2)+0.5*(1+gauss(2))*p2(2);
     xgp3 = 0.5*(1-gauss(3))*p1(1)+0.5*(1+gauss(3))*p2(1);
-    ygp3 = 0.5*(1-gauss(3))*p1(2)+0.5*(1+gauss(3))*p2(2)
+    ygp3 = 0.5*(1-gauss(3))*p1(2)+0.5*(1+gauss(3))*p2(2);
     
     % evaluate traction vector 'h' at gauss points
-    hgp1 = [feval(traction_x,xgp1);feval(traction_y,ygp1)] 
-    hgp2 = [feval(traction_x,xgp2);feval(traction_y,ygp2)]
-    hgp3 = [feval(traction_x,xgp3);feval(traction_y,ygp3)] 
+    hgp1 = [feval(traction_x,xgp1);feval(traction_y,ygp1)];
+    hgp2 = [feval(traction_x,xgp2);feval(traction_y,ygp2)];
+    hgp3 = [feval(traction_x,xgp3);feval(traction_y,ygp3)]; 
     
     % Due to linear triangular elements, every shape function along an
     % element edge is linear: N_1 = 0.5(1 - xsi), N_2 = 0.5(1 + xsi)
@@ -171,7 +171,7 @@ elseif strcmp(FORCE.shape,'parabolic')
         0 N_31 0 N_32];
     
     force_values = Ngp1' * hgp1 * jac * weights(1) + ... 
-        Ngp2' * hgp2 * jac * weights(2) + Ngp3' * hgp3 * jac * weights(3)
+        Ngp2' * hgp2 * jac * weights(2) + Ngp3' * hgp3 * jac * weights(3);
     force_id = [DOFs1(1) DOFs1(2) DOFs2(1) DOFs2(2)];
     
 else

@@ -224,11 +224,13 @@ switch IFdatasetp
     case 31
         p = [0 0; 8 0; 4 9];       % 2 grains for plasticity_2
     case 32
-        p = [ 70.0 0; 10.0 -3.0; 10.0 3.0];    % horizontal interface at y=0
+        p = [ 600.0 0; 100.0 -50.0; 100.0 50.0];    % horizontal interface at y=0
     case 33
         p = [0 0; 4 0; 2 9];    % vertical interface at x=2
     case 34
         p = [0 0; 1.5 sqrt(3)/2; 1.5 -sqrt(3)/2; 3 0];    % example in 'Simone2006'
+    case 35
+        p = [600.0 1.5; 100.0 -48.5; 100.0 51.5];    % horizontal interface at y=1.5
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');
