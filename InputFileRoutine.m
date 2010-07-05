@@ -1,4 +1,4 @@
-% Input File 'inp_plasticity_4_80_41.m'
+% Input File 'inp_Simone2006_147_49.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -32,12 +32,12 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 3;
-IFheight = 2;
+IFlength = 4;
+IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 147;
-IFnldivy = 49;
+IFnldivx = 21;%21;%61;
+IFnldivy = 27;%27;%77;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -52,7 +52,7 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 34;%34;%19;
+IFdatasetp = 35;%35;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -145,6 +145,8 @@ IFdatasetp = 34;%34;%19;
 % 81    InputFileRoutine_DBC.m
 % 82    plasticity_4_40_21_DBC.m
 % 83    plasticity_4_80_41_DBC.m
+% 84    Simone2006_147_49_DBC.m
+% 85    Simone2006_14406_DBC.m
 IFDirichletBCs = 81;
 %
 % Neumann BCs
@@ -235,13 +237,15 @@ IFDirichletBCs = 81;
 % 83    plasticity_3_1000_41_NBC.m
 % 84    InputFileRoutine_NBC.m
 % 85    plasticity_4_40_21_NBC.m
-IFNeumannBCs = 84;%74
+% 86    Simone2006_147_49_NBC.m
+% 87    Simone2006_14406_NBC.m
+IFNeumannBCs = 74;%74
 %
 % method of giving NBCs
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 1;
+IFneumann = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -258,7 +262,7 @@ IFneumann = 1;
 % 8     3 grains for example form Paper "Chen2005"
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
-IFMatSet = 10;
+IFMatSet = 11;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -270,7 +274,7 @@ IFMatSet = 10;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 2.1e+6;
+IFpenalty = 3.03e+14;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
@@ -283,10 +287,10 @@ IFnitsche = 1.0e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 44.1;%44.1;%13.23;%8.82;%0.441;
+IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -303,13 +307,13 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-6;%12;
+IFconvtol = 1.0e-7;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,101);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,21) ones(1,81)];
-% IFtime2 = [zeros(1,21) linspace(0,1,81)];
+% IFtime = [linspace(0,1,21) ones(1,21)];
+% IFtime2 = [zeros(1,21) linspace(0,1,21)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

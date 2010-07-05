@@ -34,8 +34,8 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 32.4;
-IFheight = 2 * 0.635;
+IFlength = 323.85;
+IFheight = 2 * 6.35;
 %
 % Give number of line divisions in x- and y-direction
 IFnldivx = 125;
@@ -223,7 +223,7 @@ IFDirichletBCs = 76;
 % 76    plasticity_2_ref_50_50_NBC.m
 % 77    plasticity_2_41_20_NBC.m
 % 78    plasticity_2_81_40_NBC.m
-% 79    plasticity_3_80_21_NBC.m
+% 79    plasticity_3_125_5_NBC.m
 IFNeumannBCs = 79;
 %
 % method of giving NBCs
@@ -244,7 +244,7 @@ IFneumann = 1;
 % 5     3 grains with same material properties (nue = 0.3, E = 200.0)
 % 6     Two grains (nue1 = 0.3, nue2 = nue3 = 0.0, Ei = 1000.0)
 % 7     3 grains, one of them very stiff ( E --> inf )
-% 8     3 grains for example form Papar "Chen2005"
+% 8     3 grains for example form Paper "Chen2005"
 IFMatSet = 8;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
@@ -254,10 +254,10 @@ IFMatSet = 8;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
-IFpenalty = 1.0e+10;
+IFpenalty = 1.0e+8;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+5;
@@ -270,7 +270,7 @@ IFnitsche = 1.0e+5;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 2; 
+IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 3.864;
@@ -290,10 +290,10 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-12;
+IFconvtol = 1.0e-7;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,51);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

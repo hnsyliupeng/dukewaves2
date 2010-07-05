@@ -1,3 +1,9 @@
+% showmesh.m
+%
+% plots the nodes.
+
+disp('showmesh ...');
+
 len = max(x);
 
 h = plot(x(1:numnod),y(1:numnod));

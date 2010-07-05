@@ -1,3 +1,9 @@
+% plotmesh.m
+%
+% plots the mesh.
+
+disp('plotmesh ...');
+
 
 figure(1)
 hold on

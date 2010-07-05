@@ -46,14 +46,42 @@ sliding_switch = IFsliding_switch;
 % loadstep
 if length(IFtime) > 1
   time = IFtime;
-  dis_increment = zeros(2*numnod,1,(length(time)-1));
+%   dis_increment = zeros(2*numnod,1,(length(time)-1));
 else
   time = [0 1];
-  dis_increment = zeros(2*numnod,1,1);
+%   dis_increment = zeros(2*numnod,1,1);
 end;
 
+% InputFileRoutine
+%{
+num_x = 21;
+num_y = 21;
+dispbc2 = zeros(2,numnod);
+ubar2 = zeros(2,numnod);
+
+% upper boundary
+for i = 1:(num_x +1)
+  nodeID = i*(num_y + 1) - num_y;
+  dispbc2(1,nodeID) = 1;
+  ubar2(1,nodeID) = -ubar(2,nodeID);
+  dispbc2(2,nodeID) = 1;
+end;
+
+% bottom boundary
+for i=1:(num_x + 1)
+  nodeID = i * (num_y +1);
+  dispbc2(1,nodeID) = 1;
+  dispbc2(2,nodeID) = 1;
+%   ubar2(2,nodeID) = -0.0001;
+end;
+dispbc2(1,num_y+1) = 1;
+
+time2 = IFtime2;
+%}
+
+
 % inp_plasticity_4_40_21
-%
+%{
 % upper boundary
 num_x = 40;
 num_y = 21;
@@ -82,13 +110,14 @@ time2 = IFtime2;
 
 % inp_plasticity_4_80_41
 %{
-% upper boundary
+
 num_x = 80;
 num_y = 41;
 dispbc2 = zeros(2,numnod);
 ubar2 = zeros(2,numnod);
 dispbc3 = zeros(2,numnod);
 
+% upper boundary
 for i = 1:(num_x +1)
   nodeID = i*(num_y + 1) - num_y;
   dispbc2(1,nodeID) = 1;
@@ -97,6 +126,7 @@ for i = 1:(num_x +1)
 %   ubar2(2,nodeID) = 0.0;
 %     dispbc3(2,nodeID) = 1;
 end;
+
 % fix the bottom block
 for i=1:10
   for j=0:(num_x)
@@ -240,128 +270,123 @@ numeqns = max(max(id_eqns));
 
 % ----------------------------------------------------------------------- %
 %% PREPARE ASSEMBLY OF STIFFNESS
+  disp('assembling stiffness ...');  
+  %% initialize
+  % 'old_size' is the number of base-DOFs plus number of enriched DOFs 
+  old_size = numeqns;
 
-disp('assembling stiffness ...');
-
-% 'old_size' is the number of base-DOFs plus number of enriched DOFs 
-old_size = numeqns;
-
-% initialize the total number of extra added equations
-multipliers = 0;
-
-% add extra equations only for Lagrange multipliers
-if IFmethod == 0
-  % Every subsegment adds two extra equations
-  for i = 1:size(seg_cut_info,1)     % for every interface
-    for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-      if seg_cut_info(i,e).elemno ~= -1
-        multipliers = multipliers + 1;  % Count total number of multipliers
+  % initialize the total number of extra added equations
+  multipliers = 0;
+  % --------------------------------------------------------------------- %
+  %% add extra equations (only for Lagrange multipliers)
+  if IFmethod == 0
+    % Every subsegment adds two extra equations
+    for i = 1:size(seg_cut_info,1)     % for every interface
+      for e = 1:size(seg_cut_info,2) % for every cut element in that interface
+        if seg_cut_info(i,e).elemno ~= -1
+          multipliers = multipliers + 1;  % Count total number of multipliers
+        end
       end
     end
-  end
 
-  % update number of equations 'numeqns'
-  numeqns = numeqns + 2*multipliers;
-end;
-
-
-
-% add extra equations to enforce DBCs on enriched nodes via Lagrange
-% multipliers
-% get nodes with x- and y-DBCs
-DOFs_x_DBCs = find(dispbc(1,:) ~= 0);
-DOFs_y_DBCs = find(dispbc(2,:) ~= 0);
-
-% get enriches nodes with x- and y-DBCs
-enr_DOFs_x_DBCs = find(id_eqns(DOFs_x_DBCs,3) ~= 0);
-enr_DOFs_y_DBCs = find(id_eqns(DOFs_y_DBCs,4) ~= 0);
-
-enr_DOFs_x_DBCs2 = find(id_eqns(DOFs_x_DBCs,5) ~= 0);
-enr_DOFs_y_DBCs2 = find(id_eqns(DOFs_y_DBCs,6) ~= 0);
-
-% add one equation per DBC on an enriched node, but only, if this node lies
-% in an enriched grain.
-%
-% initialize
-extra_eqns_DBCx = 0;    % number of extra equations for x-DOFs as first enrichments
-extra_eqns_DBCx2 = 0;   % number of extra equations for x-DOFs as second enrichments
-extra_eqns_DBCy = 0;    % number of extra equations for y-DOFs as first enrichments
-extra_eqns_DBCy2 = 0;   % number of extra equations for y-DOFs as second enrichments
-
-% following variables store in following 3 values
-% 1. column: global number of base DOF
-% 2. column: global number of enriched DOF
-% 3. column: global ID of enriched node
-extra_constr_x = [];    % stores DOFs, that have to be constrained in the extra equations
-extra_constr_x2 = [];   % stores DOFs, that have to be constrained in the extra equations
-extra_constr_y = [];    % stores DOFs, that have to be constrained in the extra equations
-extra_constr_y2 = [];   % stores DOFs, that have to be constrained in the extra equations
-for i=1:length(enr_DOFs_x_DBCs)
-  % get global node ID
-  tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs(i));
-
-  % only, if the node lies in the grain, by which it is enriched
-  if nodegrainmap(tempnode) ==  id_dof(tempnode,3)
-    % node lies in the grain, by which it is enriched --> add an
-    % equation
-    extra_eqns_DBCx = extra_eqns_DBCx + 1;
-    extra_constr_x = ...
-      [extra_constr_x; id_eqns(tempnode,1) id_eqns(tempnode,3) tempnode];
+    % update number of equations 'numeqns'
+    numeqns = numeqns + 2*multipliers;
   end;
-end;
-for i=1:length(enr_DOFs_x_DBCs2)
-  % get global node ID
-  tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs2(i));
+  % --------------------------------------------------------------------- %
+  %% add extra equations to enforce DBCs on enriched nodes via Lagrange
+  % multipliers
+  % get nodes with x- and y-DBCs
+  DOFs_x_DBCs = find(dispbc(1,:) ~= 0);
+  DOFs_y_DBCs = find(dispbc(2,:) ~= 0);
 
-  % only, if the node lies in the grain, by which it is enriched
-  if nodegrainmap(tempnode) ==  id_dof(tempnode,5)
-    % node lies in the grain, by which it is enriched --> add an
-    % equation
-    extra_eqns_DBCx = extra_eqns_DBCx2 + 1;
-    extra_constr_x2 = ...
-      [extra_constr_x2; id_eqns(tempnode,1) id_eqns(tempnode,5) tempnode];
+  % get enriches nodes with x- and y-DBCs
+  enr_DOFs_x_DBCs = find(id_eqns(DOFs_x_DBCs,3) ~= 0);
+  enr_DOFs_y_DBCs = find(id_eqns(DOFs_y_DBCs,4) ~= 0);
+
+  enr_DOFs_x_DBCs2 = find(id_eqns(DOFs_x_DBCs,5) ~= 0);
+  enr_DOFs_y_DBCs2 = find(id_eqns(DOFs_y_DBCs,6) ~= 0);
+
+  % add one equation per DBC on an enriched node, but only, if this node lies
+  % in an enriched grain.
+  %
+  % initialize
+  extra_eqns_DBCx = 0;    % number of extra equations for x-DOFs as first enrichments
+  extra_eqns_DBCx2 = 0;   % number of extra equations for x-DOFs as second enrichments
+  extra_eqns_DBCy = 0;    % number of extra equations for y-DOFs as first enrichments
+  extra_eqns_DBCy2 = 0;   % number of extra equations for y-DOFs as second enrichments
+
+  % following variables store in following 3 values
+  % 1. column: global number of base DOF
+  % 2. column: global number of enriched DOF
+  % 3. column: global ID of enriched node
+  extra_constr_x = [];    % stores DOFs, that have to be constrained in the extra equations
+  extra_constr_x2 = [];   % stores DOFs, that have to be constrained in the extra equations
+  extra_constr_y = [];    % stores DOFs, that have to be constrained in the extra equations
+  extra_constr_y2 = [];   % stores DOFs, that have to be constrained in the extra equations
+  for i=1:length(enr_DOFs_x_DBCs)
+    % get global node ID
+    tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs(i));
+
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,3)
+      % node lies in the grain, by which it is enriched --> add an
+      % equation
+      extra_eqns_DBCx = extra_eqns_DBCx + 1;
+      extra_constr_x = ...
+        [extra_constr_x; id_eqns(tempnode,1) id_eqns(tempnode,3) tempnode];
+    end;
   end;
-end;
-for i=1:length(enr_DOFs_y_DBCs)
-  % get global node ID
-  tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs(i));
+  for i=1:length(enr_DOFs_x_DBCs2)
+    % get global node ID
+    tempnode = DOFs_x_DBCs(enr_DOFs_x_DBCs2(i));
 
-  % only, if the node lies in the grain, by which it is enriched
-  if nodegrainmap(tempnode) ==  id_dof(tempnode,4)
-    % node lies in the grain, by which it is enriched --> add an
-    % equation
-    extra_eqns_DBCy = extra_eqns_DBCy + 1;
-    extra_constr_y = ...
-      [extra_constr_y; id_eqns(tempnode,2) id_eqns(tempnode,4) tempnode];
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,5)
+      % node lies in the grain, by which it is enriched --> add an
+      % equation
+      extra_eqns_DBCx = extra_eqns_DBCx2 + 1;
+      extra_constr_x2 = ...
+        [extra_constr_x2; id_eqns(tempnode,1) id_eqns(tempnode,5) tempnode];
+    end;
   end;
-end;
-for i=1:length(enr_DOFs_x_DBCs2)
-  % get global node ID
-  tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs2(i));
+  for i=1:length(enr_DOFs_y_DBCs)
+    % get global node ID
+    tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs(i));
 
-  % only, if the node lies in the grain, by which it is enriched
-  if nodegrainmap(tempnode) ==  id_dof(tempnode,6)
-    % node lies in the grain, by which it is enriched --> add an
-    % equation
-    extra_eqns_DBCy = extra_eqns_DBCy2 + 1;
-    extra_constr_y2 = ...
-      [extra_constr_y2; id_eqns(tempnode,2) id_eqns(tempnode,6) tempnode];
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,4)
+      % node lies in the grain, by which it is enriched --> add an
+      % equation
+      extra_eqns_DBCy = extra_eqns_DBCy + 1;
+      extra_constr_y = ...
+        [extra_constr_y; id_eqns(tempnode,2) id_eqns(tempnode,4) tempnode];
+    end;
   end;
-end;
+  for i=1:length(enr_DOFs_x_DBCs2)
+    % get global node ID
+    tempnode = DOFs_y_DBCs(enr_DOFs_y_DBCs2(i));
 
-% extra_eqns_DBC = length(enr_DOFs_x_DBCs) + length(enr_DOFs_y_DBCs) + ...
-%     length(enr_DOFs_x_DBCs2) + length(enr_DOFs_y_DBCs2);
-extra_eqns_DBC = extra_eqns_DBCx + extra_eqns_DBCx2 + extra_eqns_DBCy ...
-  + extra_eqns_DBCy2;
-numeqns = numeqns + extra_eqns_DBC;
+    % only, if the node lies in the grain, by which it is enriched
+    if nodegrainmap(tempnode) ==  id_dof(tempnode,6)
+      % node lies in the grain, by which it is enriched --> add an
+      % equation
+      extra_eqns_DBCy = extra_eqns_DBCy2 + 1;
+      extra_constr_y2 = ...
+        [extra_constr_y2; id_eqns(tempnode,2) id_eqns(tempnode,6) tempnode];
+    end;
+  end;
 
-
-
-% Allocate size of the stiffness matrix
-%bigk = zeros(numeqns);
-bigk = spalloc(numeqns,numeqns,numele*36);
-ndof = 2; % number of standard degrees of freedon per node
-
+  % extra_eqns_DBC = length(enr_DOFs_x_DBCs) + length(enr_DOFs_y_DBCs) + ...
+  %     length(enr_DOFs_x_DBCs2) + length(enr_DOFs_y_DBCs2);
+  extra_eqns_DBC = extra_eqns_DBCx + extra_eqns_DBCx2 + extra_eqns_DBCy ...
+    + extra_eqns_DBCy2;
+  numeqns = numeqns + extra_eqns_DBC;
+  % --------------------------------------------------------------------- %
+  %% allocate size of the stiffness matrix
+  %bigk = zeros(numeqns);
+  bigk = spalloc(numeqns,numeqns,numele*36);
+  ndof = 2; % number of standard degrees of freedon per node
+  % --------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
 %% ASSEMBLE ELASTIC CONTRIBUTION TO GOBAL STIFFNESS MATRIX 'bigk'
 % Get local stiffness matrices
@@ -474,7 +499,6 @@ switch IFneumann
 %                 end;
 %             end;
     end;
-
   case 1  % give function for forces in input file
     % loop over all boundary elements
     for i=1:size(BOUNDARY,2);
@@ -544,7 +568,7 @@ switch IFneumann
         end;
       end;
     end;
-    otherwise
+  otherwise
 end;
 
 % store maximum external load vector
@@ -1272,7 +1296,7 @@ for timestep = 1:(length(time)-1)
             end;
           end;
           % ----------------------------------------------------------- %
-          %% assemble plastic traction into global force vector
+          %% assemble plastic traction
           % The assembling of the plastic tractions depends on the method of
           % constraint enforcement. 
           % Using Lagrange multipliers, there are extra variables for these
@@ -1281,36 +1305,36 @@ for timestep = 1:(length(time)-1)
           % the tractions have to be assembled into the global force vector
           switch IFmethod
             case 0  % Lagrange multipliers
-  %             % loop over all interfaces 'i'
-  %             for i=1:size(seg_cut_info,1)
-  %               % loop over all cut elements
-  %               for e=1:size(seg_cut_info,2)
-  %                 % only over cut elements
-  %                 if seg_cut_info(i,e).elemno ~= -1
-  %                   % increase counter
-  %                   count = count + 1;
-  %                   
-  %                   % assemble the maximum tangential traction only into those
-  %                   % Lagrange multipliers in 'fdisp', which belong to an element
-  %                   % with 'slidestate = 1 [slip]'.
-  %                   if seg_cut_info(i,e).slidestate == 1
-  %                     % set 'flag' to '1' or '-1' to indicate the direction
-  %                     % of sliding
-  %                     if tang_traction' * tang_traction_max > 0
-  %                       flag = -1;
-  %                     else
-  %                       flag = 1;
-  %                     end;
-  %                         
-  %                     % assemble absolute value of maximum traction into
-  %                     % second (= tangential) Lagrange multiplier of this
-  %                     % element
-  %                     fdisp(old_size + 2 * count) = flag * ...
-  %                       norm(tang_traction_max);
-  %                   end;
-  %                 end;
-  %               end;
-  %             end;
+%               % loop over all interfaces 'i'
+%               for i=1:size(seg_cut_info,1)
+%                 % loop over all cut elements
+%                 for e=1:size(seg_cut_info,2)
+%                   % only over cut elements
+%                   if seg_cut_info(i,e).elemno ~= -1
+%                     % increase counter
+%                     count = count + 1;
+%                     
+%                     % assemble the maximum tangential traction only into those
+%                     % Lagrange multipliers in 'fdisp', which belong to an element
+%                     % with 'slidestate = 1 [slip]'.
+%                     if seg_cut_info(i,e).slidestate == 1
+%                       % set 'flag' to '1' or '-1' to indicate the direction
+%                       % of sliding
+%                       if tang_traction' * tang_traction_max < 0
+%                         flag = -1;
+%                       else
+%                         flag = 1;
+%                       end;
+%                           
+%                       % assemble absolute value of maximum traction into
+%                       % second (= tangential) Lagrange multiplier of this
+%                       % element
+%                       fdisp(old_size + 2 * count) = flag * ...
+%                         norm(tang_traction_max) * he;
+%                     end;
+%                   end;
+%                 end;
+%               end;
             case 1  % penalty method
               % assemble interface tractions 'big_force_traction' into global 
               % force vector 'big_force'
@@ -1337,7 +1361,6 @@ for timestep = 1:(length(time)-1)
 %   big_force = big_force_loadstep + big_force_traction * ...
 %             (time2(timestep+1)-time2(timestep));
 % end
-
             otherwise
               error('MATLAB:XFEM:UnvalidID',...
                 'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
@@ -1348,7 +1371,8 @@ for timestep = 1:(length(time)-1)
 %           big_force = big_force_loadstep + big_force_traction * ...
 %             (time(timestep+1));%-time(timestep));
 % big_force_traction(big_force_traction ~= 0)'
-
+      
+big_force_traction2 = big_force_traction;
 
           % clear some temporary variables
           clear tang_traction tang_traction_max stress_interface ...
@@ -1398,7 +1422,7 @@ for timestep = 1:(length(time)-1)
 % conditions for a single load curve, where all loads are applied with the 
 % same load stepping scheme.
 % 
-%{
+%
         if (dispbc(j,n) == 1)          
           m  = id_eqns(n,j);
           m2 = id_eqns(n,j+2);
@@ -1427,7 +1451,7 @@ for timestep = 1:(length(time)-1)
           end;
         end;
 %}
-%
+%{
 if timestep < 22
         if (dispbc(j,n) == 1)          
           m  = id_eqns(n,j);
@@ -1486,7 +1510,7 @@ end
         % Dirichlet boundary conditions for the case, that two different 
         % load curves for different sets of DBCs are used.
         
-%
+%{
         % load second set of DBCs 
         if timestep > 21
         if (dispbc2(j,n) == 1)          
@@ -1663,12 +1687,51 @@ end
     delta = bigk\residual; % no negative sign here, since 'residual' is 
                            % considered as 'F_ext - F_int' (according to
                            % Laursen's Book)
-
+    % ------------------------------------------------------------------- %
+    %% UPDATE DISPLACEMENTS
     % update the solution-vector
     solu = old_solu + delta;
     
-%     % update the residual
-%     residual = big_force - bigk * solu;
+    fdisp = delta';
+    
+    fdisp_sum = fdisp_sum + fdisp;
+        
+    % Reassemble displacement vector  - Enriched nodes need to have their
+    % degrees of freedom added to end up representing a total displacement.
+    % The extra degrees of freedom should only be added if the node is enriched
+    % with the grain in which it resides.  
+
+    % ndisp(i,:) are all of the solutions (base and enriched) at node i
+    ndisp = zeros(numnod,6);
+
+    % dis is a vector with traditional FEM numbering, and the final solution
+    % for each node. It stores the nodal displacements
+    dis = zeros(2*numnod,1);
+
+    for i = 1:numeqns
+      [nnode,doff] = find(id_eqns == i);
+      ndisp(nnode,doff) = fdisp(i);
+    end
+
+    % 'old_ndisp' stores displacement in base and enriched DOFs separated
+    old_ndisp = old_ndisp + ndisp;    % update every load step
+
+    for i = 1:numnod
+      grain = nodegrainmap(i);
+      for j = 3:6
+        if id_dof(i,j) ~= grain
+          ndisp(i,j) = 0;
+        end
+      end
+      dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
+      dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
+    end
+
+    % update nodal coordinates
+    for i=1:numnod                % loop over all nodes
+      x(i) = x(i) + dis(2*i-1);   % update x-coordinate
+      y(i) = y(i) + dis(2*i);     % update y-coordinate
+    end;
     
     % store old solution to enable update
     old_solu = solu;
@@ -1682,6 +1745,8 @@ end
     % increment measure for the convergence check
     if iter  == 1
       delta_null = norm(delta);
+      res_null = norm(residual);
+      energ_null = residual' * delta;
     end;
 
     % convergence check
@@ -1691,10 +1756,13 @@ end
     % sliding states in comparison to the previous iteration step.
 
     % compute normalized norm of residual
-    res_norm = norm(residual);% / res_null;
+    res_norm = norm(residual) / res_null;
 
     % compute normalized norm of diplacement inrement
-    delta_norm = norm(delta);% / delta_null;
+    delta_norm = norm(delta) / delta_null;
+    
+    % compute normalized norm of energie
+    energ_norm = residual' * delta / energ_null;
 
     % assume, that slidestates are converged
     slidestateconv = 'true';   % assume, that slidestates are converged
@@ -1708,21 +1776,29 @@ end
           % only cut elements
           if seg_cut_info(i,e).elemno ~= -1
             if seg_cut_info(i,e).slidestateconv == 0
+              % set 'slidestateconv'
               slidestateconv = 'false';
+              
+              % make sure, that the for-loops will be aborted as soon as
+              % possible
+              i=size(seg_cut_info,1);
               break;
             end;
           end;
         end;
       end;
     end;
+    
+    % plot evolution of slip-stick-area during Newton steps
+    plotslidestateevolutionNewton;  % call a subroutine
 
     % print some information about the current iteration step
-    disp(['   Newton step: ' num2str(iter) '    Res-Norm: '...
-      num2str(res_norm) '   Displ-Norm: ' num2str(delta_norm) ...
-      '   Conv-State: ' slidestateconv]);
+    iterdata = sprintf('\t Iter %d \t Res: %.4e \t Delta: %.4e \t Energ: %.4e \t Conv: %s', ...
+      iter,res_norm,delta_norm,energ_norm,slidestateconv);
+    disp(iterdata);
 
     if (res_norm < IFconvtol) && (delta_norm < IFconvtol) && ...
-        (strcmp(slidestateconv,'true') == 1)
+      (energ_norm < IFconvtol) && (strcmp(slidestateconv,'true') == 1)
       break;  % exit iteration loop, if convergence is achieved
     end;
 
@@ -1740,53 +1816,53 @@ end
     % ----------------------------------------------------------------- %
   end;
   
-  % transpose 'solu'
-  fdisp = solu';      % fdisp is a row-vector
-
-  % sum 'fdisp' over all loadsteps
-  fdisp_sum = fdisp_sum + fdisp;
+%   % transpose 'solu'
+%   fdisp = solu';      % fdisp is a row-vector
+% 
+%   % sum 'fdisp' over all loadsteps
+%   fdisp_sum = fdisp_sum + fdisp;
   
   % clear some temporary variables
-  clear solu delta iter;
+%   clear solu delta iter;
   % --------------------------------------------------------------------- %
   %% RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
-  % Reassemble displacement vector  - Enriched nodes need to have their
-  % degrees of freedom added to end up representing a total displacement.
-  % The extra degrees of freedom should only be added if the node is enriched
-  % with the grain in which it resides.  
-
-  % ndisp(i,:) are all of the solutions (base and enriched) at node i
-  ndisp = zeros(numnod,6);
-
-  % dis is a vector with traditional FEM numbering, and the final solution
-  % for each node. It stores the nodal displacements
-  dis = zeros(2*numnod,1);
-
-  for i = 1:numeqns
-    [nnode,doff] = find(id_eqns == i);
-    ndisp(nnode,doff) = fdisp(i);
-  end
-  
-  % 'old_ndisp' stores displacement in base and enriched DOFs separated
-  old_ndisp = old_ndisp + ndisp;    % update every load step
-  
-  for i = 1:numnod
-    grain = nodegrainmap(i);
-    for j = 3:6
-      if id_dof(i,j) ~= grain
-        ndisp(i,j) = 0;
-      end
-    end
-    dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
-    dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
-  end
+%   % Reassemble displacement vector  - Enriched nodes need to have their
+%   % degrees of freedom added to end up representing a total displacement.
+%   % The extra degrees of freedom should only be added if the node is enriched
+%   % with the grain in which it resides.  
+% 
+%   % ndisp(i,:) are all of the solutions (base and enriched) at node i
+%   ndisp = zeros(numnod,6);
+% 
+%   % dis is a vector with traditional FEM numbering, and the final solution
+%   % for each node. It stores the nodal displacements
+%   dis = zeros(2*numnod,1);
+% 
+%   for i = 1:numeqns
+%     [nnode,doff] = find(id_eqns == i);
+%     ndisp(nnode,doff) = fdisp(i);
+%   end
+%   
+%   % 'old_ndisp' stores displacement in base and enriched DOFs separated
+%   old_ndisp = old_ndisp + ndisp;    % update every load step
+%   
+%   for i = 1:numnod
+%     grain = nodegrainmap(i);
+%     for j = 3:6
+%       if id_dof(i,j) ~= grain
+%         ndisp(i,j) = 0;
+%       end
+%     end
+%     dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
+%     dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
+%   end
   % --------------------------------------------------------------------- %
   %% UPDATE AT END OF EACH LOAD-STEP
-  % update nodal coordinates
-  for i=1:numnod                % loop over all nodes
-    x(i) = x(i) + dis(2*i-1);   % update x-coordinate
-    y(i) = y(i) + dis(2*i);     % update y-coordinate
-  end;
+%   % update nodal coordinates
+%   for i=1:numnod                % loop over all nodes
+%     x(i) = x(i) + dis(2*i-1);   % update x-coordinate
+%     y(i) = y(i) + dis(2*i);     % update y-coordinate
+%   end;
   
 %   % update intersection points
 %   for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
@@ -1816,7 +1892,7 @@ end
 %   end;
   
   % store increment of displacement for each load step
-  dis_increment(:,1,timestep) = dis;
+%   dis_increment(:,1,timestep) = dis;
   
   % updates at the end of each load step, that are specific with respect to
   % the sliding case
@@ -1923,11 +1999,11 @@ end
 %   plot(x(891),y(891),'*r');
 %   hold off;
   
-  figure(51)
-  hold on;
-  plot(x(881)-x_orig(881),x(891)-x_orig(891),'*') 
-%   axis([-0.012 0.008 -0.0005 0.0025]);
-  hold off;
+%   figure(51)
+%   hold on;
+%   plot(x(881)-x_orig(881),x(891)-x_orig(891),'*') 
+% %   axis([-0.012 0.008 -0.0005 0.0025]);
+%   hold off;
 % 
 %   figure(52)
 %   hold on;
@@ -1971,12 +2047,12 @@ y = y_orig; % y-coordinates of nodes
 % Now, the deformed state can be obtained by adding the displacement 'dis' 
 % to the initial configuration 'x=x_orig', 'y=y_orig'.
 % ----------------------------------------------------------------------- %
-%% POST-PROCESS: STRESSES
+%% POST PROCESS: STRESSES
 disp('postprocessing ...');
 
 % compute stresses 'stress' and strains 'strain' at center of each element
 % Structure of 'stress':
-%   Dimension: numelex6x3
+%   Dimension: numelex6xnumgrains
 %   Index 1:    'stress' for element 'e'
 %   Index 2:    column 1    global element ID
 %               column 2    x-coordinate of element centroid
@@ -1988,14 +2064,39 @@ disp('postprocessing ...');
 stress = zeros(numele,6,maxngrains);
 % 'strain' has an equivalent structure
 strain = zeros(numele,6,maxngrains+1);
+
+% von-Mises-stresses at center of each element
+% Structure of 'stressvonmises':
+%   Dimension: numelex4xnumgrains
+%   Index 1:    'stress' for element 'e'
+%   Index 2:    column 1    global element ID
+%               column 2    x-coordinate of element centroid
+%               column 3    y-coordinate of element centroid
+%               column 4    von-Mises-stress at element centroid
+%   Index 3:    ID of grain, to which these values belong to
+stressvonmises = zeros(numele,4,maxngrains);
+
+% loop over all elements
 for e=1:numele
 %     [stresse] = post_process(node,x,y,e,dis);
 %     stress(e,1:6) = stresse;
-        
+  
+  % compute stress and strain in current element
   [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp, ...
     id_dof,cutlist,maxngrains,INT_INTERFACE);
+  
+  % assign 'stresse' to 'stress'
   stress(e,1:6,:) = stresse;
+  
+  % assign 'straine' to 'strain'
   strain(e,1:6,:) = straine;
+  
+  % compute von-Mises-stress
+  stressvonmises(e,1:3,:) = stresse(1,1:3,:);
+  for i=1:maxngrains
+    stressvonmises(e,4,i) = sqrt((stresse(1,4,i))^2 + (stresse(1,5,i))^2 - ...
+      stresse(1,4,i) * stresse(1,5,i) + 3 * stresse(1,6,i)^2);
+  end;
 end
 
 % clear some temporary variables
@@ -2273,6 +2374,15 @@ clear stresse straine maxstress_vec minstress_vec i e f j;
 %   % clear some temporary variables
 %   clear i e eleID elenodes DOFs;
 %   % --------------------------------------------------------------------- %
+%% POST PROCESS: PREPARE showdeform2
+x_def = [];
+y_def = [];
+
+% get coordinates of deformed mesh
+for i = 1:numnod
+    x_def(i) = x(i) + dis(2*i-1);
+    y_def(i) = y(i) + dis(2*i); 
+end
 %% FINISH SOLVING PROCESS
 %  disp('saving to results file ...');
 

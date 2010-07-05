@@ -1,52 +1,48 @@
 % DBC
 
 % mesh data
-num_x = 147;
-num_y = 49;
+num_x = 21;%21;%61;
+num_y = 27;%27;%77;
 
-% left boundary
-for i=1:(num_y + 1)
-  dispbc(1,i) = 1;
-  dispbc(2,i) = 1;
-end;
-
-% dispbc(2,5) = 1;
-
-% dispbc(1,1) = 1;
-% dispbc(1,num_y + 1) = 1;
-% dispbc(2,num_y + 1) = 1;
-
+% % left boundary
+% for i=1:(num_y + 1)
+%   dispbc(1,i) = 1;
+% %   dispbc(2,i) = 1;
+% end;
+% 
 % % right boundary
 % for i=1:(num_y + 1)
 %   nodeID = num_x * (num_y + 1) + i;
-%   dispbc(2,nodeID) = 1;
-%   ubar(2,nodeID) = 0.0001;
+%   dispbc(1,nodeID) = 1;
+% %   ubar(1,nodeID) = 0.0001;
 % end;
 
 % bottom boundary
 for i=1:(num_x + 1)
   nodeID = i * (num_y +1);
-%   dispbc(1,nodeID) = 1;
+  dispbc(1,nodeID) = 1;
   dispbc(2,nodeID) = 1;
+%   ubar(2,nodeID) = -0.0001;
 end;
-% dispbc(1,55) = 1;
+% 
+% dispbc(1,num_y + 1) = 1;
 
-% upper boundary
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-%   dispbc(1,nodeID) = 1;
-%   ubar(1,nodeID) = 0.03;%0.008;
-  dispbc(2,nodeID) = 1;
-%   ubar(2,nodeID) = -0.007;
-end;
-% dispbc(1,881) = 1;
-% ubar(1,881) = 0.008;
 
-% % fix the bottom block
-% for i=1:10
-%   for j=0:(num_x)
-%     nodeID = j*42 + i + 22;
-%     dispbc(1,nodeID) = 1;
-%     dispbc(2,nodeID) = 1;
-%   end;
+% % upper boundary
+% for i = 1:(num_x +1)
+%   nodeID = i*(num_y + 1) - num_y;
+% %   dispbc(1,nodeID) = 1;
+% %   ubar(1,nodeID) = 0.01;%0.008;
+%   dispbc(2,nodeID) = 1;
+% %   ubar(2,nodeID) = -0.1;
 % end;
+
+% move upper block
+for i=1:(num_x+1)
+  for j=1:(num_y - num_x - 1)
+    nodeID = (i-1) * (num_y + 1) + j;
+    dispbc(1,nodeID) = 1;
+    ubar(1,nodeID) = 0.01;
+    dispbc(2,nodeID) = 1;
+  end;
+end;
