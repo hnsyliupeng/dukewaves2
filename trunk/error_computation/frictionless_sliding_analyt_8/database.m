@@ -34,6 +34,11 @@ nitsche = [ 252	  308	  336	0.1502    0.27421	0.061199;
           12880	13284	13448	0.0055    0.29097	0.0013597;
           51360	52164	52488	0.0025857	0.2916	0.00055273];
  
+slope1 = [1.0e+3 1.0e-1;
+  1.0e+4 1.0e-2];  
+
+slope2 = [1.0e+3 1.0e-2;
+  1.0e+4 1.0e-3]; 
         
 % generate a plot of the displacement error
 figure(1);
@@ -43,7 +48,8 @@ figure(1);
 % plot(nitsche(:,2),nitsche(:,4),'g');
 loglog(lagrange(:,2),lagrange(:,4),'-vb',...
        penalty(:,2),penalty(:,4),'-or',...
-       nitsche(:,2),nitsche(:,4),'-sg');
+       nitsche(:,2),nitsche(:,4),'-sg',...
+       slope1(:,1),slope1(:,2),'-k');
 % grid on;
 % axis([1e2 1e5 1e-4 1e1]);
 
@@ -62,7 +68,8 @@ figure(2);
 % plot(nitsche(:,2),nitsche(:,6),'g');
 loglog(lagrange(:,2),lagrange(:,6),'-vb',...
        penalty(:,2),penalty(:,6),'-or',...
-       nitsche(:,2),nitsche(:,6),'-sg');
+       nitsche(:,2),nitsche(:,6),'-sg',...
+       slope2(:,1),slope2(:,2),'-k');
 % grid on;
 axis([1e2 1e5 1e-4 1e1]);
 

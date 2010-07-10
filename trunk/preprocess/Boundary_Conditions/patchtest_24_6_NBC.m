@@ -1,15 +1,18 @@
 % NBCs
 
-load=0;%10/6;
+load = 0;%10;%0;
+num_y = 6;
+
+nodeload = load/num_y;
 
 % forces in x-direction
-force(1,169) = load/2;
-force(1,170) = load;
-force(1,171) = load;
-force(1,172) = load;
-force(1,173) = load;
-force(1,174) = load;
-force(1,175) = load/2;
+force(1,169) = nodeload/2;
+force(1,170) = nodeload;
+force(1,171) = nodeload;
+force(1,172) = nodeload;
+force(1,173) = nodeload;
+force(1,174) = nodeload;
+force(1,175) = nodeload/2;
 
 
 

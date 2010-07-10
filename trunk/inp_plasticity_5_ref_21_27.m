@@ -1,18 +1,19 @@
-% Input File 'inp_Simone2006_147_49.m'
+% Input File 'inp_plasticity_5_ref_21_27.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% 
+% Elastic and almost rigid block to simulate a 2D frictional sliding 
+% situation.
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
 % strored in this file. Save it to an own file, afterwards.
 %
 
-% Author: Matthias Mayr (06/2010)
+% Author: Matthias Mayr (07/2010)
 
 %--------------------------------------------------------------------------
 % PARAMETERS FOR BACKGROUND MESH
@@ -23,7 +24,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 2;
+IFmeshstructure = 0;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -32,12 +33,12 @@ IFmeshstructure = 2;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 3;
-IFheight = sqrt(3);
+IFlength = 4;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 147;%28;%147;
-IFnldivy = 49;%19;%49;
+IFnldivx = 61;%21;%41;%61;%121;%161;
+IFnldivy = 61;%21;%41;%61;%121;%161;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -45,14 +46,14 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'Simone2006_14406';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 34;%34;%19;
+IFdatasetp = 19;%35;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -147,7 +148,10 @@ IFdatasetp = 34;%34;%19;
 % 83    plasticity_4_80_41_DBC.m
 % 84    Simone2006_147_49_DBC.m
 % 85    Simone2006_14406_DBC.m
-IFDirichletBCs = 85;
+% 86    plasticity_5_21_27.m
+% 87    plasticity_5_61_77.m
+% 88    plasticity_5_ref_21_27.m
+IFDirichletBCs = 81;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -239,7 +243,8 @@ IFDirichletBCs = 85;
 % 85    plasticity_4_40_21_NBC.m
 % 86    Simone2006_147_49_NBC.m
 % 87    Simone2006_14406_NBC.m
-IFNeumannBCs = 74;%74
+% 88    plasticity_5_ref_20_27.m
+IFNeumannBCs = 84;%84;%74;
 %
 % method of giving NBCs
 % ID    Description
@@ -262,7 +267,8 @@ IFneumann = 0;
 % 8     3 grains for example form Paper "Chen2005"
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
-IFMatSet = 10;
+% 11    3 grains, grain 3 much stiffer
+IFMatSet = 3;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -274,7 +280,7 @@ IFMatSet = 10;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 3.55e+8;
+IFpenalty = 3.03e+12;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
@@ -287,10 +293,10 @@ IFnitsche = 1.0e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 44.1;%44.1;%13.23;%8.82;%0.441;
+IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -307,13 +313,13 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-6;%12;
+IFconvtol = 1.0e-10;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,11);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,21) ones(1,81)];
-% IFtime2 = [zeros(1,21) linspace(0,1,81)];
+% IFtime = [linspace(0,1,21) ones(1,21)];
+% IFtime2 = [zeros(1,21) linspace(0,1,21)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------
@@ -351,8 +357,8 @@ save(filename3, 'IFsliding_switch','IFmethod','IFpenalty','IFnitsche',...
     'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
-clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
-    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-    IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-    IFmaxiter IFconvtol;
+% clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
+%     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
+%     IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
+%     IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

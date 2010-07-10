@@ -47,7 +47,7 @@ switch IFMatSet
     case 8                                                  % Paper "Chen2005"
         poissons = [0.3 0.3 0.3];       % poissons ratios
         youngs = [200e+3 200e+3 200e+3];  % youngs moduli
-    case 9
+    case 9                                                  % Paper "Konyukhov2006"
         poissons = [0.3 0.3 0.3];       % poissons ratios
         youngs = [2.1e+4 2.1e+11 2.1e+4];  % youngs moduli
     case 10
@@ -56,6 +56,9 @@ switch IFMatSet
     case 11
         poissons = [0.0 0.0 0.0];           % poissons ratios
         youngs = [1000.0 1000.0 1000.0e+5];   % Young's moduli
+    case 12
+        poissons = [0.0 0.0 0.0];           % poissons ratios
+        youngs = [1000.0e+5 1000.0 1000.0];   % Young's moduli
     otherwise
         error('MATLAB:preprocess:MaterialProperties',...
             'Unvalid Material ID "IFMatSet". Check ID or add additional case to switch-case-structure in "MaterialProperties.m".');

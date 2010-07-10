@@ -19,7 +19,7 @@
 %   intersection    points on elements edges, that are cut by an interface
 %   endpoints       points, that define the interface
 %   penalty         penalty paramter
-%   fdisp_sum           entire solution vector
+%   fdisp           entire solution vector
 %
 % Returned variables
 %   lagmult         Vector of Lagrange multipliers
@@ -28,7 +28,7 @@
 % Author: Matthias Mayr (06/2010)
 
 % function [lagmult] = get_lag_mults_for_penalty(node,x,y,parent,id_eqns, ...
-%     id_dof,pn_nodes,pos_g,neg_g,intersection,endpoints,penalty,fdisp_sum)
+%     id_dof,pn_nodes,pos_g,neg_g,intersection,endpoints,penalty,fdisp)
 
 % create a figure
 figure(99);
@@ -206,27 +206,27 @@ for i=1:size(seg_cut_info,1)
       % Check first node
       index1 = id_eqns(node(1,parent),3:6);
       if all(index1)      % node 1 of element 'parent' is enriched twice
-        localdis1 = [fdisp_sum(index1(1:2)) zeros(1,4) fdisp_sum(index1(3:4)) zeros(1,4)];
+        localdis1 = [fdisp(index1(1:2)) zeros(1,4) fdisp(index1(3:4)) zeros(1,4)];
       else                % node 1 of element 'parent' is enriched once
-        localdis1 = [fdisp_sum(index1(1:2)) zeros(1,10)];
+        localdis1 = [fdisp(index1(1:2)) zeros(1,10)];
       end;
 
       % Check second node
       index2 = id_eqns(node(2,parent),3:6);
       if all(index2)      % node 2 of element 'parent' is enriched twice
-        localdis2 = [zeros(1,2) fdisp_sum(index2(1:2)) zeros(1,4) ...
-          fdisp_sum(index2(3:4)) zeros(1,2)];
+        localdis2 = [zeros(1,2) fdisp(index2(1:2)) zeros(1,4) ...
+          fdisp(index2(3:4)) zeros(1,2)];
       else                % node 2 of element 'parent' is enriched once
-        localdis2 = [zeros(1,2) fdisp_sum(index2(1:2)) zeros(1,8)];
+        localdis2 = [zeros(1,2) fdisp(index2(1:2)) zeros(1,8)];
       end;
 
       % Check third node
       index3 = id_eqns(node(3,parent),3:6);
       if all(index3)      % node 3 of element 'parent' is enriched twice
-        localdis3 = [zeros(1,4) fdisp_sum(index3(1:2)) zeros(1,4) ...
-          fdisp_sum(index3(3:4))];
+        localdis3 = [zeros(1,4) fdisp(index3(1:2)) zeros(1,4) ...
+          fdisp(index3(3:4))];
       else                % node 3 of element 'parent' is enriched once
-        localdis3 = [zeros(1,4) fdisp_sum(index3(1:2)) zeros(1,6)];
+        localdis3 = [zeros(1,4) fdisp(index3(1:2)) zeros(1,6)];
       end;
 
       % Assemble 'localdis'
