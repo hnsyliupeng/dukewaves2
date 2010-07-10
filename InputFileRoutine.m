@@ -1,4 +1,4 @@
-% Input File 'inp_plasticity_5_21_27.m'
+% Input File 'inp_plasticity_5_ref_21_27.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -34,11 +34,11 @@ IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
 IFlength = 4;
-IFheight = 4;
+IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 61;%21;%61;
-IFnldivy = 61;%21;%61;
+IFnldivx = 21;%21;%41;%61;
+IFnldivy = 27;%27;%51;%77;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -148,8 +148,9 @@ IFdatasetp = 19;%35;%19;
 % 83    plasticity_4_80_41_DBC.m
 % 84    Simone2006_147_49_DBC.m
 % 85    Simone2006_14406_DBC.m
-% 86    plasticity_5_21_27
-% 87    plasticity_5_61_77
+% 86    plasticity_5_21_27.m
+% 87    plasticity_5_61_77.m
+% 88    plasticity_5_ref_21_27.m
 IFDirichletBCs = 81;
 %
 % Neumann BCs
@@ -242,6 +243,7 @@ IFDirichletBCs = 81;
 % 85    plasticity_4_40_21_NBC.m
 % 86    Simone2006_147_49_NBC.m
 % 87    Simone2006_14406_NBC.m
+% 88    plasticity_5_ref_20_27.m
 IFNeumannBCs = 84;%84;%74;
 %
 % method of giving NBCs

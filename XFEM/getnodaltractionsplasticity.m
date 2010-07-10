@@ -21,7 +21,7 @@
 %   force_id          id-array with global DOFs for assembly into
 %                     'big_force_traction'
 %   tang_traction_max maximum tangential traction (limited due to
-%                     plasticity)
+%                     yield stress in plasticity)
 %   he                physical length of current subsegment of interface
 %
 
@@ -31,15 +31,16 @@ function [force_values force_id tang_traction_max he] = ...
   getnodaltractionsplasticity(xcoords,ycoords,seg_cut_info, ...
   IFyieldstress,endpoints,id_dof,DOFs,NODEINFO_ARR)
 %% Initialize
+% coordinate-arrays
 xep = xcoords;    % x-coordinates of element's nodes
 yep = ycoords;    % y-coordinates of element's nodes
 
 enrich1 = zeros(1,3);
 enrich2 = zeros(1,3);
 
-N = zeros(2,18);  % shape function matrix for base DOFs and two possible 
-                  % enrichments
-
+% shape function matrix for base DOFs and two possible enrichments
+N = zeros(2,18);  
+                  
 % get intersection points
 intersection = seg_cut_info.xint;
 
@@ -140,11 +141,11 @@ for g = 1:2
   yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
 
   for b = 1:3     % Evaluate shape functions
-    % load node cooridates
+    % load node coordinates
     xes = xcoords;
     yes = ycoords;
     
-    % Get coorindates of area opposite node of concern
+    % Get coordinates of area opposite node of concern
     xes(b) = xn; 
     yes(b) = yn;
 
@@ -152,12 +153,12 @@ for g = 1:2
     Larea = det([[1 1 1]' xes' yes'])/2;
 
     % Evaluate shape function for node 'b'
-    N(1,2*b-1) = N(1,2*b-1) + Larea/Area*seg_jcob*weights(g);    % Base DOFs
-    N(2,2*b)   = N(2,2*b)   + Larea/Area*seg_jcob*weights(g);
-    N(1,2*b+5) = N(1,2*b+5) + Larea/Area*seg_jcob*weights(g);    % First enrichment
-    N(2,2*b+6) = N(2,2*b+6) + Larea/Area*seg_jcob*weights(g);
-    N(1,2*b+11) = N(1,2*b+11) + Larea/Area*seg_jcob*weights(g);  % Second enrichment
-    N(2,2*b+12) = N(2,2*b+12) + Larea/Area*seg_jcob*weights(g);
+    N(1,2*b-1)  = N(1,2*b-1)  + Larea / Area * seg_jcob * weights(g);    % Base DOFs
+    N(2,2*b)    = N(2,2*b)    + Larea / Area * seg_jcob * weights(g);
+    N(1,2*b+5)  = N(1,2*b+5)  + Larea / Area * seg_jcob * weights(g);    % First enrichment
+    N(2,2*b+6)  = N(2,2*b+6)  + Larea / Area * seg_jcob * weights(g);
+    N(1,2*b+11) = N(1,2*b+11) + Larea / Area * seg_jcob * weights(g);  % Second enrichment
+    N(2,2*b+12) = N(2,2*b+12) + Larea / Area * seg_jcob * weights(g);
   end;
 end;
 
@@ -172,16 +173,21 @@ end;
 
 % set the base DOFs to zero, since the traction due to plasticity has only 
 % to be assembled into the enriched degrees of freedom
-for c=1:6
-  N(1:2,c) = 0;
-end;
+% for c=1:6
+%   N(1:2,c) = 0;
+% end;
 % ----------------------------------------------------------------------- %
 %% Compute traction and distribute them onto the nodes
-% vector of tangential traction (computed via yield stress)
-tang_traction_max = IFyieldstress * seg_cut_info.tangent;% * he;
+% vector of maximal tangential traction (computed via yield stress)
+tang_traction_max = IFyieldstress * seg_cut_info.tangent;
 
-% compute nodal force values
-force_values = N' * tang_traction_max * seg_jcob;
+% compute nodal force values (integration process already done when 'N' was
+% assembled)
+force_values = N' * tang_traction_max;
+
+for i=7:12
+  force_values(i) = force_values(i) * -2;
+end;
 
 % Set all nodal forces to zero, whose nodes don't reside in the enriching 
 % grain
@@ -189,7 +195,7 @@ force_values = N' * tang_traction_max * seg_jcob;
 %   if id_dof(i,3) ~= NODEINFO_ARR(1,i).grain
 %     force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i 2*i-1 2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
 %     force_values([2*i+5 2*i+6 2*i+11 2*i+12]) = force_values([2*i+5 2*i+6 2*i+11 2*i+12]) * (-1);
-%     force_values([2*i 2*i-1]) = force_values([2*i 2*i-1]) * (-1);
+%     force_values([2*i-1 2*i]) = force_values([2*i-1 2*i]) * (-1);
 %   end;
 % end;
 % ----------------------------------------------------------------------- %

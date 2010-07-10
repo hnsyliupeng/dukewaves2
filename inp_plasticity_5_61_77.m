@@ -37,8 +37,8 @@ IFlength = 4;
 IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 81;%21;%61;%81;
-IFnldivy = 101;%27;%77;%101;
+IFnldivx = 61;%11;%21;%41;%61;%81;
+IFnldivy = 77;%13;%27;%51;%77;%101;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +53,7 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 35;%35;%19;
+IFdatasetp = 35;%36;%35;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -266,6 +266,7 @@ IFneumann = 0;
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
 % 11    3 grains, grain 3 much stiffer
+% 12    3 grains, grain 1 much stiffer
 IFMatSet = 11;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
@@ -278,7 +279,7 @@ IFMatSet = 11;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 3.03e+12;
+IFpenalty = 3.03e+10;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
@@ -294,7 +295,7 @@ IFnitsche = 1.0e+4;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
+IFyieldstress = 0.25;%44.1;%13.23;%8.82;%0.441;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -311,10 +312,10 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-10;%12;
+IFconvtol = 1.0e-8;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,21);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,121);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 % IFtime = [linspace(0,1,21) ones(1,21)];
 % IFtime2 = [zeros(1,21) linspace(0,1,21)];

@@ -31,14 +31,14 @@ for i=1:(num_x + 1)
 end;
 % dispbc(1,55) = 1;
 
-% upper boundary
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-  dispbc(1,nodeID) = 1;
-%   ubar(1,nodeID) = 0.03;%0.008;
-  dispbc(2,nodeID) = 1;
-  ubar(2,nodeID) = -0.007;
-end;
+% % upper boundary
+% for i = 1:(num_x +1)
+%   nodeID = i*(num_y + 1) - num_y;
+% %   dispbc(1,nodeID) = 1;
+% %   ubar(1,nodeID) = 0.03;%0.008;
+%   dispbc(2,nodeID) = 1;
+%   ubar(2,nodeID) = -0.007;
+% end;
 % dispbc(1,881) = 1;
 % ubar(1,881) = 0.008;
 
