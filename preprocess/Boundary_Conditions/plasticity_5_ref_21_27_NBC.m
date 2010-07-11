@@ -8,6 +8,23 @@ p = 0.25;         % load per length
 loadlength = 4;   % length, that is loaded
 load = p * loadlength / num_x; % nodal load
 
+% upper boundary
+tractionnodes = [];
+for i = 1:(num_x +1)
+  nodeID = i*(num_y + 1) - num_y;
+  tractionnodes = [tractionnodes nodeID];
+end;
+
+clear nodeID;
+
+for nodeID = tractionnodes
+  force(1,nodeID) = load;
+end;
+force(1,tractionnodes(1)) = force(1,tractionnodes(1)) / 2;
+force(1,tractionnodes(end)) = force(1,tractionnodes(end)) / 2;
+
+clear tractionnodes;
+
 % % right boundary
 % tractionnodes = [];
 % for i=1:(num_y + 1)
@@ -39,18 +56,7 @@ load = p * loadlength / num_x; % nodal load
 % 
 % clear tractionnodes;
 
-% upper boundary
-tractionnodes = [];
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-  tractionnodes = [tractionnodes nodeID];
-end;
 
-for nodeID = tractionnodes
-  force(1,nodeID) = load;
-end;
-force(1,tractionnodes(1)) = force(1,tractionnodes(1)) / 2;
-force(1,tractionnodes(end)) = force(1,tractionnodes(end)) / 2;
 
 % % define traction
 % FORCE(3) = struct('shape','','values',[],'nodes',[],'coords',[]);

@@ -234,7 +234,7 @@ IFDirichletBCs = 82;
 % 83    plasticity_3_1000_41_NBC.m
 % 84    InputFileRoutine_NBC.m
 % 85    plasticity_4_40_21_NBC.m
-IFNeumannBCs = 85;%74;%85
+IFNeumannBCs = 74;%74;%85
 %
 % method of giving NBCs
 % ID    Description
@@ -281,7 +281,7 @@ IFnitsche = 1.0e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 2; 
+IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 8.82;%44.1;%13.23;%8.82;%0.441;
@@ -304,11 +304,11 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-6;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,41);  %vector creation without 'linspace'-command
+% IFtime = linspace(0,1,41);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,11) ones(1,80)];
-% IFtime2 = [zeros(1,10) linspace(0,1,81)];
-% IFtime3 = [ones(1,11) zeros(1,80)];
+IFtime = [linspace(0,1,11) ones(1,20)];
+IFtime2 = [zeros(1,10) linspace(0,1,21)];
+IFtime3 = [ones(1,11) zeros(1,20)];
 
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

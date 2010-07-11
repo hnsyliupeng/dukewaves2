@@ -38,6 +38,8 @@ for i = 1:(num_x +1)
 %   ubar(1,nodeID) = 0.03;%0.008;
   dispbc(2,nodeID) = 1;
   ubar(2,nodeID) = -0.007;
+  dispbc2(1,nodeID) = 1;
+  ubar2(1,nodeID) = 0.008;
 end;
 % dispbc(1,881) = 1;
 % ubar(1,881) = 0.008;

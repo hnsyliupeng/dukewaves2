@@ -173,9 +173,9 @@ end;
 
 % set the base DOFs to zero, since the traction due to plasticity has only 
 % to be assembled into the enriched degrees of freedom
-% for c=1:6
-%   N(1:2,c) = 0;
-% end;
+for c=1:6
+  N(1:2,c) = 0;
+end;
 % ----------------------------------------------------------------------- %
 %% Compute traction and distribute them onto the nodes
 % vector of maximal tangential traction (computed via yield stress)
@@ -183,11 +183,11 @@ tang_traction_max = IFyieldstress * seg_cut_info.tangent;
 
 % compute nodal force values (integration process already done when 'N' was
 % assembled)
-force_values = N' * tang_traction_max;
+force_values = N' * tang_traction_max * -1;
 
-for i=7:12
-  force_values(i) = force_values(i) * -2;
-end;
+% for i=7:12
+%   force_values(i) = force_values(i) * 2;
+% end;
 
 % Set all nodal forces to zero, whose nodes don't reside in the enriching 
 % grain

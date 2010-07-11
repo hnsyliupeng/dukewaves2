@@ -52,106 +52,13 @@ else
 %   dis_increment = zeros(2*numnod,1,1);
 end;
 
-% InputFileRoutine
-%{
-num_x = 21;
-num_y = 21;
-dispbc2 = zeros(2,numnod);
-ubar2 = zeros(2,numnod);
-
-% upper boundary
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-  dispbc2(1,nodeID) = 1;
-  ubar2(1,nodeID) = -ubar(2,nodeID);
-  dispbc2(2,nodeID) = 1;
+% load pseudo-time-vectors, if additional sets of DBCs are defined
+if exist('IFtime2','var')
+  time2 = IFtime2;
 end;
-
-% bottom boundary
-for i=1:(num_x + 1)
-  nodeID = i * (num_y +1);
-  dispbc2(1,nodeID) = 1;
-  dispbc2(2,nodeID) = 1;
-%   ubar2(2,nodeID) = -0.0001;
+if exist('IFtime3','var')
+  time3 = IFtime3;
 end;
-dispbc2(1,num_y+1) = 1;
-
-time2 = IFtime2;
-%}
-
-
-% inp_plasticity_4_40_21
-%{
-
-num_x = 40;
-num_y = 21;
-dispbc2 = zeros(2,numnod);
-ubar2 = zeros(2,numnod);
-dispbc3 = zeros(2,numnod);
-ubar3 = zeros(2,numnod);
-
-% % right boundary
-% for i = 881:890
-%   nodeID = i;%num_x * (num_y + 1) + i;
-%   dispbc2(1,nodeID) = 1;
-%   ubar2(1,nodeID) = 0.01;
-% end;
-
-% upper boundary
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-%   dispbc2(1,nodeID) = 1;
-%   ubar2(1,nodeID) = 0.008;
-%   dispbc2(2,nodeID) = 1;
-%   ubar2(2,nodeID) = 0.0;
-  dispbc3(1,nodeID) = 1;
-%   ubar3(2,nodeID) = -0.007;
-end;
-%
-% % fix the bottom block
-% for i=1:10
-%   for j=0:(num_x)
-%     nodeID = j*22 + i + 12;
-%     dispbc2(1,nodeID) = 1;
-%     dispbc2(2,nodeID) = 1;
-%   end;
-% end;
-time2 = IFtime2;
-time3 = IFtime3;
-%}
-
-% inp_plasticity_4_80_41
-%{
-
-num_x = 80;
-num_y = 41;
-dispbc2 = zeros(2,numnod);
-ubar2 = zeros(2,numnod);
-dispbc3 = zeros(2,numnod);
-ubar3 = zeros(2,numnod);
-
-% upper boundary
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-  dispbc2(1,nodeID) = 1;
-  ubar2(1,nodeID) = 0.008;
-%   dispbc2(2,nodeID) = 1;
-%   ubar2(2,nodeID) = 0.0;
-%   dispbc3(1,nodeID) = 1;
-%   ubar3(2,nodeID) = -0.007;
-end;
-
-% % fix the bottom block
-% for i=1:10
-%   for j=0:(num_x)
-%     nodeID = j*42 + i + 22;
-%     dispbc2(1,nodeID) = 1;
-%     dispbc2(2,nodeID) = 1;
-%   end;
-% end;
-time2 = IFtime2;
-time3 = IFtime3;
-%}
 % ----------------------------------------------------------------------- %
 %% INITIALIZE (1)
 % flag for changes in 'slidestate'-flags
