@@ -151,7 +151,7 @@ IFdatasetp = 19;%35;%19;
 % 86    plasticity_5_21_27.m
 % 87    plasticity_5_61_77.m
 % 88    plasticity_5_ref_21_27.m
-IFDirichletBCs = 81;
+IFDirichletBCs = 88;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -244,7 +244,7 @@ IFDirichletBCs = 81;
 % 86    Simone2006_147_49_NBC.m
 % 87    Simone2006_14406_NBC.m
 % 88    plasticity_5_ref_20_27.m
-IFNeumannBCs = 84;%84;%74;
+IFNeumannBCs = 88;%88;%74;
 %
 % method of giving NBCs
 % ID    Description
@@ -296,7 +296,7 @@ IFnitsche = 1.0e+4;
 IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
+IFyieldstress = 0.25;%44.1;%13.23;%8.82;%0.441;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a

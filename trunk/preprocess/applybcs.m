@@ -24,6 +24,10 @@
 %                   for each node   
 %   dispbc          knows, in which DOFs there is a DBC    
 %   ubar            stores the values of the DBCs
+%   dispbc2         knows, in which DOFs there is a DBC (second set of DBCs)
+%   ubar2           stores the values of the DBCs (second set of DBCs)
+%   dispbc3         knows, in which DOFs there is a DBC (third set of DBCs)
+%   ubar3           stores the values of the DBCs (third set of DBCs)
 %   num_enr_surf
 %   enr_surfs
 %   bc_enr
@@ -31,7 +35,7 @@
 
 % Author: Matthias Mayr (04/2010)
 
-function [force,dispbc,ubar,num_enr_surf,enr_surfs,bc_enr,nodeNBC,FORCE]...
+function [force,dispbc,ubar,dispbc2,ubar2,dispbc3,ubar3,num_enr_surf,enr_surfs,bc_enr,nodeNBC,FORCE]...
     = applybcs(x,y,numnod,beam_l,beam_h,f)
 
 % load parameters from input file 'xfeminputdata_preprocess.mat'
@@ -47,6 +51,13 @@ num_edges = 0;
 ubar = zeros(2,numnod);
 dispbc = zeros(2,numnod);
 force = zeros(2,numnod);
+
+% generate default variables for a second and third set of boundary
+% conditions
+dispbc2 = zeros(2,numnod);
+ubar2 = zeros(2,numnod); 
+dispbc3 = zeros(2,numnod);
+ubar3 = zeros(2,numnod); 
 
 % load DBCs
 switch IFDirichletBCs
@@ -422,37 +433,14 @@ if exist('nodeNBC','var') == 0
   nodeNBC = zeros(1,3);
 end;
 
-        
-%  for i=1:numnod
-%    if (x(i) == 0)
-%         dispbc(1,i) = 1.0;
-%         dispbc(2,i) = 1.0;
-%    end
-%    
-%    if (x(i) == beam_l)
-%         dispbc(1,i) = 1.0;
-%         ubar(1,i) = 0.9;
-%         if y(i) == 0
-%             dispbc(2,i) = 1.0;
-%             ubar(2,i) = 0.0;
-%         end
-%    end
-% 
-%  end
-
-
-% set default values, which are never used, because NBCs are given nodally.
+        % set default values, which are never used, because NBCs are given nodally.
 if exist('FORCE','var') == 0
     FORCE = 0;
 end;
 if exist('nodeNBC','var') == 0
     nodeNBC = 0;
 end;
-
-%unstruct2
-%pressure3
-%run(f)
-
+  
 % clear some variables from workspace
 clear IFDirichletBCs IFNeumannBCs;
 

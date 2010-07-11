@@ -148,8 +148,8 @@ IFdatasetp = 35;%36;%35;%19;
 % 83    plasticity_4_80_41_DBC.m
 % 84    Simone2006_147_49_DBC.m
 % 85    Simone2006_14406_DBC.m
-% 86    plasticity_5_21_27
-% 87    plasticity_5_61_77
+% 86    plasticity_5_21_27_DBC.m
+% 87    plasticity_5_61_77_DBC.m
 IFDirichletBCs = 87;
 %
 % Neumann BCs
@@ -315,7 +315,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-8;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,121);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,21);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 % IFtime = [linspace(0,1,21) ones(1,21)];
 % IFtime2 = [zeros(1,21) linspace(0,1,21)];

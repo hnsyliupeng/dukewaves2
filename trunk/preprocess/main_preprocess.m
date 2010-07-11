@@ -20,8 +20,9 @@ num_sub_elems = size(CONN,2);
 
 % Applying of BCs is managed by 'applybcs.m'
 f = 0;  % Some boundary conditions require the parameter, f
-[force, dispbc, ubar, num_enr_surf, enr_surf, bc_enr,nodeNBC,FORCE]...
-    = applybcs(x,y,numnod,beam_l,beam_h,f);     % call 'applybcs.m'
+[force, dispbc, ubar, dispbc2, ubar2, dispbc3, ubar3, num_enr_surf, ...
+  enr_surf, bc_enr,nodeNBC,FORCE] = applybcs(x,y,numnod,beam_l,beam_h,f);
+    % call 'applybcs.m'
     % force  ...    Neumann BCs
     % dispbc ...    knows, in which DOFs there is a DBC
     % ubar   ...    Gives the values of the DBCs
