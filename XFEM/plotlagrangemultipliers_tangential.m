@@ -6,19 +6,15 @@
 % plot analytical solution
 % figure(3);hold on;line([-1 1],[2 -2],'Color','r','LineWidth',2)
 
-% create a new figure (no subplots due to frictionless sliding)
-figure(3);      
+%% create a new figure (no subplots due to frictionless sliding)
+figure(12);      
 hold on;
-set(3,'Name','Lagrange multipliers in tangential direction');
-% title('normal direction');
-ylabel('y-coordinate');
-xlabel('traction value');
-% axis([0 16 -1 3]);
-
-% loop over all interfaces
+set(12,'Name','Lagrange multipliers in tangential direction');
+% ----------------------------------------------------------------------- %
+%% loop over all interfaces
 for i = 1:size(seg_cut_info,1)      % every interface 'i'
-  for e = 1:size(seg_cut_info,2)  % every cut element 'e' in 
-                                  % interface 'i'
+  for e = 1:size(seg_cut_info,2)    % every cut element 'e' in 
+                                    % interface 'i'
     if isempty(seg_cut_info(i,e).lagmult)==0    %only,if lagrange multiplier exists
 
       % get 2 points, that determine the subsegment
@@ -106,7 +102,7 @@ for i = 1:size(seg_cut_info,1)      % every interface 'i'
           he = sqrt((p1(1)-p2(1))^2 + (p1(2)-p2(2))^2);
           seg_jcob = he/2;
           
-          lag_tangential = IFyieldstress * sign(lag_tangential) * he;
+          lag_tangential = IFyieldstress * sign(lag_tangential);
         end;
 %       end;
       % plot interface

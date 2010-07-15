@@ -1,12 +1,12 @@
 % NBC
 
 % mesh data
-num_x = 41;
-num_y = 21;
+num_x = 80;
+num_y = 41;
 
-for i = 881:889
+for i = 3361:3380
   nodeID = i;%num_x * (num_y + 1) + i;
-  force(1,nodeID) = 20;
+  force(1,nodeID) = 10;
 end;
 
 % 

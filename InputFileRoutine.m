@@ -148,9 +148,9 @@ IFdatasetp = 19;%35;%19;
 % 83    plasticity_4_80_41_DBC.m
 % 84    Simone2006_147_49_DBC.m
 % 85    Simone2006_14406_DBC.m
-% 86    plasticity_5_21_27.m
-% 87    plasticity_5_61_77.m
-% 88    plasticity_5_ref_21_27.m
+% 86    plasticity_5_21_27_DBC.m
+% 87    plasticity_5_61_77_DBC.m
+% 88    plasticity_5_ref_21_27_DBC.m
 IFDirichletBCs = 81;
 %
 % Neumann BCs
@@ -243,7 +243,9 @@ IFDirichletBCs = 81;
 % 85    plasticity_4_40_21_NBC.m
 % 86    Simone2006_147_49_NBC.m
 % 87    Simone2006_14406_NBC.m
-% 88    plasticity_5_ref_20_27.m
+% 88    plasticity_5_ref_20_27_NBC.m
+% 89    plasticity_5_61_77_NBC.m
+% 90    plasticity_4_80_41_NBC.m
 IFNeumannBCs = 84;%84;%74;
 %
 % method of giving NBCs
@@ -292,6 +294,7 @@ IFnitsche = 1.0e+4;
 % 1     frictionless sliding
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
+% 4     frictionless contact (only opening contact)
 %
 IFsliding_switch = 0; 
 % 

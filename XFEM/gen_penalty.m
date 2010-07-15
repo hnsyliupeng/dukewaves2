@@ -20,6 +20,7 @@
 %   normal              normal vector to the interface
 %   IFsliding_switch    indicates, which kind of sliding is chosen
 %   slidestate          sliding state of current element (stick or slip)
+%   contactstate        current contact state (open = 0, closed = 1)
 %
 % Returned parameters
 %   ke_pen              element "stiffness" matrix for penalty contribution
@@ -30,7 +31,7 @@
 function [ke_pen,id] =... 
     gen_penalty(node,x,y,parent,id_eqns,id_dof,...
                  pn_nodes,pos_g,neg_g,intersection,endpoints,normal, ...
-                 IFsliding_switch,slidestate)
+                 IFsliding_switch,slidestate,contactstate)
 
 %% Initialize
 % penalty stiffness contribution
@@ -192,6 +193,18 @@ switch IFsliding_switch
   case 3              % frictional contact (Coulomb)
     warning('MATLAB:XFEM:main_xfem',...
       'There exists no code for frictional contact (Coulomb), yet.')
+  case 4              % frictionless contact (only opening contact)
+     % compute 'ke_pen' depending on current slide state (stick or slip)
+    if contactstate == 0      % open contact
+      % no constraints required
+      ke_pen = zeros(size(ke_pen));   
+    else                      % closed frictionless contact
+      % dot 'N' with the normal vector 'normal'
+      N = N' * normal; 
+
+      % compute ke_pen
+      ke_pen = (N * N');
+    end;
   otherwise
     warning('MATLAB:XFEM:main_xfem',...
       'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')

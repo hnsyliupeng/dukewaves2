@@ -20,7 +20,7 @@ num_y = 61;%21;%41;%61;%121;%161;
 % bottom boundary
 for i=1:(num_x + 1)
   nodeID = i * (num_y +1);
-  dispbc(1,nodeID) = 1;
+%   dispbc(1,nodeID) = 1;
   dispbc(2,nodeID) = 1;
 %   ubar(2,nodeID) = -0.0001;
 end;
@@ -31,7 +31,7 @@ end;
 % upper boundary
 for i = 1:(num_x +1)
   nodeID = i*(num_y + 1) - num_y;
-%   dispbc(1,nodeID) = 1;
+  dispbc(1,nodeID) = 1;
 %   ubar(1,nodeID) = 0.01;%0.008;
   dispbc(2,nodeID) = 1;
 %   ubar(2,nodeID) = -0.1;

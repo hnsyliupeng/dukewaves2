@@ -23,6 +23,7 @@
 %   normal              normal vector to the interface
 %   IFsliding_switch    indicates, which kind of sliding is chosen
 %   slidestate          current sliding state of this subsegment (0 or 1)
+%   contactstate        current contact state (open = 0, closed = 1)
 %
 % Returned parameters
 %   ke_nit              element "stiffness" matrix for Nitsche contribution
@@ -32,11 +33,9 @@
 
 function [ke_nit,id] =...
     nit_stiff(node,x,y,parent,id_eqns,id_dof,pn_nodes,pos_g,neg_g,...
-    normal,intersection,endpoints, IFsliding_switch,slidestate)
-
-% ----------------------------------------------------------------------- %
-
-% INITIALIZE
+    normal,intersection,endpoints, IFsliding_switch,slidestate, ...
+    contactstate)
+%% INITIALIZE
 
 ke_nit = zeros(18);
 
@@ -58,8 +57,7 @@ for m=1:3
 end
 
 % ----------------------------------------------------------------------- %
-
-% MATERIAL PROPERTIES
+%% MATERIAL PROPERTIES
 
 % get cijkl positive (1)
 cijkl_p = find_cijkl(pos_g);
@@ -68,8 +66,7 @@ cijkl_p = find_cijkl(pos_g);
 cijkl_n = find_cijkl(neg_g);
 
 % ----------------------------------------------------------------------- %
-
-% ASSEMBLE DERIVITAVES
+%% ASSEMBLE DERIVITAVES
 
 % Derivatives are constant, so quadrature need not occur over these points
 % compute derivatives of shape functions in reference coordinates
@@ -135,8 +132,7 @@ end
 % columns to first enrichment, last 3 columns to a possible second 
 % enrichment.
 % ----------------------------------------------------------------------- %
-
-% Establish a set of flags
+%% Establish a set of flags
 flg = [0 0 0 0 0 0];
 
 % First enrichment
@@ -178,7 +174,7 @@ for n = 1:3     % loop over nodes
 end
 
 % ----------------------------------------------------------------------- %
-% INTEGRATE SHAPE FUNCTIONS OVER SEGMENT AND ASSEMBLE NITSCHES TERMS
+%% INTEGRATE SHAPE FUNCTIONS OVER SEGMENT AND ASSEMBLE NITSCHES TERMS
 
 % end points of intersection - direction doesn't matter - this is for the
 % segment jacobian calculation only
@@ -254,8 +250,8 @@ end
 % case, we are creating a matrix 12x18 in dimension.
 
 ke_nit_sub = zeros(12,18);
-
-% distinguish between different sliding cases
+% ----------------------------------------------------------------------- %
+%% distinguish between different sliding cases
 switch IFsliding_switch
   case 0              % no sliding at all (fully tied problem)
     % Computation via nested for-loops, since cijkl is a 4-tensor
@@ -296,7 +292,6 @@ switch IFsliding_switch
         end
       end
     end
-
   case 1              % frictionless sliding
     % Computation via nested for-loops, since cijkl is a 4-tensor.
     % For frictionless sliding, the 'N' and 'cijkl * strain' have to be
@@ -350,7 +345,6 @@ switch IFsliding_switch
         end
       end
     end
-
   case 2              % perfect plasticity
     % compute 'ke_nit_sub' depending on current slide state (stick or slip)
     if slidestate == 0      % stick
@@ -453,6 +447,66 @@ switch IFsliding_switch
   case 3              % frictional contact (Coulomb)
     warning('MATLAB:XFEM:main_xfem',...
       'There exists no code for frictional contact (Coulomb), yet.')
+  case 4              % frictionless contact (only opening contact)
+    if contactstate == 0    % open contact
+      % no constraints required
+      ke_nit = zeros(size(ke_nit));
+    else                    % closed frictionless contact
+      % This case equals the frictionless sliding case
+      
+      % Computation via nested for-loops, since cijkl is a 4-tensor.
+      % For frictionless sliding, the 'N' and 'cijkl * strain' have to be
+      % doted with the normal. 
+
+      % construct a real matrix 'N'
+      Nvec = N;
+      clear N;
+      N = [Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6) 0;
+           0       Nvec(1) 0       Nvec(2) 0       Nvec(3) 0       Nvec(4) 0       Nvec(5) 0       Nvec(6)];
+
+      % dot 'N' with the normal due to frictionless sliding
+      N = normal' * N;
+
+      % First, the positive terms.
+      for i = 1:12
+        for b = 1:9
+          for m = 1:2
+            for n = 1:2
+              a = ceil(i/2);
+              p = 2*(a-1) + m;
+              q = 2*(b-1) + n;
+
+              for w = 1:2
+                for v = 1:2
+                  ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                    N(i)*normal(m)*cijkl_p(m,w,n,v)*NJdxy1(v,b)*normal(w)/2;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+
+        % Second, the negative terms.
+      for i = 1:12
+        for b = 1:9
+          for m = 1:2
+            for n = 1:2
+              a = ceil(i/2);
+              p = 2*(a-1) + m;
+              q = 2*(b-1) + n;
+
+              for w = 1:2
+                for v = 1:2
+                  ke_nit_sub(p,q) = ke_nit_sub(p,q) +...
+                    N(i)*normal(m)*cijkl_n(m,w,n,v)*NJdxy2(v,b)*normal(w)/2;
+                end
+              end
+            end
+          end
+        end
+      end
+    end;
   otherwise
     warning('MATLAB:XFEM:main_xfem',...
       'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
@@ -460,8 +514,8 @@ end;
 
 ke_nit = [zeros(6,18);
           ke_nit_sub];
-
-% Build id array to prepare assembly
+% ----------------------------------------------------------------------- %
+%% Build id array to prepare assembly
 nodes = node(:,parent);
 id(1)  = id_eqns(nodes(1),1);  % original x dof
 id(2)  = id_eqns(nodes(1),2);  % original y dof
