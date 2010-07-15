@@ -119,7 +119,7 @@ IFMatSet = 1;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 1.0e+7;
+IFpenalty = 1.0e+12;
 %
 % Nitsche Parameter
 IFnitsche = 0;%1.0e+2;
@@ -135,7 +135,7 @@ IFnitsche = 0;%1.0e+2;
 IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 1000;
+IFyieldstress = 1;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -155,7 +155,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,5);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

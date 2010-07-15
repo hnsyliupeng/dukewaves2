@@ -12,7 +12,7 @@ disp('error computation ...')
 error_norm_enr;
 
 % call subroutine to compute error in energy
-% energy_norm_enr;
+energy_norm_enr;
 
 % call subroutine to compute error in tractions at the interface, measured
 % in L2-norm

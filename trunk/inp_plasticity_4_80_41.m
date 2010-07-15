@@ -235,7 +235,12 @@ IFDirichletBCs = 83;
 % 83    plasticity_3_1000_41_NBC.m
 % 84    InputFileRoutine_NBC.m
 % 85    plasticity_4_40_21_NBC.m
-IFNeumannBCs = 74;%74
+% 86    Simone2006_147_49_NBC.m
+% 87    Simone2006_14406_NBC.m
+% 88    plasticity_5_ref_20_27_NBC.m
+% 89    plasticity_5_61_77_NBC.m
+% 90    plasticity_4_80_41_NBC.m
+IFNeumannBCs = 90;%74
 %
 % method of giving NBCs
 % ID    Description
@@ -269,7 +274,7 @@ IFMatSet = 9;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 8.4e+6;
+IFpenalty = 8.4e+6 * 4*4;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+8;
@@ -305,11 +310,11 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-6;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-% IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,41);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-IFtime = [linspace(0,1,11) ones(1,80)];
-IFtime2 = [zeros(1,10) linspace(0,1,81)];
-IFtime3 = [ones(1,11) zeros(1,80)];
+% IFtime = [linspace(0,1,11) ones(1,80)];
+% IFtime2 = [zeros(1,10) linspace(0,1,81)];
+% IFtime3 = [ones(1,11) zeros(1,80)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

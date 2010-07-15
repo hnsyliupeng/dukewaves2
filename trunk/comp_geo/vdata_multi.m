@@ -233,6 +233,8 @@ switch IFdatasetp
         p = [600.0 1.5; 100.0 -48.5; 100.0 51.5];    % horizontal interface at y=1.5
     case 36
         p = [100.0 51.5; 600.0 1.5; 100.0 -48.5];    % horizontal interface at y=1.5
+    case 37
+        p = [100.0 48.5; 600.0 -1.5; 100.0 -51.5];    % horizontal interface at y=-1.5
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

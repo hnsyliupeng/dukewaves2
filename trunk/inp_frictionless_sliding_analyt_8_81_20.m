@@ -221,7 +221,7 @@ IFmethod = 2;
 IFpenalty = 1.0e+7;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+5;%1.8e+4;
+IFnitsche = 1.8e+4;%1.8e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -251,7 +251,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,5);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

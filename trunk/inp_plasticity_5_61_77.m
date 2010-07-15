@@ -37,8 +37,8 @@ IFlength = 4;
 IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 61;%11;%21;%41;%61;%81;
-IFnldivy = 77;%13;%27;%51;%77;%101;
+IFnldivx = 21;%11;%21;%41;%61;%81;
+IFnldivy = 27;%13;%27;%51;%77;%101;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +53,7 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 35;%36;%35;%19;
+IFdatasetp = 37;%37;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -242,7 +242,9 @@ IFDirichletBCs = 87;
 % 85    plasticity_4_40_21_NBC.m
 % 86    Simone2006_147_49_NBC.m
 % 87    Simone2006_14406_NBC.m
-IFNeumannBCs = 74;%74
+% 88    plasticity_5_ref_20_27_NBC.m
+% 89    plasticity_5_61_77_NBC.m
+IFNeumannBCs = 74;%74;%89;
 %
 % method of giving NBCs
 % ID    Description
@@ -317,8 +319,6 @@ IFconvtol = 1.0e-8;%12;
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,21);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,21) ones(1,21)];
-% IFtime2 = [zeros(1,21) linspace(0,1,21)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

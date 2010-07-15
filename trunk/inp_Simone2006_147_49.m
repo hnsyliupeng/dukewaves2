@@ -5,7 +5,7 @@
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% 
+% A free grain boundary sliding example as it is given in Simone2006
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -272,7 +272,7 @@ IFMatSet = 10;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 4.78e+7;
+IFpenalty = 4.25+12;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
@@ -299,16 +299,16 @@ IFyieldstress = 44.1;%44.1;%13.23;%8.82;%0.441;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 0;
+IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-6;%12;
+IFconvtol = 1.0e-8;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,3);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 % IFtime = [linspace(0,1,21) ones(1,81)];
 % IFtime2 = [zeros(1,21) linspace(0,1,81)];
@@ -346,7 +346,7 @@ save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
 save(filename3, 'IFsliding_switch','IFmethod','IFpenalty','IFnitsche',...
-    'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+    'IFSolverType','IFmaxiter','IFconvtol','IFtime');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...

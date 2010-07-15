@@ -5,7 +5,7 @@
 % figure(2);hold on;line([-1 1],[2 -2],'Color','r','LineWidth',2)
 
 % create a new figure (no subplots due to frictionless sliding)
-figure(2);      
+figure(11);      
 hold on;
 set(2,'Name','Lagrange multipliers (frictionless sliding)');
 % title('normal direction');

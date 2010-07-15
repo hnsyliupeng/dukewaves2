@@ -48,14 +48,14 @@ switch IFMatSet
         poissons = [0.3 0.3 0.3];       % poissons ratios
         youngs = [200e+3 200e+3 200e+3];  % youngs moduli
     case 9                                                  % Paper "Konyukhov2006"
-        poissons = [0.0 0.0 0.0];       % poissons ratios
+        poissons = [0.3 0.3 0.3];       % poissons ratios
         youngs = [2.1e+4 2.1e+11 2.1e+4];  % youngs moduli
-    case 10
-        poissons = [0.3 0.3 0.3 0.3];       % poissons ratios
+    case 10                                                 % Paper "Simone2006"
+        poissons = [0.3 0.3 0.3 0.3];       % poissons ratios   
         youngs = [1.0e+4 1.0e+4 1.0e+4 1.0e+4];  % youngs moduli
     case 11
         poissons = [0.0 0.0 0.0];           % poissons ratios
-        youngs = [1000.0 1000.0 1000.0e+5];   % Young's moduli
+        youngs = [1000.0 1000.0 1000.0e+2];   % Young's moduli
     case 12
         poissons = [0.0 0.0 0.0];           % poissons ratios
         youngs = [1000.0e+5 1000.0 1000.0];   % Young's moduli
