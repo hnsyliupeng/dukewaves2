@@ -33,12 +33,12 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 4;
-IFheight = 5;
+IFlength = 16;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 21;%21;%41;%61;
-IFnldivy = 27;%27;%51;%77;
+IFnldivx = 641;
+IFnldivy = 160;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +53,7 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 19;%35;%19;
+IFdatasetp = 25;%25;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -252,7 +252,7 @@ IFNeumannBCs = 84;%84;%74;
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 0;
+IFneumann = 1;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -279,7 +279,7 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
 IFpenalty = 3.03e+12;
@@ -296,7 +296,7 @@ IFnitsche = 1.0e+4;
 % 3     frictional sliding with Coulomb's friction
 % 4     frictionless contact (only opening contact)
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
@@ -316,7 +316,7 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-10;%12;
+IFconvtol = 1.0e-8;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command

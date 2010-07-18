@@ -9,6 +9,7 @@
 %% create a new figure
 figure(98);
 hold on;
+set(98,'Name','Slidestate');
 % ----------------------------------------------------------------------- %
 %% plot initial mesh
 for e=1:numele

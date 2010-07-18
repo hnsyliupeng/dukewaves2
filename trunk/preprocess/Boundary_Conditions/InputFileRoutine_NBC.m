@@ -1,12 +1,21 @@
 % NBC
 
 % mesh data
-num_x = 61;%21;%41;%61;%121;%161;
-num_y = 61;%21;%41;%61;%121;%161;
+num_x = 641;
+num_y = 160;
 
-p = 0.25;         % load per length
-loadlength = 4;   % length, that is loaded
-load = p * loadlength / num_x; % nodal load
+% define a linear traction
+% left boundary
+FORCE(1) = struct('shape','','values',[],'nodes',[],'coords',[]);
+FORCE(1).shape = 'linear';
+FORCE(1).values = [1 0;-1 0];
+FORCE(1).nodes = [1:num_y+1];
+  
+% right boundary
+FORCE(2) = struct('shape','','values',[],'nodes',[],'coords',[]);
+FORCE(2).shape = 'linear';
+FORCE(2).values = [-1 0;1 0];
+FORCE(2).nodes = [num_x * (num_y + 1) + 1:(num_x + 1) * (num_y + 1)];
 
 % % right boundary
 % tractionnodes = [];
@@ -39,18 +48,18 @@ load = p * loadlength / num_x; % nodal load
 % 
 % clear tractionnodes;
 
-% upper boundary
-tractionnodes = [];
-for i = 1:(num_x +1)
-  nodeID = i*(num_y + 1) - num_y;
-  tractionnodes = [tractionnodes nodeID];
-end;
-
-for nodeID = tractionnodes
-  force(1,nodeID) = load;
-end;
-force(1,tractionnodes(1)) = force(1,tractionnodes(1)) / 2;
-force(1,tractionnodes(end)) = force(1,tractionnodes(end)) / 2;
+% % upper boundary
+% tractionnodes = [];
+% for i = 1:(num_x +1)
+%   nodeID = i*(num_y + 1) - num_y;
+%   tractionnodes = [tractionnodes nodeID];
+% end;
+% 
+% for nodeID = tractionnodes
+%   force(1,nodeID) = load;
+% end;
+% force(1,tractionnodes(1)) = force(1,tractionnodes(1)) / 2;
+% force(1,tractionnodes(end)) = force(1,tractionnodes(end)) / 2;
 
 % % define traction
 % FORCE(3) = struct('shape','','values',[],'nodes',[],'coords',[]);

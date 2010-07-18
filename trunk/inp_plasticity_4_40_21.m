@@ -304,11 +304,11 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-5;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,121);  %vector creation without 'linspace'-command
+% IFtime = linspace(0,1,151);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,11) ones(1,40)];
-% IFtime2 = [zeros(1,10) linspace(0,1,41)];
-% IFtime3 = [ones(1,11) zeros(1,40)];
+IFtime = [linspace(0,1,11) ones(1,80)];
+IFtime2 = [zeros(1,10) linspace(0,1,81)];
+% IFtime3 = [ones(1,11) zeros(1,30)];
 
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

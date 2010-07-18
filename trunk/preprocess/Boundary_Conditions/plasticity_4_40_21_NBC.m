@@ -4,10 +4,10 @@
 num_x = 41;
 num_y = 21;
 
-for i = 881:889
-  nodeID = i;%num_x * (num_y + 1) + i;
-  force(1,nodeID) = 20;
-end;
+% for i = 881:889
+%   nodeID = i;%num_x * (num_y + 1) + i;
+%   force(1,nodeID) = 20;
+% end;
 
 % 
 % % right boundary

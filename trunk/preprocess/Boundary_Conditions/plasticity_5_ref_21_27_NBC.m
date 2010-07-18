@@ -1,10 +1,10 @@
 % NBC
 
 % mesh data
-num_x = 61;%21;%41;%61;%121;%161;
-num_y = 61;%21;%41;%61;%121;%161;
+num_x = 156;%21;%41;%61;%121;%161;
+num_y = num_x;
 
-p = -0.25e-3;         % load per length
+p = -0.25;         % load per length
 loadlength = 4;   % length, that is loaded
 load = p * loadlength / num_x; % nodal load
 

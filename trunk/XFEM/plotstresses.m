@@ -6,6 +6,7 @@
 
 % Author: Matthias Mayr (04/2010)
 
+disp('plotstresses ...');
 %% configure plot routine
 % If you want plot the element edges, then set 'plotedges' to 1, else to 0
 plotedges = 0;
@@ -18,10 +19,11 @@ ymin = min(Y);
 % ----------------------------------------------------------------------- %
 %% plot xx-stresses
 % open a new figure
-figure(1);
+figure(20);
 % subplot(311);
 % axis equal;
 hold on;
+set(20,'Name','xx-stress');
 title('xx-stress');
 axis([xmin xmax ymin ymax]);
 
@@ -101,10 +103,11 @@ hold off;
 % ----------------------------------------------------------------------- %
 %% plot yy-stresses
 % open a new figure
-figure(2);
+figure(21);
 % subplot(312);
 % axis equal;
 hold on;
+set(21,'Name','yy-stress');
 title('yy-stress');
 axis([xmin xmax ymin ymax]);
 
@@ -183,10 +186,11 @@ hold off;
 % ----------------------------------------------------------------------- %
 %% plot xy-stresses
 % open a new figure
-figure(3);
+figure(22);
 % subplot(313);
 % axis equal;
 hold on;
+set(22,'Name','xy-stress');
 title('xy-stress');
 axis([xmin xmax ymin ymax]);
 
@@ -264,10 +268,11 @@ hold off;
 % ----------------------------------------------------------------------- %
 %% plot von-Mises-stresses
 % open a new figure
-figure(4);
+figure(23);
 % subplot(313);
 % axis equal;
 hold on;
+set(23,'Name','von-Mises-stress');
 title('von-Mises-stress');
 axis([xmin xmax ymin ymax]);
 

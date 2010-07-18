@@ -9,7 +9,7 @@
 %% create a new figure (no subplots due to frictionless sliding)
 figure(12);      
 hold on;
-set(12,'Name','Lagrange multipliers in tangential direction');
+set(12,'Name','tangential traction');
 % ----------------------------------------------------------------------- %
 %% loop over all interfaces
 for i = 1:size(seg_cut_info,1)      % every interface 'i'

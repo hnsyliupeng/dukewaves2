@@ -11,6 +11,7 @@ y_def = [];
 % create a new figure
 figure(10);
 hold on;
+set(10,'Name','showdeform2');
 
 % plot initial mesh
 for e=1:numele
