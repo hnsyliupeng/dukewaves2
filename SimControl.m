@@ -22,9 +22,9 @@ EXEC_XFEM = 1;              % solve
 % set the filename of the input file without file extension '.m', that has 
 % to be used.
 %
-% filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_frictionless_sliding_analyt_8_321_80';   % NO FILE EXTENSION '.m'
-% filename_input_file = 'inp_patchtest_72_18';
+filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
+% filename_input_file = 'inp_plasticity_5_ref_21_27';   % NO FILE EXTENSION '.m'
+% filename_input_file = 'inp_patchtest_24_6';
 % filename_input_file = 'inp_frictionless_sliding1_72_18';
 % filename_input_file = 'inp_beambending_72_18';
 % ----------------------------------------------------------------------- %

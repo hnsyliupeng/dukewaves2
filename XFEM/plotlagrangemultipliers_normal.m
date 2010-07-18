@@ -7,7 +7,7 @@
 % create a new figure (no subplots due to frictionless sliding)
 figure(11);      
 hold on;
-set(2,'Name','Lagrange multipliers (frictionless sliding)');
+set(11,'Name','normal traction');
 % title('normal direction');
 ylabel('y-coordinate');
 xlabel('traction value');

@@ -185,8 +185,8 @@ tang_traction_max = IFyieldstress * seg_cut_info.tangent;
 % assembled)
 force_values = N' * tang_traction_max * -1;
 
-% for i=7:12
-%   force_values(i) = force_values(i) * 2;
+% for i=1:6
+%   force_values(i) = force_values(i) * -1;
 % end;
 
 % Set all nodal forces to zero, whose nodes don't reside in the enriching 

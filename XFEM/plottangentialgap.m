@@ -33,6 +33,7 @@
 % create a figure
 figure(99);
 hold on;
+set(99,'Name','tangetial gap');
 
 % loop over interfaces
 for i=1:size(seg_cut_info,1)

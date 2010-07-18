@@ -281,7 +281,7 @@ IFMatSet = 11;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 3.03e+10;
+IFpenalty = 3.03e+9;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
@@ -314,7 +314,7 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-8;%12;
+IFconvtol = 1.0e-10;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,21);  %vector creation without 'linspace'-command

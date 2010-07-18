@@ -112,10 +112,10 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 0;
 %
 % Set Penalty-Parameter
-IFpenalty = 5.0e+15;
+IFpenalty = 5.0e+10;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+3;
@@ -128,7 +128,10 @@ IFnitsche = 1.0e+3;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2; 
+% 
+% Set a yield stress for plasticity
+IFyieldstress = 0.5;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -145,7 +148,7 @@ IFSolverType = 1;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-8;
+IFconvtol = 1.0e-7;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,11);  % vector creation without 'linspace'-command

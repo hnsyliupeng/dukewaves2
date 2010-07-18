@@ -1,5 +1,9 @@
 %% gen_penalty.m
 %
+% CALL: gen_penalty(node,x,y,parent,id_eqns,id_dof,pn_nodes,pos_g, ...
+%         neg_g,intersection,endpoints,normal,IFsliding_switch, ...
+%         slidestate,contactstate)
+%
 % Computes the penalty-contribution to the global stiffnes matrix for
 % element 'parent'. Also, an id-array for assembly is computed.
 %
@@ -22,7 +26,7 @@
 %   slidestate          sliding state of current element (stick or slip)
 %   contactstate        current contact state (open = 0, closed = 1)
 %
-% Returned parameters
+% Returned variables
 %   ke_pen              element "stiffness" matrix for penalty contribution
 %   id                  id-array to enable assembly into global stiffnes
 %                       matrix 'bigk'
@@ -48,15 +52,15 @@ nodes = node(:,parent);
 
 % shape function matrix for first and second enrichments
 N = zeros(2,12);
-% ----------------------------------------------------------------------- %
-%% Establish a set of flags
+
 % Get coordinates of parent element
 for m=1:3
   jep = node(m,parent); 
   xep(m) = x(jep); 
   yep(m) = y(jep);
 end
-
+% ----------------------------------------------------------------------- %
+%% Establish a set of flags
 flg = [0 0 0 0 0 0];
 
 % First enrichment
@@ -159,6 +163,7 @@ for g = 1:2
   end
 end
 
+% multiply values belonging to nodes in the 'negative' grain with '-1'
 for c = 1:6
     N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
 end
@@ -211,7 +216,10 @@ switch IFsliding_switch
 end;
 % ----------------------------------------------------------------------- %        
 %% Build id array
+% get nodes of element
 nodes = node(:,parent);
+
+% get DOFs for first enrichment
 id(1) = id_eqns(nodes(1),3);  % 1st extra x dof
 id(2) = id_eqns(nodes(1),4);  % 1st extra y dof
 id(3) = id_eqns(nodes(2),3);  % 1st extra x dof
@@ -219,6 +227,7 @@ id(4) = id_eqns(nodes(2),4);  % 1st extra y dof
 id(5) = id_eqns(nodes(3),3);  % 1st extra x dof
 id(6) = id_eqns(nodes(3),4);  % 1st extra y dof
 
+% get DOFs for second enrichment
 id(7)  = id_eqns(nodes(1),5);  % 2nd extra x dof
 id(8)  = id_eqns(nodes(1),6);  % 2nd extra y dof
 id(9)  = id_eqns(nodes(2),5);  % 2nd extra x dof

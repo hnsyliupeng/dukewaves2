@@ -11,16 +11,22 @@ num_y = 21;
 %   dispbc(2,nodeID) = 1;
 % end;
 
-% % upper boundary
-% for i = 1:(num_x + 1)
-%   nodeID = i*(num_y + 1) - num_y;
+for i = 881:889
+  nodeID = i;%num_x * (num_y + 1) + i;
+  dispbc2(1,nodeID) = 1;
+  ubar2(1,nodeID) = 0.025;
+end;
+
+% upper boundary
+for i = 1:(num_x + 1)
+  nodeID = i*(num_y + 1) - num_y;
 %   dispbc2(1,nodeID) = 1;
 %   ubar2(1,nodeID) = 0.008;
-%   dispbc(2,nodeID) = 1;
-%   ubar(2,nodeID) = -0.007;
+  dispbc(2,nodeID) = 1;
+  ubar(2,nodeID) = -0.007;
 %   dispbc3(1,nodeID) = 1;
 %   ubar3(2,nodeID) = -0.007;
-% end;
+end;
 
 % fix the bottom block
 for i=1:10
