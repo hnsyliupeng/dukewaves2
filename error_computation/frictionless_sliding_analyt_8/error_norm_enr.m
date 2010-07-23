@@ -83,8 +83,8 @@ for j = 1:numele
             anal = fless_sliding_analyt_8_disp(x_feta,y_feta);
     
             % Difference between analytical and numerical solutions - error!
-            ex = dx_feta - anal(1);
-            ey = dy_feta - anal(2);
+            ex = abs(dx_feta) - abs(anal(1));
+            ey = abs(dy_feta) - abs(anal(2));
     
             % square the error
             ex2 = ex^2;
@@ -95,15 +95,17 @@ for j = 1:numele
             element_errory = element_errory + ey2*wg(i)*jcob;
         
             % Assemble the approximate soln norm over the element
-            approx_solnx = approx_solnx + (dx_feta)^2*wg(i)*jcob;
-            approx_solny = approx_solny + (dy_feta)^2*wg(i)*jcob;
+%             approx_solnx = approx_solnx + (dx_feta)^2*wg(i)*jcob;
+%             approx_solny = approx_solny + (dy_feta)^2*wg(i)*jcob;
+            approx_solnx = approx_solnx + (anal(1))^2*wg(i)*jcob;
+            approx_solny = approx_solny + (anal(2))^2*wg(i)*jcob;
         
         
         end
-    
+        
         total_errorx = total_errorx + 0.5*element_errorx;
         total_errory = total_errory + 0.5*element_errory;
-    
+
         total_apprx = total_apprx + 0.5*approx_solnx;
         total_appry = total_appry + 0.5*approx_solny;   
     
@@ -188,8 +190,8 @@ for j = 1:numele
                     anal = fless_sliding_analyt_8_disp(x_feta,y_feta);
     
                     % Difference between analytical and numerical solutions - error!
-                    ex = dx_feta - anal(1);
-                    ey = dy_feta - anal(2);
+                    ex = abs(dx_feta) - abs(anal(1));
+                    ey = abs(dy_feta) - abs(anal(2));
     
                     % square the error
                     ex2 = ex^2;
@@ -200,11 +202,13 @@ for j = 1:numele
                     element_errory = element_errory + ey2*wg(i)*jcob;
         
                     % Assemble the approximate soln norm over the element
-                    approx_solnx = approx_solnx + (dx_feta)^2*wg(i)*jcob;
-                    approx_solny = approx_solny + (dy_feta)^2*wg(i)*jcob;
+%                     approx_solnx = approx_solnx + (dx_feta)^2*wg(i)*jcob;
+%                     approx_solny = approx_solny + (dy_feta)^2*wg(i)*jcob;
+                    approx_solnx = approx_solnx + (anal(1))^2*wg(i)*jcob;
+                    approx_solny = approx_solny + (anal(2))^2*wg(i)*jcob;
         
                 end
-
+                
                 total_errorx = total_errorx + 0.5*element_errorx;
                 total_errory = total_errory + 0.5*element_errory;
     
@@ -290,8 +294,8 @@ for j = 1:numele
                     anal = fless_sliding_analyt_8_disp(x_feta,y_feta);
     
                     % Difference between analytical and numerical solutions - error!
-                    ex = dx_feta - anal(1);
-                    ey = dy_feta - anal(2);
+                    ex = abs(dx_feta) - abs(anal(1));
+                    ey = abs(dy_feta) - abs(anal(2));
     
                     % square the error
                     ex2 = ex^2;
@@ -302,8 +306,10 @@ for j = 1:numele
                     element_errory = element_errory + ey2*wg(i)*jcob;
         
                     % Assemble the approximate soln norm over the element
-                    approx_solnx = approx_solnx + (dx_feta)^2*wg(i)*jcob;
-                    approx_solny = approx_solny + (dy_feta)^2*wg(i)*jcob;
+%                     approx_solnx = approx_solnx + (dx_feta)^2*wg(i)*jcob;
+%                     approx_solny = approx_solny + (dy_feta)^2*wg(i)*jcob;
+                    approx_solnx = approx_solnx + (anal(1))^2*wg(i)*jcob;
+                    approx_solny = approx_solny + (anal(2))^2*wg(i)*jcob;
         
         
                 end

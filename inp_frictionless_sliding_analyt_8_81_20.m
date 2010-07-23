@@ -55,7 +55,7 @@ IFfilename_msh_file = 'patchtest_3622';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 25;%25;%19;
+IFdatasetp = 19;%25;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -186,13 +186,13 @@ IFDirichletBCs = 57;
 % 57    frictionless_sliding_analyt_8_3622_DBC.m
 % 58    frictionless_sliding_analyt_8_41_6_DBC.m
 % 59    frictionless_sliding_analyt_8_81_20_DBC.m
-IFNeumannBCs = 59;
+IFNeumannBCs = 74;%59;%74;
 %
 % method of giving NBCs
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 1;
+IFneumann = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -215,13 +215,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 1.0e+7;
+IFpenalty = 4.1e+5;%1.14e+3;%4.1e+5;%1.0e+7;
 %
 % Nitsche Parameter
-IFnitsche = 1.8e+4;%1.8e+4;
+IFnitsche = 6.49e+4;%1.8e+4;%1.8e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -251,7 +251,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,2);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

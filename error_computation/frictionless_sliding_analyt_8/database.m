@@ -34,11 +34,11 @@ nitsche = [ 252	  308	  336	0.1502    0.27421	0.061199;
           12880	13284	13448	0.0055    0.29097	0.0013597;
           51360	52164	52488	0.0025857	0.2916	0.00055273];
  
-slope1 = [1.0e+3 1.0e-1;
-  1.0e+4 1.0e-2];  
+slope1 = [1.0e+3 1.0e-1;  % slope "2" in double logarithmic diagramm
+  1.0e+4 1.0e-3];  
 
-slope2 = [1.0e+3 1.0e-2;
-  1.0e+4 1.0e-3]; 
+slope2 = [1.0e+3 1.0e-1;  % slope "1" in double logarithmic diagramm
+  1.0e+4 1.0e-2]; 
         
 % generate a plot of the displacement error
 figure(1);

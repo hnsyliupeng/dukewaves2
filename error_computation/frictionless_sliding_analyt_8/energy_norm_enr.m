@@ -89,7 +89,8 @@ for j = 1:numele
 
     if (cutlist(j) == 0) % If element is uncut
         
-        eps = BJ*nodal_disp';
+        eps = BJ*nodal_disp'; % compute it outside the gauss point loop,
+                              % since strain is constant in linear elements
 
         % loop over Gauss points
         for i = 1:12
@@ -110,13 +111,15 @@ for j = 1:numele
             anal = fless_sliding_analyt_8_strain(x_feta, y_feta);
     
             % Difference between analytical and numerical solutions - error!
-            e = eps - anal';
+            e = abs(eps) - abs(anal)';
     
             % The quantity in the energy norm
             eng = e'*D*e;
         
             % The approx soln
-            hsol = eps'*D*eps;
+%             hsol = eps'*D*eps;
+            hsol = anal*D*anal';
+
     
             % Assemble the squared error over the element
             element_error = element_error + eng*wg(i)*Area;
@@ -164,14 +167,15 @@ for j = 1:numele
                     anal = fless_sliding_analyt_8_strain(x_feta, y_feta);
 
                     % Difference between analytical and numerical solutions - error!
-                    e = eps - anal';
+                    e = abs(eps) - abs(anal)';
 
                     % The quantity in the energy norm
                     eng = e'*D*e;
 
                     % The approx soln
-                    hsol = eps'*D*eps;
-
+      %             hsol = eps'*D*eps;
+                    hsol = anal*D*anal';
+                    
                     % Assemble the squared error over the element
                     element_error = element_error + eng*wg(i)*Area;
 
@@ -234,13 +238,14 @@ for j = 1:numele
                     anal = fless_sliding_analyt_8_strain(x_feta, y_feta);
 
                     % Difference between analytical and numerical solutions - error!
-                    e = eps - anal';
+                    e = abs(eps) - abs(anal)';
 
                     % The quantity in the energy norm
                     eng = e'*D*e;
 
                     % The approx soln
-                    hsol = eps'*D*eps;
+%                     hsol = eps'*D*eps;
+                    hsol = anal*D*anal';
 
                     % Assemble the squared error over the element
                     element_error = element_error + eng*wg(i)*Area;
@@ -256,6 +261,6 @@ for j = 1:numele
     total_appr = total_appr + approx_soln;    
 end
 
-energy_norm = sqrt(total_error);
+energy_norm = sqrt(total_error/total_appr);
 
 disp(['energy norm:   ' num2str(energy_norm)]);

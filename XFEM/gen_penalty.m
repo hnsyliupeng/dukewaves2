@@ -5,7 +5,9 @@
 %         slidestate,contactstate)
 %
 % Computes the penalty-contribution to the global stiffnes matrix for
-% element 'parent'. Also, an id-array for assembly is computed.
+% element 'parent'. Also, an id-array for assembly is computed. This method
+% splits the penalty integral into two integrals as suggested in
+% 'Sanders2009'.
 %
 % Input arguments:
 %   node                mapping between elements and their nodes

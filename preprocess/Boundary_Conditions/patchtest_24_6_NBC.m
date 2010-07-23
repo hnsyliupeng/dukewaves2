@@ -1,6 +1,6 @@
 % NBCs
 
-load = 0;%10;%0;
+load = 10;%10;%0;
 num_y = 6;
 
 nodeload = load/num_y;

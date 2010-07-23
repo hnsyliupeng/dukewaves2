@@ -192,13 +192,13 @@ IFDirichletBCs = 60;
 % 60    frictionless_sliding_analyt_8_121_30_DBC.m
 % 61    frictionless_sliding_analyt_8_161_40_DBC.m
 % 62    frictionless_sliding_analyt_8_321_80_DBC.m
-IFNeumannBCs = 62;
+IFNeumannBCs = 74;%62;%74;
 %
 % method of giving NBCs
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 1;
+IFneumann = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -221,13 +221,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty = 4.8e+8;
+IFpenalty = 6.5e+6;%4.8e+8;
 %
 % Nitsche Parameter
-IFnitsche = 1.3e+5;
+IFnitsche = 1.03e+6;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

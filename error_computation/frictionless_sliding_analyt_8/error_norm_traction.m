@@ -3,14 +3,17 @@
 
 %Initialize error
 total_errorx = 0;
-total_errory = 0;
 
 total_apprx = 0;
-total_appry = 0;
+
 
 % Define 3-point Gauss quadrature (since polynom is of order 2)
 gp = [-sqrt(3/5) 0 sqrt(3/5)];  % gauss points
 gw = [5/9 8/9 5/9];               % gauss weights
+
+% % Define 5-point Gauss quadrature
+% gp = [-1/3*sqrt(5+2*sqrt(10/7)) -1/3*sqrt(5-2*sqrt(10/7)) 0 1/3*sqrt(5-2*sqrt(10/7)) 1/3*sqrt(5+2*sqrt(10/7))];  % gauss points
+% gw = [(322-13*sqrt(70))/900 (322+13*sqrt(70))/900 128/225 (322+13*sqrt(70))/900 (322-13*sqrt(70))/900];               % gauss weights
 
 % for j = 1:numele
 for k=1:size(seg_cut_info,1)
@@ -76,7 +79,7 @@ for k=1:size(seg_cut_info,1)
       % interface.      
       
       % loop over Gauss points
-      for i = 1:3
+      for i = 1:length(gp)
 
         % Get real coordinates of gauss points
         xn = 0.5*(1-gp(i))*p1(1)+0.5*(1+gp(i))*p2(1);
@@ -142,18 +145,18 @@ for k=1:size(seg_cut_info,1)
         element_errorx = element_errorx + ex2*gw(i)*seg_jcob;
 
         % Assemble the approximate soln norm over the element
-        approx_solnx = approx_solnx + (lag_normal)^2*gw(i)*seg_jcob;
+        approx_solnx = approx_solnx + (anal)^2*gw(i)*seg_jcob;
 
       end
 
-      total_errorx = total_errorx + 0.5*element_errorx;
+      total_errorx = total_errorx + element_errorx;
 
-      total_apprx = total_apprx + 0.5*approx_solnx;
+      total_apprx = total_apprx + approx_solnx;
 
     end
   end
 end
 
 
-L2norm = abs(total_errorx)/abs(total_apprx);
+L2norm = sqrt(total_errorx/total_apprx);
 disp(['L2-norm of normal traction:   ' num2str(L2norm)]);
