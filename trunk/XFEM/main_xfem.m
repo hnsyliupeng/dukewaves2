@@ -8,12 +8,6 @@ load xfeminputdata_xfem.mat
 % ----------------------------------------------------------------------- %
 %% LOAD MODEL DATA
 load my_new_mesh_with_BCs.mat
-
-% IFmethod = 1;
-% IFtime = linspace(0,1,51);
-% IFpenalty = 1.0e+10;
-% IFnitsche = 1.0e+4;
-% IFsliding_switch = 2;
 % ----------------------------------------------------------------------- %
 %% SET DAFAULT VALUES TO ALL NOT DEFINED INPUT PARAMETERS
 % Some variables, which are necessary for all sliding cases
@@ -863,14 +857,14 @@ for timestep = 1:(length(time)-1)
 %         disp('enforcing constraints at interfaces via Nitsche´s method ...');
 
         % get values from input file
-        penalty =IFnitsche;
+        penalty = IFnitsche;
 
         for i = 1:size(seg_cut_info,1)     % for every interface
           for e = 1:size(seg_cut_info,2) % for every cut element in that interface
             if seg_cut_info(i,e).elemno ~= -1
-
+              % get current element ID
               parent_el = seg_cut_info(i,e).elemno;
-
+              
               % Establish which nodes are "postively" enriched, and
               % which reside in the "negative" grain
               pos_g = seg_cut_info(i,e).positive_grain;
@@ -878,8 +872,27 @@ for timestep = 1:(length(time)-1)
 
               [pn_nodes] =... 
                  get_positive_new(parent_el,pos_g,neg_g);
-
-
+              
+              % call routine to estimate the minimum stabilization 
+              % parameter to guarantee the positive definiteness of the 
+              % system (which can vary from element to element)
+              if IFnitsche < 0
+                % get elenodes
+                elenodes = node(:,parent_el);
+                
+                % get coordinates of current element's nodes
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                
+                % get minimal parameter back from a function
+                penalty = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes));     
+              end;
+              
+              % store Nitsche parameter for this element
+              seg_cut_info(i,e).nitsche = penalty;
+              
               % Penalty terms
               % treatment of different sliding cases inside 'gen_penalty()'
               [ke_pen,id_pen] =...
@@ -1127,8 +1140,9 @@ for timestep = 1:(length(time)-1)
                     % interface
                     traction_nit = sigma_avg * seg_cut_info(i,e).normal;
 
-%                     % get stabilization parameter
-                    penalty = IFnitsche;
+                    % get stabilization parameter (computed above when
+                    % applying the constraints
+                    penalty = seg_cut_info(i,e).nitsche;
 
                     grains = seg_cut_info(i,e).grains;
 
@@ -2127,9 +2141,6 @@ disp('postprocessing: tractions ...');
       % Compute Lagrange multipliers via 
       %                       'lambda = alpha * [[u]] - <sigma>*normal'
 
-      % get stabilization parameter
-      penalty = IFnitsche;
-
       for i = 1:size(seg_cut_info,1)     % for every interface
         for e = 1:size(seg_cut_info,2) % for every cut element in that interface
           % initialize variable for lagrange multiplier in 'seg_cut_info'
@@ -2137,6 +2148,10 @@ disp('postprocessing: tractions ...');
 
           if seg_cut_info(i,e).elemno ~= -1
 
+            % get stabilization parameter
+            penalty = seg_cut_info(i,e).nitsche;
+            
+            % get current element ID
             parent_el = seg_cut_info(i,e).elemno;
 
             % Establish which nodes are "postively" enriched, and

@@ -57,8 +57,8 @@ for j = 1:numele
         jcob = xdr*yds - xds*ydr;
 
         % get nodal displacements
-        xd = disp(2*nodes-1);
-        yd = disp(2*nodes);
+        xd = dis(2*nodes-1);
+        yd = dis(2*nodes);
 
         % loop over Gauss points
         for i = 1:12
@@ -148,8 +148,8 @@ for j = 1:numele
                 nodes = node(:,j);
 
                 % get nodal displacements at parent nodes
-                xd = disp(2*nodes-1);
-                yd = disp(2*nodes);    
+                xd = dis(2*nodes-1);
+                yd = dis(2*nodes);    
 
                 % loop over Gauss points
                 for i = 1:12
@@ -314,4 +314,4 @@ for j = 1:numele
     end    
 end
 
-L2norm = sqrt(total_errorx + total_errory)/sqrt(total_apprx + total_appry);
+L2norm = sqrt(total_errorx + total_errory)/sqrt(total_apprx + total_appry)

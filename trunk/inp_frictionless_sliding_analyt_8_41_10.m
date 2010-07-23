@@ -55,7 +55,7 @@ IFfilename_msh_file = 'patchtest_3622';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 25;%25;%19;
+IFdatasetp = 19;%25;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -194,13 +194,13 @@ IFDirichletBCs = 61;
 % 61    frictionless_sliding_analyt_8_161_40_DBC.m
 % 62    frictionless_sliding_analyt_8_321_80_DBC.m
 % 63    frictionless_sliding_analyt_8_41_10_DBC.m
-IFNeumannBCs = 63;
+IFNeumannBCs = 74;%63;%74;
 %
 % method of giving NBCs
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 1;
+IFneumann = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -223,13 +223,13 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 2.0e+6;
+IFpenalty = 1.04e+5;%5.72e+2;%1.04e+5;%2.0e+6;
 %
 % Nitsche Parameter
-IFnitsche = 2.0e+4;
+IFnitsche = 1.64e4;%2.0e+4;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
