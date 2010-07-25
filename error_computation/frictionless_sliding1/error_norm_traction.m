@@ -142,7 +142,7 @@ for k=1:size(seg_cut_info,1)
         element_errorx = element_errorx + ex2*gw(i)*seg_jcob;
 
         % Assemble the approximate soln norm over the element
-        approx_solnx = approx_solnx + (lag_normal)^2*gw(i)*seg_jcob;
+        approx_solnx = approx_solnx + (anal)^2*gw(i)*seg_jcob;
 
       end
 
@@ -155,5 +155,5 @@ for k=1:size(seg_cut_info,1)
 end
 
 
-L2norm = abs(total_errorx)/abs(total_apprx);
+L2norm = sqrt(total_errorx/total_apprx);
 disp(['L2-norm of normal traction:   ' num2str(L2norm)]);

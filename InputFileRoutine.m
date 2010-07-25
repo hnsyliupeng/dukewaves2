@@ -286,6 +286,12 @@ IFpenalty = 3.03e+12;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
+%
+% Choose a penalty variant: One or two integrals
+% ID    Number of integrals
+% 1     One integral (alpha ~1/h)
+% 2     Two integrals (alpha ~1/h^2)
+IFintegral = 2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

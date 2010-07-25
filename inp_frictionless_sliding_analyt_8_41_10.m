@@ -55,7 +55,7 @@ IFfilename_msh_file = 'patchtest_3622';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 19;%25;%19;
+IFdatasetp = 25;%25;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -226,10 +226,16 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 1.04e+5;%5.72e+2;%1.04e+5;%2.0e+6;
+IFpenalty = 2.95e+5;%9.85e+4;%5.72e+2;%1.04e+5;%2.0e+6;
 %
 % Nitsche Parameter
-IFnitsche = 1.64e4;%2.0e+4;
+IFnitsche = 1.64e+4;%9.06e+3;%1.64e4;%2.0e+4;
+%
+% Choose a penalty variant: One or two integrals
+% ID    Number of integrals
+% 1     One integral (alpha ~1/h)
+% 2     Two integrals (alpha ~1/h^2)
+IFintegral = 2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

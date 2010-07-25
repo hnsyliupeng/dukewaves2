@@ -144,7 +144,7 @@ for j = 1:numele
 
                 % get coordinates of 
                 xes = X(node_sub);
-                yes = X(node_sub);
+                yes = Y(node_sub);
                 
                 Area = det([[1 1 1]' xes' yes'])/2;
                 
@@ -191,7 +191,7 @@ for j = 1:numele
 
                 % get coordinates of
                 xes = X(node_sub);
-                yes = X(node_sub);
+                yes = Y(node_sub);
 
                 Area = det([[1 1 1]' xes' yes'])/2;
                      
