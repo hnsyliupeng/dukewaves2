@@ -1,7 +1,7 @@
 % Calucates the L2 norm of the error in a problem with tri elements.  
 % Jessica Sanders
 
-disp('Compute error of displacement field in comp. to reference solution ...');
+disp('Compute error of displacement field for reference solution ...');
 
 % use the following code lines to create a mat-file, which contains all
 % data that are needed to interpolate the reference solution
@@ -412,5 +412,5 @@ for j = 1:numele
     end    
 end
 
-L2norm = sqrt(total_errorx + total_errory)/sqrt(total_apprx + total_appry);
+L2norm = sqrt((total_errorx + total_errory)/(total_apprx + total_appry));
 disp(['L2-norm of displacement:   ' num2str(L2norm)]);

@@ -221,13 +221,19 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 6.5e+6;%4.8e+8;
+IFpenalty = 1.85e+7;%6.5e+6;%4.8e+8;
 %
 % Nitsche Parameter
-IFnitsche = 1.03e+6;
+IFnitsche = -1;%1.03e+6;%7.17e+4;%1.03e+6;
+%
+% Choose a penalty variant: One or two integrals
+% ID    Number of integrals
+% 1     One integral (alpha ~1/h)
+% 2     Two integrals (alpha ~1/h^2)
+IFintegral = 2;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'

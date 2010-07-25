@@ -19,7 +19,7 @@ function [strain] = fless_sliding_analyt_8_strain(xcoord,ycoord)
 
 % define material properties
 E = 1000.0;         % Young's modulus
-nue = 0;            % Poisson's ration
+nue_1 = 0.3;            % Poisson's ration
 
 % define geometry
 H = 4;
@@ -27,16 +27,17 @@ H = 4;
 % define load
 p = 1;
 
-% define functions for displacements 'ux' and 'uy' (origin of reference
-% frame in the bottom left corner of rectangular domain)
-exx = @(x,y) -2*p/H/E*y;
-eyy = @(x,y) -nue*2*p/H/E*y;
-exy = @(x,y) 0;
+% Elongations
 
-% calculate strains at (xcoord|ycoord)
-strain_xx = feval(exx,xcoord,ycoord);
-strain_yy = feval(eyy,xcoord,ycoord);
-strain_xy = feval(exy,xcoord,ycoord);
+
+% strains are constant (xcoord|ycoord)
+strain_xx = -2.5e-4;
+if x_feta < 5
+  strain_yy = 7.5e-5;
+else
+  strain_yy = 0;
+end;  
+strain_xy = 0;
 
 strain = [strain_xx strain_yy strain_xy];
 

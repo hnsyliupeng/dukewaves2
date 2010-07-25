@@ -325,5 +325,4 @@ for j = 1:numele
 end
 
 L2norm = sqrt(total_errorx + total_errory)/sqrt(total_apprx + total_appry);
-sqrt(total_apprx + total_appry)
 disp(['L2-norm of displacement:   ' num2str(L2norm)]);

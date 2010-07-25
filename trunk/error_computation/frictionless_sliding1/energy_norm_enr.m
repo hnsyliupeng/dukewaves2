@@ -107,7 +107,7 @@ for j = 1:numele
             y_feta = N1*ye(1) + N2*ye(2) + N3*ye(3);
     
             % Get analytical solution
-            anal = fless_sliding_analyt_8_strain(x_feta, y_feta);
+            anal = frictionless_sliding1_strain(x_feta, y_feta);
     
             % Difference between analytical and numerical solutions - error!
             e = eps - anal';
@@ -116,7 +116,8 @@ for j = 1:numele
             eng = e'*D*e;
         
             % The approx soln
-            hsol = eps'*D*eps;
+%             hsol = eps'*D*eps;
+            hsol = anal * D * anal';
     
             % Assemble the squared error over the element
             element_error = element_error + eng*wg(i)*Area;
@@ -170,7 +171,8 @@ for j = 1:numele
                     eng = e'*D*e;
 
                     % The approx soln
-                    hsol = eps'*D*eps;
+%                     hsol = eps'*D*eps;
+                    hsol = anal * D * anal';
 
                     % Assemble the squared error over the element
                     element_error = element_error + eng*wg(i)*Area;
@@ -240,7 +242,8 @@ for j = 1:numele
                     eng = e'*D*e;
 
                     % The approx soln
-                    hsol = eps'*D*eps;
+%                     hsol = eps'*D*eps;
+                    hsol = anal * D * anal';
 
                     % Assemble the squared error over the element
                     element_error = element_error + eng*wg(i)*Area;
@@ -256,6 +259,6 @@ for j = 1:numele
     total_appr = total_appr + approx_soln;    
 end
 
-energy_norm = sqrt(total_error);
+energy_norm = sqrt(total_error/total_appr);
 
 disp(['energy norm:   ' num2str(energy_norm)]);

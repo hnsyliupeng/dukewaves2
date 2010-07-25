@@ -214,9 +214,6 @@ for e = 1:numele
   total_solu = total_solu + ele_solu;
 end;
 
-total_error
-total_solu
-
 % compute L2-norm
 L2norm = sqrt(total_error / total_solu);
 % ----------------------------------------------------------------------- %
