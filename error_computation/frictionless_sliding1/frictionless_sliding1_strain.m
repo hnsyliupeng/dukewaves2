@@ -1,6 +1,6 @@
-% fless_sliding_analyt_8_strain.m
+% frictionless_sliding1_strain.m
 %
-% CALL: fless_sliding_analyt_8_strain(xcoord,ycoord)
+% CALL: frictionless_sliding1_strain(xcoord,ycoord)
 %
 % Compute analytical solution of strain for example
 % 'frictionless_sliding_analyt_8'. Strain depends on x and y
@@ -15,7 +15,7 @@
 
 % Author: Matthias Mayr (05/2010)
 
-function [strain] = fless_sliding_analyt_8_strain(xcoord,ycoord)
+function [strain] = frictionless_sliding1_strain(xcoord,ycoord)
 
 % define material properties
 E = 1000.0;         % Young's modulus
@@ -32,7 +32,7 @@ p = 1;
 
 % strains are constant (xcoord|ycoord)
 strain_xx = -2.5e-4;
-if x_feta < 5
+if xcoord < 5
   strain_yy = 7.5e-5;
 else
   strain_yy = 0;

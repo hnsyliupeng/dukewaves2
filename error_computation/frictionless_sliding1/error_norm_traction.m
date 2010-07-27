@@ -127,7 +127,7 @@ for k=1:size(seg_cut_info,1)
 %         y_feta = N1*ye(1) + N2*ye(2) + N3*ye(3);
 
         % Get analytical solution
-        anal = frictionless_slliding1_traction(xn,yn);
+        anal = frictionless_sliding1_traction(xn,yn);
 
         % Difference between analytical and numerical solutions - error!
         ex = abs(lag_normal) - abs(anal); % take absolute values, since the

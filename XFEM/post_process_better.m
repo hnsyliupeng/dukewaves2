@@ -54,7 +54,9 @@ straine = zeros(1,6,maxngrains+1);
 stresse = zeros(1,6,maxngrains);
 % get coordinates of nodes of element 'e'
 for j=1:3
-    je = node(j,e); xe(j) = x(je); ye(j) = y(je);
+  je = node(j,e); 
+  xe(j) = x(je); 
+  ye(j) = y(je);
 end
 % compute derivatives of shape functions in reference coordinates
 NJr(1) = 1;
@@ -64,7 +66,10 @@ NJs(1) = 0;
 NJs(2) = 1;
 NJs(3) = -1;
 % compute derivatives of x and y wrt psi and eta
-xr = NJr*xe'; yr = NJr*ye'; xs = NJs*xe';  ys = NJs*ye';
+xr = NJr*xe'; 
+yr = NJr*ye'; 
+xs = NJs*xe';  
+ys = NJs*ye';
 Jinv = [ys, -yr; -xs, xr];
 jcob = xr*ys - xs*yr;
 % compute derivatives of shape functions in element coordinates
@@ -72,8 +77,10 @@ NJdrs = [NJr; NJs];
 NJdxy = Jinv*NJdrs/jcob;
 % assemble B matrix
 BJ = zeros(3,6);
-BJ(1,1:2:5) = NJdxy(1,1:3);  BJ(2,2:2:6) = NJdxy(2,1:3);
-BJ(3,1:2:5) = NJdxy(2,1:3);  BJ(3,2:2:6) = NJdxy(1,1:3);
+BJ(1,1:2:5) = NJdxy(1,1:3);  
+BJ(2,2:2:6) = NJdxy(2,1:3);
+BJ(3,1:2:5) = NJdxy(2,1:3);  
+BJ(3,2:2:6) = NJdxy(1,1:3);
 % compute coordinates of centroid
 centr = ones(1,3)/3;
 xcen = centr*xe';
@@ -181,7 +188,7 @@ else                    % element is cut by an interface
 %             save test.mat
 %         end;
 %     end
-% here starts Matthias' modifications
+% here start Matthias' modifications
     % get all subelements of element 'e'
     subeleids = SUBELEM_INFO(1,e).kids;
     % get all grains, that overlap with element 'e'

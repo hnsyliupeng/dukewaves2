@@ -45,7 +45,6 @@ xes = [];
 yes = [];
 jes = [];
 jep = [];   % node IDs of nodes of parent element
-cijkl = []; % constitutive tensor
 
 nodes = node(:,parent);
 
@@ -90,7 +89,7 @@ elem_jcob = xr*ys - xs*yr;
 NJdrs = [NJr; NJs];             % in parameter space
 NJdxy = Jinv*NJdrs/elem_jcob;   % in real space
 
-% Assemble *term 1* (derivitives to go with Cijkl 1)  Positive term
+% Assemble *term 1* (derivatives to go with Cijkl 1)  Positive term
 NJdxy1 = zeros(2,9);    % derivated shape functions of grain (1)
 NJdxy1(:,1:3) = NJdxy;
 for m = 1:3
@@ -175,7 +174,6 @@ end
 
 % ----------------------------------------------------------------------- %
 %% INTEGRATE SHAPE FUNCTIONS OVER SEGMENT AND ASSEMBLE NITSCHES TERMS
-
 % end points of intersection - direction doesn't matter - this is for the
 % segment jacobian calculation only
 if all(size(intersection) == [2 2])
