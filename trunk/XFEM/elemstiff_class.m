@@ -6,6 +6,8 @@ function [id,ke] = elemstiff_class(node,x,y,e,id_dof,id_eqns)
 global GRAININFO_ARR
 global NODAL_ENRICH
 global SUBELEMENT_GRAIN_MAP
+
+% initialize
 dof = zeros(1,3);
 
 % Determine which grain contains this element
@@ -33,7 +35,9 @@ D = fac*[1.0, pr, 0;
       
 % get coordinates of element nodes 
 for j=1:3
-    je = node(j,e); xe(j) = x(je); ye(j) = y(je);
+  je = node(j,e); 
+  xe(j) = x(je); 
+  ye(j) = y(je);
 end
 
 % compute element stiffness
@@ -44,32 +48,40 @@ NJr(3) = -1;
 NJs(1) = 0;
 NJs(2) = 1;
 NJs(3) = -1;
+
 % compute derivatives of x and y wrt psi and eta
-xr = NJr*xe'; yr = NJr*ye'; xs = NJs*xe';  ys = NJs*ye';
+xr = NJr*xe'; 
+yr = NJr*ye'; 
+xs = NJs*xe';  
+ys = NJs*ye';
 Jinv = [ys, -yr; -xs, xr];
 jcob = xr*ys - xs*yr;
+
 % compute derivatives of shape functions in element coordinates
-NJdrs = [NJr; NJs];
-NJdxy = Jinv*NJdrs/jcob;
-% assemble B matrix
+NJdrs = [NJr; NJs];       % in parameter coordinates 'r' and 's'
+NJdxy = Jinv*NJdrs/jcob;  % in real coordinates 'x'and 'y'
+
+% assemble B matrix: B = L * N
 BJ = zeros(3,6);
-BJ(1,1:2:5) = NJdxy(1,1:3);  BJ(2,2:2:6) = NJdxy(2,1:3);
-BJ(3,1:2:5) = NJdxy(2,1:3);  BJ(3,2:2:6) = NJdxy(1,1:3);
+BJ(1,1:2:5) = NJdxy(1,1:3);  
+BJ(2,2:2:6) = NJdxy(2,1:3);
+BJ(3,1:2:5) = NJdxy(2,1:3);  
+BJ(3,2:2:6) = NJdxy(1,1:3);
+
 % Area of the element
 Area = det([[1 1 1]' xe' ye'])/2;
-% Area = 0.5;
+
 % assemble ke
 ke(1:6,1:6) = ke(1:6,1:6) + Area*BJ'*D*BJ;
 
 id = [id_eqns(node(1,e),1:2) id_eqns(node(2,e),1:2) id_eqns(node(3,e),1:2)...
     id_eqns(node(1,e),3:6) id_eqns(node(2,e),3:6) id_eqns(node(3,e),3:6)];
 eliminate = find(id == 0);
-for i = size(eliminate,2):-1:1
+for i = size(eliminate,2):-1:1  % eliminate dofs with index '0'
     id(eliminate(i)) = [];
 end
 
 % if no enrichment, end there
-
 if tot_dof == 6
     return
 end

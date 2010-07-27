@@ -230,7 +230,9 @@ for j = 1:numele
         
             subele = SUBELEM_INFO(j).kids(m);
         
-            if (SUBELEMENT_GRAIN_MAP(subele) == 2) % If grain is not enriched
+%             if (SUBELEMENT_GRAIN_MAP(subele) == 2) % If grain is not
+%             enriched
+            if (SUBELEMENT_GRAIN_MAP(subele) == 3) % If grain is not enriched
             
                 % initialize element error
                 element_errorx = 0;
@@ -278,19 +280,19 @@ for j = 1:numele
                     N2 = s;
                     N3 = 1-r-s; 
         
-                    % Shape function derivatives
-                    Ndr(1) = 1;
-                    Nds(1) = 0;
-                    Ndr(2) = 0;
-                    Nds(2) = 1;
-                    Ndr(3) = -1;
-                    Nds(3) = -1;
+%                     % Shape function derivatives
+%                     Ndr(1) = 1;
+%                     Nds(1) = 0;
+%                     Ndr(2) = 0;
+%                     Nds(2) = 1;
+%                     Ndr(3) = -1;
+%                     Nds(3) = -1;
+%     
+%                     % compute derivatives of x and y wrt psi and eta
+%                     xdr = Ndr*xe'; ydr = Ndr*ye'; xds = Nds*xe';  yds = Nds*ye';
+%                     jcob = xdr*yds - xds*ydr;
     
-                    % compute derivatives of x and y wrt psi and eta
-                    xdr = Ndr*xe'; ydr = Ndr*ye'; xds = Nds*xe';  yds = Nds*ye';
-                    jcob = xdr*yds - xds*ydr;
-    
-                    Area = det([[1 1 1]' xe' ye'])/2;
+%                     Area = det([[1 1 1]' xe' ye'])/2;
 
                     % The displacements as a function of r and s
                     dx_feta = N1*xd(1) + N2*xd(2) + N3*xd(3);
@@ -427,6 +429,7 @@ for j = 1:numele
                 total_appry = total_appry + 0.5*approx_solny;
 
         
+%             elseif (SUBELEMENT_GRAIN_MAP(subele) == 1)  % If grain is enriched
             elseif (SUBELEMENT_GRAIN_MAP(subele) == 1)  % If grain is enriched
             
                 % initialize element error
@@ -479,8 +482,8 @@ for j = 1:numele
                 end
 
                 % get nodal displacements at parent nodes
-                xd = dis(2*nodes-1);
-                yd = dis(2*nodes);    
+                xd = dispx;%dis(2*nodes-1);
+                yd = dispy;%dis(2*nodes);    
                 
                 % loop over Gauss points
                 for i = 1:12
@@ -631,29 +634,31 @@ for j = 1:numele
         end
     end
     
-%     error_in_elements(1,j) = sqrt(element_errorx^2 + element_errory^2);
-%     error_in_elements(2,j) = sqrt(approx_solnx^2 + approx_solny^2);
+    error_in_elements(1,j) = sqrt(element_errorx^2 + element_errory^2);
+    error_in_elements(2,j) = sqrt(approx_solnx^2 + approx_solny^2);
 end
 
-% % prepare a figure to plot the error distribution over the domain
-% figure(70)
-% hold on;
-% set(70,'Name','Error in displacement field (L2-Norm)');
-% V = [0 1];
-% colormap(jet(100));
-% caxis(V);
-% colorbar;
-% 
-% for j=1:numele
-%   xcoords = x(node(:,j));
-%   ycoords = y(node(:,j));
-%   if error_in_elements(2,j) ~= 0
-%     ele_error = error_in_elements(1,j) / error_in_elements(2,j);
-%   else
-%     ele_error = 0;
-%   end
-%   patch(xcoords,ycoords,ele_error,'EdgeColor','none');
-% end;
+% prepare a figure to plot the error distribution over the domain
+figure(70)
+hold on;
+set(70,'Name','Error in displacement field (L2-Norm)');
+minerror = min(error_in_elements(1,:));% ./ error_in_elements(2,:));
+maxerror = max(error_in_elements(1,:));% ./ error_in_elements(2,:));
+V = [minerror maxerror];
+colormap(jet(100));
+caxis(V);
+colorbar;
+
+for j=1:numele
+  xcoords = x(node(:,j));
+  ycoords = y(node(:,j));
+  if error_in_elements(2,j) ~= 0
+    ele_error = error_in_elements(1,j);% / error_in_elements(2,j);
+  else
+    ele_error = 0;
+  end
+  patch(xcoords,ycoords,ele_error,'EdgeColor','none');
+end;
 
 L2norm = sqrt((total_errorx + total_errory)/(total_apprx + total_appry));
 disp(['L2-norm of displacement:   ' num2str(L2norm)]);

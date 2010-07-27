@@ -239,6 +239,10 @@ switch IFDirichletBCs
     filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_5_61_77_DBC');
   case 88
     filename_DBC = fullfile(pwd,'Boundary_Conditions','plasticity_5_ref_21_27_DBC');
+  case 89
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_3598_DBC');
+  case 90
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','frictionless_sliding_analyt_8_104_DBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

@@ -130,7 +130,7 @@ for j = 1:numele
 
                 % get coordinates:
                 xe = X(node_sub);
-                ye = X(node_sub);
+                ye = Y(node_sub);
                 
                 % Shape function derivatives
                 Ndr(1) = 1;
@@ -230,7 +230,7 @@ for j = 1:numele
 
                 % get coordinates of subelement nodes
                 xe = X(node_sub);
-                ye = X(node_sub);
+                ye = Y(node_sub);
                 
                 % Shape function derivatives
                 Ndr(1) = 1;

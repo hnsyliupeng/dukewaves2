@@ -272,8 +272,8 @@ for j = 1:numele
                 end
 
                 % get nodal displacements at parent nodes
-                xd = dis(2*nodes-1);
-                yd = dis(2*nodes);    
+                xd = dispx;%dis(2*nodes-1);
+                yd = dispy;%dis(2*nodes);    
                 
                 % loop over Gauss points
                 for i = 1:12

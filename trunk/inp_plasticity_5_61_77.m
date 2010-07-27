@@ -37,8 +37,8 @@ IFlength = 4;
 IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 141;%11;%21;%41;%61;%81;%141;
-IFnldivy = 176;%13;%27;%51;%77;%101;%176;
+IFnldivx = 2;%2;%5;%11;%21;%41;%61;%81;%141;
+IFnldivy = 3;%3;%6;%14;%27;%51;%77;%101;%176;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration

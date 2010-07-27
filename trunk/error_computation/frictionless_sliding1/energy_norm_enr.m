@@ -142,7 +142,7 @@ for j = 1:numele
 
                 % get coordinates of 
                 xes = X(node_sub);
-                yes = X(node_sub);
+                yes = Y(node_sub);
                 
                 Area = det([[1 1 1]' xes' yes'])/2;
                 
@@ -162,7 +162,7 @@ for j = 1:numele
                     y_feta = N1*yes(1) + N2*yes(2) + N3*yes(3);
 
                     % Get analytical solution
-                    anal = fless_sliding_analyt_8_strain(x_feta, y_feta);
+                    anal = frictionless_sliding1_strain(x_feta, y_feta);
 
                     % Difference between analytical and numerical solutions - error!
                     e = eps - anal';
@@ -189,7 +189,7 @@ for j = 1:numele
 
                 % get coordinates of
                 xes = X(node_sub);
-                yes = X(node_sub);
+                yes = Y(node_sub);
 
                 Area = det([[1 1 1]' xes' yes'])/2;
                      
@@ -233,7 +233,7 @@ for j = 1:numele
                     y_feta = N1*yes(1) + N2*yes(2) + N3*yes(3);
 
                     % Get analytical solution
-                    anal = fless_sliding_analyt_8_strain(x_feta, y_feta);
+                    anal = frictionless_sliding1_strain(x_feta, y_feta);
 
                     % Difference between analytical and numerical solutions - error!
                     e = eps - anal';

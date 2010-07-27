@@ -512,9 +512,6 @@ fdisp = totaldis';
 x_orig = x; % x-coordinate
 y_orig = y; % y-coordinate
 
-% get a copy of the initial state of 'seg_cut_info'
-seg_cut_info_orig = seg_cut_info;
-
 % loop over all load / time steps (pseudo-time). The vector with time steps
 % is given in the input file: 'IFtime'. Its first element is always a '0'.
 for timestep = 1:(length(time)-1)

@@ -1,4 +1,4 @@
-% Input File 'inp_plasticity_5_ref_21_27.m'
+% Input File 'inp_frictionless_sliding_analyt_8_104.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -24,7 +24,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 0;
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -46,7 +46,7 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
@@ -151,7 +151,9 @@ IFdatasetp = 25;%25;%19;
 % 86    plasticity_5_21_27_DBC.m
 % 87    plasticity_5_61_77_DBC.m
 % 88    plasticity_5_ref_21_27_DBC.m
-IFDirichletBCs = 81;
+% 89    frictionless_sliding_analyt_8_3592_DBC.m
+% 90    frictionless_sliding_analyt_8_104_DBC.m
+IFDirichletBCs = 90;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -246,13 +248,13 @@ IFDirichletBCs = 81;
 % 88    plasticity_5_ref_20_27_NBC.m
 % 89    plasticity_5_61_77_NBC.m
 % 90    plasticity_4_80_41_NBC.m
-IFNeumannBCs = 84;%84;%74;
+IFNeumannBCs = 74;%74;
 %
 % method of giving NBCs
 % ID    Description
 % 0     nodal forces (integration done by user, only not-enriched nodes)
 % 1     tractions given as functions
-IFneumann = 1;
+IFneumann = 0;
 %--------------------------------------------------------------------------
 % MATERIAL PROPERTIES
 % Set an ID 'IFMatSet' to chose a set of material properties from material 
@@ -279,19 +281,19 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 0;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty = 3.03e+12;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+4;
+IFnitsche = -1;%1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)
 % 2     Two integrals (alpha ~1/h^2)
-IFintegral = 2;
+IFintegral = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -302,7 +304,7 @@ IFintegral = 2;
 % 3     frictional sliding with Coulomb's friction
 % 4     frictionless contact (only opening contact)
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
