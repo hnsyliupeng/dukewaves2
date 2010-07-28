@@ -82,7 +82,6 @@ ke_sub(1:6,1:6) = ke_sub(1:6,1:6) + Area*BJ'*D*BJ;
 % Assemble B matrix for enriched nodes
 
 BA = [];
-
 % for each node
 for i = 1:3
     extra = (dof(i) - 2)/2;

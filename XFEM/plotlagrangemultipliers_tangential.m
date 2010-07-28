@@ -6,6 +6,8 @@
 % plot analytical solution
 % figure(3);hold on;line([-1 1],[2 -2],'Color','r','LineWidth',2)
 
+disp('plot tangential traction ...');
+
 %% create a new figure (no subplots due to frictionless sliding)
 figure(12);      
 hold on;

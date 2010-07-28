@@ -212,7 +212,7 @@ else                    % element is cut by an interface
         else    % element 'e' doesn't overlap with grain 'j'. So there
                 % can't be stresses in element 'e', associated with that
                 % grain 'j'. Just set them to zero.
-            stress(1,1:6,j) = [0 0 0 0 0 0];
+            stresse(1,1:6,j) = [0 0 0 0 0 0];
         end;
     end
 

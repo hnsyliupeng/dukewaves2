@@ -5,12 +5,10 @@
 % 18 elements through the thickness and 72 elements over the length.
 %
 
-
 % Author: Matthias Mayr (04/2010)
 
-
 % maximum load in x-direction
-totalload = 0;%-1000;   % 'totalload' = 'constant traction' * 'length of load'
+totalload = -100;%-1000;   % 'totalload' = 'constant traction' * 'length of load'
 
 
 % nodal load
