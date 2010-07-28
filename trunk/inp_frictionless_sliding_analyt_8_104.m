@@ -298,7 +298,7 @@ IFintegral = 1;
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
 % ID    Description
-% 0     no sliding at all (full constraint)
+% 0     no slidung at all (full constraint)
 % 1     frictionless sliding
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction

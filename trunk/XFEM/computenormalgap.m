@@ -1,31 +1,33 @@
-% plottangentialgap.m
+% computenormalgap.m
 %
-% This method plots the tangential gap along an interface. Method is based
-% on 'get_lagmults_for_penalty.m', so the variable 'lagmult' is used for
-% the gap. It has to be dotted with the tangent to obtain the tangential
-% gap.
+% CALL: computenormalgap()
+%
+% Input parameters
+%   node            mapping between elements and nodes
+%   x               x-coordinates of all nodes
+%   y               y-coordinates of all nodes
+%   parent          global element ID of current element
+%   id_eqns         mapping between nodes and global DOFs, respecting
+%                   enriched nodes
+%   id_dof          shows, which base DOFs have enriched DOFs, too.
+%   pn_nodes        
+%   pos_g           positive grain at this interface
+%   neg_g           negative grain at this interface
+%   intersection    points on elements edges, that are cut by an interface
+%   endpoints       points, that define the interface
+%   penalty         penalty paramter
+%   fdisp           entire solution vector
+%
+% Returned variables
+%   normalgap         scalar value of the normal gap with sign
 %
 
-% Author: Matthias Mayr (06/2010)
+% Author: Matthias Mayr (07/2010)
 
-disp('plot tangential gap ...');
+function [normalgap] = computenormalgap(node,x,y,parent,id_eqns, ...
+    id_dof,endpoints,fdisp,seg_cut_info)
 
-% create a figure
-figure(99);
-hold on;
-set(99,'Name','tangetial gap');
-
-% 'fdisp' is a relict of older code, so it has to be introduced here to be
-% compatible. The corresponding new variable is 'totaldis'.
-fdisp = totaldis';
-
-% loop over interfaces
-for i=1:size(seg_cut_info,1)
-  % loop over cut elements
-  for e=1:size(seg_cut_info,2)
-    % only cut elemtns
-    if seg_cut_info(i,e).elemno ~= -1
-      % Initialize
+% Initialize
       xep = zeros(1,3);
       yep = zeros(1,3);
       xes = zeros(1,3);
@@ -34,19 +36,15 @@ for i=1:size(seg_cut_info,1)
       enrich1 = zeros(1,3);
       enrich2 = zeros(1,3);
       
-      parent = seg_cut_info(i,e).elemno;
+      intersection = seg_cut_info.xint;
       
-      intersection = seg_cut_info(i,e).xint;
-      
-      endpoints = INTERFACE_MAP(i).endpoints;
-
       % get nodes of current element 'parent'
       nodes = node(:,parent);
 
       % Establish which nodes are "postively" enriched, and
       % which reside in the "negative" grain
-      pos_g = seg_cut_info(i,e).positive_grain;
-      neg_g = seg_cut_info(i,e).negative_grain;
+      pos_g = seg_cut_info.positive_grain;
+      neg_g = seg_cut_info.negative_grain;
 
       [pn_nodes] =... 
          get_positive_new(parent,pos_g,neg_g);
@@ -222,24 +220,7 @@ for i=1:size(seg_cut_info,1)
       lagmult = N * localdis;
       
       % dot gap 'lagmult' with tangential vector
-      tang_gap = lagmult' * seg_cut_info(i,e).tangent;
-      
-      % plot tangential gap
-      subplot(211);
-      title('horizontal interface');
-      hold on;
-      plot(xcoord,[tang_gap tang_gap],'-','LineWidth',3);  % horizontal interface
-      hold off;
-      subplot(212);
-      title('vertical interface');
-      hold on;
-      plot([tang_gap tang_gap],ycoord,'-','LineWidth',3); % vertical interface
-      hold off;
-    
-    end;
-  end;
-end;
+      normalgap = lagmult' * seg_cut_info.normal;
 
-
-% end
+end
 

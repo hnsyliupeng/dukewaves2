@@ -24,7 +24,7 @@ dispbc(2,10) = 1;    % Center on left edge of domain
 % dispbc(2,447) = 1;  % Center on right edge of domain
 dispbc(2,1378) = 1;  % Center on right edge of domain
 
-for i=1369:1387
-  dispbc(1,i) = 1;
-  ubar(1,i) = -0.004;
-end;
+% for i=1369:1387
+%   dispbc(1,i) = 1;
+%   ubar(1,i) = -0.004;
+% end;

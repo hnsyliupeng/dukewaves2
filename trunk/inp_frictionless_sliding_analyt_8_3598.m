@@ -1,4 +1,4 @@
-% Input File 'inp_frictionless_sliding_analyt_8_104.m'
+% Input File 'inp_frictionless_sliding_analyt_8_3598.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
@@ -46,7 +46,7 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'fless_analyt_8_3598';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
@@ -152,8 +152,7 @@ IFdatasetp = 25;%25;%19;
 % 87    plasticity_5_61_77_DBC.m
 % 88    plasticity_5_ref_21_27_DBC.m
 % 89    frictionless_sliding_analyt_8_3592_DBC.m
-% 90    frictionless_sliding_analyt_8_104_DBC.m
-IFDirichletBCs = 90;
+IFDirichletBCs = 89;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -298,7 +297,7 @@ IFintegral = 1;
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
 % ID    Description
-% 0     no sliding at all (full constraint)
+% 0     no slidung at all (full constraint)
 % 1     frictionless sliding
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
