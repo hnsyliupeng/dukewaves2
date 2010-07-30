@@ -200,8 +200,8 @@ for j = 1:numele
                     % base degrees of freedom
                     b1 = id_eqns(node(b,j),1);
                     b2 = id_eqns(node(b,j),2); 
-                    nodal_disp(2*b-1) = fdisp(b1);
-                    nodal_disp(2*b)   = fdisp(b2);
+                    nodal_disp(2*b-1) = totaldis(b1);
+                    nodal_disp(2*b)   = totaldis(b2);
                 end
         
                 % element displacement vector
@@ -209,8 +209,8 @@ for j = 1:numele
                     % extra degrees of freedom
                     b1 = id_eqns(node(b,j),3);
                     b2 = id_eqns(node(b,j),4); 
-                    nodal_disp_e(2*b-1) = fdisp(b1);
-                    nodal_disp_e(2*b)   = fdisp(b2);
+                    nodal_disp_e(2*b-1) = totaldis(b1);
+                    nodal_disp_e(2*b)   = totaldis(b2);
                 end
                 
                 eps = BJ*nodal_disp';

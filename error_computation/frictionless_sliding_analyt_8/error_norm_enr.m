@@ -258,8 +258,8 @@ for j = 1:numele
                     % base degrees of freedom
                     b1 = id_eqns(node(b,j),1);
                     b2 = id_eqns(node(b,j),2); 
-                    dispx(b) = fdisp(b1);
-                    dispy(b) = fdisp(b2);
+                    dispx(b) = totaldis(b1);
+                    dispy(b) = totaldis(b2);
                 end
         
                 % element displacement vector
@@ -267,8 +267,8 @@ for j = 1:numele
                     % extra degrees of freedom
                     b1 = id_eqns(node(b,j),3);
                     b2 = id_eqns(node(b,j),4); 
-                    dispx(b) = dispx(b) + fdisp(b1);
-                    dispy(b) = dispy(b) + fdisp(b2);
+                    dispx(b) = dispx(b) + totaldis(b1);
+                    dispy(b) = dispy(b) + totaldis(b2);
                 end
 
                 % get nodal displacements at parent nodes

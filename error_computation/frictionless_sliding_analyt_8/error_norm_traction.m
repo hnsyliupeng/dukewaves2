@@ -118,8 +118,7 @@ for k=1:size(seg_cut_info,1)
           case 0    % Lagrange multipliers
             lag_normal = seg_cut_info(k,e).lagmult(1);
           case 1    % penalty method
-            lag_normal = seg_cut_info(k,e).lagmult ...
-              * seg_cut_info(k,e).normal;
+            lag_normal = seg_cut_info(k,e).lagmult(1);
           case 2    % Nitsche's method
             lag_normal = seg_cut_info(k,e).lagmult ...
               * seg_cut_info(k,e).normal;

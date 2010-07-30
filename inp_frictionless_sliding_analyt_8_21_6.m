@@ -225,10 +225,11 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 9e+4;
+IFpenalty_normal = 9e+4;
+IFpenalty_tangential = 9e+4;
 %
 % Nitsche Parameter
 IFnitsche = -1;%5e+3;%1.0e+0;
@@ -270,23 +271,24 @@ IFconvtol = 1.0e-8;
 %--------------------------------------------------------------------------
 
 % print parameters in console
-disp(['IFmeshstructure:     ' num2str(IFmeshstructure)]);
-disp(['IFshapegeometryID:   ' num2str(IFshapegeometryID)]);
-disp(['IFlength:            ' num2str(IFlength)]);
-disp(['IFheight:            ' num2str(IFheight)]);
-disp(['IFnldivx:            ' num2str(IFnldivx)]);
-disp(['IFnldivy:            ' num2str(IFnldivy)]);
-disp(['IFdatasetp:          ' num2str(IFdatasetp)]);
-disp(['IFDirichletBCs:      ' num2str(IFDirichletBCs)]);
-disp(['IFNeumannBCs:        ' num2str(IFNeumannBCs)]);
-disp(['IFMatSet:            ' num2str(IFMatSet)]);
-disp(['IFsliding_switch:    ' num2str(IFsliding_switch)]);
-disp(['IFmethod:            ' num2str(IFmethod)]);
-disp(['IFpenalty:           ' num2str(IFpenalty)]);
-disp(['IFnitsche:           ' num2str(IFnitsche)]);
-disp(['IFSolverType:        ' num2str(IFSolverType)]);
-disp(['IFmaxiter:           ' num2str(IFmaxiter)]);
-disp(['IFconvtol:           ' num2str(IFconvtol)]);
+disp(['IFmeshstructure:         ' num2str(IFmeshstructure)]);
+disp(['IFshapegeometryID:       ' num2str(IFshapegeometryID)]);
+disp(['IFlength:                ' num2str(IFlength)]);
+disp(['IFheight:                ' num2str(IFheight)]);
+disp(['IFnldivx:                ' num2str(IFnldivx)]);
+disp(['IFnldivy:                ' num2str(IFnldivy)]);
+disp(['IFdatasetp:              ' num2str(IFdatasetp)]);
+disp(['IFDirichletBCs:          ' num2str(IFDirichletBCs)]);
+disp(['IFNeumannBCs:            ' num2str(IFNeumannBCs)]);
+disp(['IFMatSet:                ' num2str(IFMatSet)]);
+disp(['IFsliding_switch:        ' num2str(IFsliding_switch)]);
+disp(['IFmethod:                ' num2str(IFmethod)]);
+disp(['IFpenalty_normal:        ' num2str(IFpenalty_normal)]);
+disp(['IFpenalty_tangential:    ' num2str(IFpenalty_tangential)]);
+disp(['IFnitsche:               ' num2str(IFnitsche)]);
+disp(['IFSolverType:            ' num2str(IFSolverType)]);
+disp(['IFmaxiter:               ' num2str(IFmaxiter)]);
+disp(['IFconvtol:               ' num2str(IFconvtol)]);
 
 %--------------------------------------------------------------------------
 % create filenames for input files from type '*.mat'
@@ -296,14 +298,14 @@ filename3 = fullfile(pwd, 'XFEM', 'xfeminputdata_xfem.mat');
 
 % save input parameters to mat-files into specific directories
 save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
-    'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
+  'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
-save(filename3, 'IFsliding_switch','IFmethod','IFpenalty','IFnitsche',...
-    'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+save(filename3, 'IFsliding_switch','IFmethod','IFpenalty_normal',...
+  'IFpenalty_tangential','IFnitsche','IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
-    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-    IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-    IFmaxiter IFconvtol;
+  IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
+  IFsliding_switch IFmethod IFnitsche IFSolverType ...
+  IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

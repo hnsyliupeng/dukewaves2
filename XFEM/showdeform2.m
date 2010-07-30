@@ -46,9 +46,9 @@ end
 % axis([-1 24 -7 7]);
 
 % scale axes of plotted mesh
-ax_x = (max(x_def) - min(x_def))/max(x_def);
-ax_y = (max(y_def) - min(y_def))/max(y_def);
-axis([min(x_def)-ax_x max(x_def)+ax_x min(y_def)-ax_y max(y_def)+ax_y]);
+ax_x = (max(x) - min(x))/max(x);
+ax_y = (max(y) - min(y))/max(y);
+axis([min(x)-ax_x max(x)+ax_x min(y)-ax_y max(y)+ax_y]);
 clear ax_x ax_y;
 
 

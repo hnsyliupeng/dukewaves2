@@ -115,11 +115,17 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 5e+17;
-IFpenalty_tangential  = 5e+17;
+IFpenalty_normal      = 5e+10;
+IFpenalty_tangential  = 5e+10;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+3;
+%
+% Choose a penalty variant: One or two integrals
+% ID    Number of integrals
+% 1     One integral (alpha ~1/h)
+% 2     Two integrals (alpha ~1/h^2)
+IFintegral = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -132,7 +138,7 @@ IFnitsche = 1.0e+3;
 IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 0.5;
+IFyieldstress = 16;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -152,7 +158,7 @@ IFmaxiter = 25;
 IFconvtol = 1.0e-7;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,11);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
