@@ -61,8 +61,14 @@ for i=1:size(seg_cut_info,1)
       % set color depending on current slidestate
       stylecell = {'b','r'};
 
-      % get 'index' for stylecell, depending on the 'slidestate'
-      index = seg_cut_info(i,e).slidestate + 1;
+      if any(seg_cut_info(i,e).f_trial > 0)
+        index = 2;
+      else
+        index = 1;
+      end;
+      
+%       % get 'index' for stylecell, depending on the 'slidestate'
+%       index = seg_cut_info(i,e).slidestate + 1;
 
       % check, if it is a horizontal or a vertical interface
       if abs(xcoord(1) - xcoord(2)) < abs(ycoord(1)-ycoord(2))

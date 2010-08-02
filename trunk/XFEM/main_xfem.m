@@ -18,6 +18,8 @@ if exist('IFpenalty','var') == 0, IFpenalty = 3.0e+5;end;   % Penalty-Parameter
 if exist('IFnitsche','var') == 0, IFnitsche = 3.0e+5;end;   % Stabilization-Parameter
 if exist('IFintegral','var') == 0, IFintegral = 2;end;      % variante of penalty term
 
+if exist('IFyieldstress','var') == 0, IFyieldstress = 0;end;% yield stress
+
 if exist('IFpenalty_normal','var') == 0, IFpenalty_normal = IFpenalty;end;  % Penalty-Parameter for normal direction
 if exist('IFpenalty_tangential','var') == 0, IFpenalty_tangential = IFpenalty_normal;end; % Penalty-Parameter for tangential direction
 
@@ -69,26 +71,47 @@ lagmult = [];
 % initialize a standard displacement vector
 dis = zeros(1,2*numnod);
 
-% initialize sliding state flags 'slidestate' in 'seg_cut_info'
-%   flag    description
-%   0       stick
-%   1       slip
-% initialize a variable for the flux via domain integral, too.
+% initialize some variables which are needen in every subsegment of the
+% interface
+%   initialize sliding state flags 'slidestate' in 'seg_cut_info'
+%     flag    description
+%     0       stick
+%     1       slip
+%   initialize a variable for the flux via domain integral, too.
+%   current tangential plastic gap 'tgappl' at the 2 gauss points
+%   tangential plastic gap of previous laod step 'tgapplconv' at the 2
+%     gauss points
+%   final tangential gap of the previous load step 'tgapconv'
+%   current tangential traction 'ttrac' at the 2 gauss points
+%   final tangential traction of previous load step 'ttracconv' at the two
+%     gauss points
+%   evalutated flow rules of trial state 'f_trial' at both gauss points
 for i=1:size(seg_cut_info,1)
   for e=1:size(seg_cut_info,2)
-    seg_cut_info(i,e).slidestate = 0; % initialize as 'stick'
-    seg_cut_info(i,e).domint = [];    % vector for traction at interface
+    seg_cut_info(i,e).slidestate = 0;     % initialize as 'stick'
+%     seg_cut_info(i,e).domint = [];        % vector for traction at interface
+    seg_cut_info(i,e).tgappl = [0 0];     % current plastic gap
+    seg_cut_info(i,e).tgapplconv = [0 0]; % converged plastic gap of previous load step
+%     seg_cut_info(i,e).tgapconv = [0 0];   % converged total gap of previous load step
+    seg_cut_info(i,e).ttrac = [0 0];  % current tangential traction    
+    seg_cut_info(i,e).ttracconv = [0 0];  % converged tangential traction of previous load step
+    seg_cut_info(i,e).f_trial = [0 0];    % evalutated flow rules of trial state at both gauss points
   end;
 end;
 
-% initialize a state-variable for normal contact
-% 0 ... contact open (tension, gap > 0)
-% 1 ... contact closed (pressure), gap < 0)
-for i=1:size(seg_cut_info,1)
-  for e=1:size(seg_cut_info,2)
-    seg_cut_info(i,e).contactstate = 1; % initialize as 'closed'
-  end;
-end;
+% initialize some variables related to plasticity which are needed to make 
+% the code consistent for pure elastic problems
+% initialize tangential plastic gap
+tgappl = [0 0];
+
+% % initialize a state-variable for normal contact
+% % 0 ... contact open (tension, gap > 0)
+% % 1 ... contact closed (pressure), gap < 0)
+% for i=1:size(seg_cut_info,1)
+%   for e=1:size(seg_cut_info,2)
+%     seg_cut_info(i,e).contactstate = 1; % initialize as 'closed'
+%   end;
+% end;
 
 % force-vectors for domain integral method
 domint_force = zeros(18,1);
@@ -308,6 +331,9 @@ numeqns = max(max(id_eqns));
   %bigk = zeros(numeqns);
   bigk = spalloc(numeqns,numeqns,numele*36);
   ndof = 2; % number of standard degrees of freedon per node
+  
+  % clear some temporary variables
+  clear i e tempnode;
   % --------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
 %% ASSEMBLE ELASTIC CONTRIBUTION TO GOBAL STIFFNESS MATRIX 'bigk'
@@ -340,8 +366,7 @@ end
 bigk_el = bigk;
 
 % clear some temporary variables
-clear rbk cbk re ce nlink id ke i e j;
-
+clear rbk cbk re ce nlink id ke i e j bigk;
 % ----------------------------------------------------------------------- %
 %% PREPARE ASSEMBLY OF EXTERNAL FORCE VECTOR
 disp('assembling external force vector ...')
@@ -379,7 +404,7 @@ big_force = zeros(numeqns,1);
 % initialize global vector for tractions at the interface (used to assemble
 % force contributions due to tractions, caused by plasticity or frictional 
 % sliding at the interface. 
-big_force_traction = zeros(numeqns,1);
+% big_force_traction = zeros(numeqns,1);
 % ----------------------------------------------------------------------- %
 %% ASSEMBLE EXTERNAL GLOBAL FORCE VECTOR 'big_force'
 % select method of applying Neumann BCs
@@ -497,11 +522,11 @@ end;
 big_force_max = big_force;
 
 % clear some temporary variables
-clear slot n j;
+clear slot n j big_force DOFs1 DOFs2 nodenumbers force_values force_id k e i;
 % ----------------------------------------------------------------------- %
 %% INITIALZE (2)
 % total displacement vector of all DOFs in the inner of newton loop
-totaldis = zeros(size(big_force));
+totaldis = zeros(size(big_force_max));
 
 % needed to compute stresses
 orig_ndisp = zeros(numnod,6);
@@ -513,7 +538,9 @@ orig_ndisp = zeros(numnod,6);
 % loop over all load / time steps (pseudo-time). The vector with time steps
 % is given in the input file: 'IFtime'. Its first element is always a '0'.
 for timestep = 1:(length(time)-1)
-  disp(['load step ' num2str(timestep)]);
+  % print number of current load step
+  loadsteptext = sprintf('\nlaod step %d',timestep);
+  disp(loadsteptext);
   % --------------------------------------------------------------------- %
   %% GET GLOBAL FORCE VECTOR FOR CURRENT LOAD STEP
   % get the current load increment for this loadstep, which is the basis to
@@ -540,10 +567,10 @@ for timestep = 1:(length(time)-1)
   iter = 1;                         % iteration index for newton-scheme
   slidestateconv = 'false';         % shows, if the 'slidestate'-flags 
                                     % are converged
-  contactstateconv = 'false';       % shows, if the 'contactstate'-flags 
+%   contactstateconv = 'false';       % shows, if the 'contactstate'-flags 
                                     % are converged
-  deltanewton = zeros(size(big_force));   % displacement increment for Newton loop
-  deltaload = zeros(size(big_force));     % displacement increment for load step loop
+  deltanewton = zeros(size(big_force_max));   % displacement increment for Newton loop
+  deltaload = zeros(size(big_force_max));     % displacement increment for load step loop
   
   % initialize 'slidestateconv' only in first Newton-step
   % These flags indicate, if there are changes in the 'active set' 
@@ -555,7 +582,7 @@ for timestep = 1:(length(time)-1)
       if seg_cut_info(i,e).elemno ~= -1   % only cut elements
         % initialize
         seg_cut_info(i,e).slidestateconv = 0;  
-        seg_cut_info(i,e).contactstateconv = 0; 
+%         seg_cut_info(i,e).contactstateconv = 0; 
         
 %         if timestep == 1
           % initialize all elements to 'stick'
@@ -563,971 +590,28 @@ for timestep = 1:(length(time)-1)
 %         end;
 
           % initialize all elements to a closed contact
-          seg_cut_info(i,e).contactstate = 1;
+%           seg_cut_info(i,e).contactstate = 1;
       end;
     end;
   end;
     
   % loop for Quasi-Newton-Scheme
   while 1%(res_norm > IFconvtol && delta_norm > IFconvtol && ...
-%       ener_norm > IFconvtol) || strcmp(slidestateconv,'false') || ...
-%       strcmp(contactstateconv,'false')
-  % reset slidestate-flag
+  %     ener_norm > IFconvtol) || strcmp(slidestateconv,'false') || ...
+  %     strcmp(contactstateconv,'false')
   
-   for i=1:size(seg_cut_info,1)            % loop over interface
+%   % reset slidestate-flag
+%   for i=1:size(seg_cut_info,1)            % loop over interface
+%     for e=1:size(seg_cut_info,2)          % loop over elements
+%       seg_cut_info(i,e).slidestate = 0;
+%     end;
+%   end;
+  for i=1:size(seg_cut_info,1)            % loop over interface
     for e=1:size(seg_cut_info,2)          % loop over elements
-      seg_cut_info(i,e).slidestate = 0;
+      seg_cut_info(i,e).f_trial = [0 0];
     end;
-   end;
-  % --------------------------------------------------------------------- %
-    %% IMPOSE CONSTRAINTS AT INTERFACES (DEPENDING ON METHOD)
-%{
-    % load elastic contribution of global stiffness matrix, which is 
-    % identical in every loadstep
-    bigk = bigk_el;
-    
-    % Now, add contributions due to the constraints at the interface. These
-    % depend on the sliding case and the method of constraint enforcement.
-
-    % Method is chosen by paramter 'IFmethod'
-    switch IFmethod
-      case 0  % Lagrange Multipliers
-        % APPLY CONSTRAINTS AT GRAIN INTERFACES USING LAGRANGE MULTIPLIERS
-
-%         disp('enforcing constraints at interfaces via Lagrange multipliers ...');
-
-        % initialize
-        ex_dofs = 0;
-        lag_surf = [];
-        
-        count = 0;              % counter
-        lag_slidestate = [];    % internal slidestate vector
-
-        for i = 1:size(seg_cut_info,1)     % for every interface
-          for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-            if seg_cut_info(i,e).elemno ~= -1
-              % increase counter 'count'
-              count = count + 1;
-              
-              % get global element ID
-              parent_el = seg_cut_info(i,e).elemno;
-
-              % Count the extra degree of freedom we're at
-              ex_dofs = ex_dofs + 1;         
-              lag_surf = [lag_surf; ex_dofs i parent_el];  % mapping between lagrange 
-                                              % multipliers and IDs of cut elements
-              ex_dofs = ex_dofs + 1;         
-              lag_surf = [lag_surf; ex_dofs i parent_el];
-
-              % Establish which nodes are "postively" enriched, 
-              % and which reside in the "negative" grain
-              pos_g = seg_cut_info(i,e).positive_grain;
-              neg_g = seg_cut_info(i,e).negative_grain;
-
-              [pn_nodes] =... 
-                 get_positive_new(parent_el,pos_g,neg_g);
-
-              % Get local constraint equations
-              [ke_lag,id_node,id_lag] =...
-                gen_lagrange(node,x,y,parent_el,id_eqns,id_dof,pn_nodes, ...
-                pos_g,neg_g,old_size,ex_dofs,seg_cut_info(i,e).xint, ...
-                INTERFACE_MAP(i).endpoints);
-
-              % stiffnes contribution 'ke_lag' has to be modified depending
-              % on 'IFsliding_switch'
-              switch sliding_switch
-                case 0  % fully tied case (no sliding at all)
-                  % no modifications necessary
-                case 1  % frictionless sliding
-                  % dot with normal vector
-                  ke_lag = ke_lag * seg_cut_info(i,e).normal;
-                  
-                  % build full matrix
-                  ke_lag_temp = [ke_lag zeros(12,1)];
-                  
-                  % assign full matrix
-                  ke_lag = ke_lag_temp;
-                  
-                  % clear temporary variable
-                  clear ke_lag_temp
-                case 2  % perfect plasticity
-                  % compute 'ke_pen' depending on current slide state (stick or slip)
-                  if seg_cut_info(i,e).slidestate == 0      % stick
-                    % equates to fully tied case --> no modification of
-                    % elemetnary contribution to global stiffness matrix
-                    
-                    % set flag for internal slidestate-variable
-                    lag_slidestate(count) = 0;
-                  elseif seg_cut_info(i,e).slidestate == 1  % slip
-                    % equates to frictionless sliding case
-                                        
-                    % dot with normal vector
-                    ke_lag = ke_lag * seg_cut_info(i,e).normal;
-
-                    % build full matrix
-                    ke_lag_temp = [ke_lag zeros(12,1)];
-
-                    % assign full matrix
-                    ke_lag = ke_lag_temp;
-
-                    % clear temporary variable
-                    clear ke_lag_temp
-                    
-                    % set flag for internal slidestate-variable
-                    lag_slidestate(count) = 1;
-                  else
-                    error('MATLAB:XFEM:UnvalidState', ...
-                      'Current slide state is not valid!');
-                  end;
-                case 3  % frictional contact (Coulomb)
-                  warning('MATLAB:XFEM:main_xfem',...
-                      'There exists no code for frictional contact (Coulomb), yet.')
-                case 4  % frictionless contact (only opening contact)
-                  if seg_cut_info(i,e).contactstate == 1
-                    % constraints only in normal direction (equals
-                    % frictionless sliding case)
-                    
-                    % dot with normal vector
-                    ke_lag = ke_lag * seg_cut_info(i,e).normal;
-
-                    % build full matrix
-                    ke_lag_temp = [ke_lag zeros(12,1)];
-
-                    % assign full matrix
-                    ke_lag = ke_lag_temp;
-
-                    % clear temporary variable
-                    clear ke_lag_temp
-                    
-                    % set a local state variable to "contact closed"
-                    lag_contactstate(count) = 1;
-                  else
-                    % no constraints at all
-                    ke_lag = zeros(size(ke_lag));
-                    
-                    % set a local state variable to "contact open"
-                    lag_contactstate(count) = 0;
-                  end;
-                otherwise
-                  warning('MATLAB:XFEM:main_xfem',...
-                      'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-              end;
-
-              nlink = size(ke_lag,1);
-              %
-              % assemble ke_lag into bigk
-              %
-              for m=1:nlink
-                for n=1:2
-                  rbk = id_node(m);
-                  cbk = id_lag(n);
-                  re = m;
-                  ce = n;
-                  if (rbk ~= 0) && (cbk ~= 0) 
-                    % The constraint equations
-                    bigk(rbk,cbk) = bigk(rbk,cbk) + ke_lag(re,ce);
-                    % The transpose are the equilibrium terms
-                    bigk(cbk,rbk) = bigk(cbk,rbk) + ke_lag(re,ce);
-                  end
-                end
-              end
-            end
-          end
-        end;
-
-         % clear some temporary variables
-         clear parent_el rbk cbk re ce nlink ke_lag pn_nodes i e m n id_node ...
-             id_lag pos_g neg_g;
-
-        % Fix unused tangential equations ( = 'zero'-rows in 'bigk')
-        switch IFsliding_switch 
-          case 0  % fully tied case (no sliding at all)
-            % In the fully tied case, there are no "unused tangential
-            % eqautations" in 'bigk'.
-          case 1  % frictionless sliding
-            for i = 2:2:size(lag_surf,1)
-              % get position index in 'bigk'
-              global_index = i + max(max(id_eqns));
-              
-              % set '1' into 'bigk'
-              bigk(global_index,global_index) = 1;
-            end
-          case 2  % perfect plasticity
-            % reset counter
-            count = 0;
-            
-            % loop over all constraint equations
-            for i = 2:2:size(lag_surf,1)
-              % increase counter
-              count = count + 1;
-              
-              % set a '1' into 'bigk', if current constraint equation is a 
-              % frictionless constraint (slip in current subsegment)
-              if lag_slidestate(count) == 1
-                % get position-index in 'bigk'
-                global_index = i + max(max(id_eqns));
-                
-                % set '1' in 'bigk'
-                bigk(global_index,global_index) = 1;
-              end;
-            end
-          case 3  % frictional contact (Coulomb)
-            warning('MATLAB:XFEM:main_xfem',...
-              'There exists no code for frictional contact (Coulomb), yet.')
-          case 4  % frictionless contact (only opening contact)
-            % reset counter
-            count = 0;
-            
-            % loop over all constraint equations
-            for i = 1:2:(size(lag_surf,1)-1)
-              % increase counter
-              count = count + 1;
-              
-              % set a '1' into 'bigk', if current subsegment's contactstate
-              % is '0' (open)
-              if lag_contactstate(count) == 0
-                % get position-index in 'bigk'
-                global_index = i + max(max(id_eqns));
-                
-                % set '1' in 'bigk'
-                bigk(global_index,global_index) = 1;
-              end;
-            end
-          otherwise
-            warning('MATLAB:XFEM:main_xfem',...
-              'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-        end;
-
-        % clear temporary variable 'global_index'
-        clear global_index i;
-      case 1  % Penalty-Method
-        % APPLY CONSTRAINTS AT GRAIN INTERFACES USING PENALTY METHOD
-%         disp('enforcing constrainst at interfaces via penalty method ...');
-
-        % get values from input file
-        penalty = IFpenalty;
-
-        for i = 1:size(seg_cut_info,1)     % for every interface
-          for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-            if seg_cut_info(i,e).elemno ~= -1
-
-              parent_el = seg_cut_info(i,e).elemno;
-
-              % Establish which nodes are "postively" enriched, and
-              % which reside in the "negative" grain
-              pos_g = seg_cut_info(i,e).positive_grain;
-              neg_g = seg_cut_info(i,e).negative_grain;
-
-              [pn_nodes] =... 
-                 get_positive_new(parent_el,pos_g,neg_g);
-
-
-              % Penalty terms 
-              %sliding cases are treated inside 'gen_penalty()'
-              switch IFintegral     % switch between one or two integrals
-                case 1              % one integral (1/h)
-                  [ke_pen,id_pen] =...
-                    gen_penalty_alternative(node,x,y,parent_el,id_eqns,id_dof,...
-                    pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
-                    INTERFACE_MAP(i).endpoints, ...
-                    seg_cut_info(i,e).normal,IFsliding_switch, ...
-                    seg_cut_info(i,e).slidestate, ...
-                    seg_cut_info(i,e).contactstate);
-                case 2              % two integrals (1/h^2)
-                  [ke_pen,id_pen] =...
-                    gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
-                    pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
-                    INTERFACE_MAP(i).endpoints, ...
-                    seg_cut_info(i,e).normal,IFsliding_switch, ...
-                    seg_cut_info(i,e).slidestate, ...
-                    seg_cut_info(i,e).contactstate);
-                otherwise
-                  error('MATLAB:XFEM:UnvalidID', ...
-                    'Unvalid ID for number of integrals in penalty term');
-              end;
-              
-              nlink = size(id_pen,2);
-              %
-              % assemble 'ke_pen' into 'bigk'
-              %
-              for m=1:nlink
-                for n=1:nlink
-                  rbk = id_pen(m);
-                  cbk = id_pen(n);
-                  re = m;
-                  ce = n;
-                  if ((rbk ~= 0) && (cbk ~= 0))                        
-                    bigk(rbk,cbk) = bigk(rbk,cbk) + ...
-                        penalty*ke_pen(re,ce);
-                  end
-                end
-              end
-            end
-          end
-        end
-
-        % clear some temporary variables
-        clear rbk cbk re ce m n nlink ke_pen parent_el pos_g neg_g i e ...
-            id_pen;
-      case 2  % Nitsche's Method
-        % APPLY CONSTRAINTS AT GRAIN INTERFACES USING NITSCHE'S METHOD
-%         disp('enforcing constraints at interfaces via Nitsche´s method ...');
-
-        % get values from input file
-        penalty = IFnitsche;
-
-        for i = 1:size(seg_cut_info,1)     % for every interface
-          for e = 1:size(seg_cut_info,2) % for every cut element in that interface
-            if seg_cut_info(i,e).elemno ~= -1
-              % get current element ID
-              parent_el = seg_cut_info(i,e).elemno;
-              
-              % Establish which nodes are "postively" enriched, and
-              % which reside in the "negative" grain
-              pos_g = seg_cut_info(i,e).positive_grain;
-              neg_g = seg_cut_info(i,e).negative_grain;
-
-              [pn_nodes] =... 
-                 get_positive_new(parent_el,pos_g,neg_g);
-              
-              % call routine to estimate the minimum stabilization 
-              % parameter to guarantee the positive definiteness of the 
-              % system (which can vary from element to element)
-              if IFnitsche < 0
-                % get elenodes
-                elenodes = node(:,parent_el);
-                
-                % get coordinates of current element's nodes
-                xcoords = x(elenodes);
-                ycoords = y(elenodes);
-                
-                % get minimal parameter back from a function
-                penalty = minstabiparameter(xcoords,ycoords, ...
-                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
-                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
-                  IFintegral);     
-              end;
-              
-              % store Nitsche parameter for this element
-              seg_cut_info(i,e).nitsche = penalty;
-              
-              % Penalty terms
-              % treatment of different sliding cases inside 'gen_penalty()'
-              switch IFintegral     % switch between one or two integrals
-                case 1              % one integral (1/h)
-                  [ke_pen,id_pen] =...
-                    gen_penalty_alternative(node,x,y,parent_el,id_eqns,id_dof,...
-                    pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
-                    INTERFACE_MAP(i).endpoints, ...
-                    seg_cut_info(i,e).normal,IFsliding_switch, ...
-                    seg_cut_info(i,e).slidestate, ...
-                    seg_cut_info(i,e).contactstate);
-                case 2              % two integrals (1/h^2)
-                  [ke_pen,id_pen] =...
-                    gen_penalty(node,x,y,parent_el,id_eqns,id_dof,...
-                    pn_nodes,pos_g,neg_g,seg_cut_info(i,e).xint,...
-                    INTERFACE_MAP(i).endpoints, ...
-                    seg_cut_info(i,e).normal,IFsliding_switch, ...
-                    seg_cut_info(i,e).slidestate, ...
-                    seg_cut_info(i,e).contactstate);
-                otherwise
-                  error('MATLAB:XFEM:UnvalidID', ...
-                    'Unvalid ID for number of integrals in penalty term');
-              end;
-              
-              nlink = size(id_pen,2);
-              %
-              % assemble ke_pen into bigk
-              %
-              for m=1:nlink
-                for n=1:nlink
-                  rbk = id_pen(m);
-                  cbk = id_pen(n);
-                  re = m;
-                  ce = n;
-                  if ((rbk ~= 0) && (cbk ~= 0))                        
-                    bigk(rbk,cbk) = bigk(rbk,cbk) + ...
-                        penalty*ke_pen(re,ce);
-                  end
-                end
-              end
-
-              % Nitsche Terms
-              % treatment of different sliding cases inside 'nit_stiff()'
-              [ke_nit,id_nit] =...
-                nit_stiff(node,x,y,parent_el,id_eqns,id_dof, ...
-                pn_nodes,pos_g,neg_g,seg_cut_info(i,e).normal, ...
-                seg_cut_info(i,e).xint,...
-                INTERFACE_MAP(i).endpoints,IFsliding_switch,...
-                seg_cut_info(i,e).slidestate, ...
-                seg_cut_info(i,e).contactstate);
-
-
-              nlink = size(id_nit,2);
-              %
-              % assemble ke_nit into bigk
-              %
-              for m=1:nlink
-                for n=1:nlink
-                  rbk = id_nit(m);
-                  cbk = id_nit(n);
-                  re = m;
-                  ce = n;
-                  if ((rbk ~= 0)  && (cbk ~= 0))                      
-                    bigk(rbk,cbk) = bigk(rbk,cbk)...
-                        - ke_nit(re,ce) - ke_nit(ce,re);
-                  end
-                end
-              end
-            end
-          end
-        end
-
-        % clear some temporary variables
-        clear rbk cbk re ce m n nlink ke_pen parent_el pos_g neg_g i e ...
-            id_pen ke_nit id_nit;
-      otherwise
-        error('MATLAB:XFEM:UnvalidID',...
-          'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
-    end;
-    % ------------------------------------------------------------------- %
-%}    
-%% IMPOSE DISPLACEMENT BOUNDARY CONDITIONS 
-    %{
-    for n=1:numnod  % loop over all nodes
-      for j=1:ndof  % loop over all nodal DOFs
-        % The following commented block is the original procedure for
-        % imposing Dirichlet boundary conditions and was written by Jessica
-        % Sanders. It is not able to handle a load stepping scheme. So, a
-        % modified version is provided afterwards.
-%{
-          if (dispbc(j,n) == 1)        
-          m  = id_eqns(n,j);
-          m2 = id_eqns(n,j+2);
-          m3 = id_eqns(n,j+4);
-          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
-            temp = size(bigk,2);
-            bigk(m,:) = zeros(1,temp);
-            big_force = big_force - (ubar(j,n)*bigk(:,m));
-            bigk(:,m) = zeros(temp,1);
-            bigk(m,m) = 1.0;
-            big_force(m) = ubar(j,n);
-          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
-            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-              n;
-              temp = size(bigk,2);
-              bigk(m,:) = zeros(1,temp);
-              big_force = big_force - (ubar(j,n)*bigk(:,m));
-              bigk(:,m) = zeros(temp,1);
-              bigk(m,m) = 1.0;
-              big_force(m) = ubar(j,n);
-            end
-          end
-        end
-%}
-        % The following if-structure manages the imposing of Dirichlet boundary
-        % conditions for a single load curve, where all loads are applied with the 
-        % same load stepping scheme.
-        if (dispbc(j,n) == 1)          
-          m  = id_eqns(n,j);
-          m2 = id_eqns(n,j+2);
-          m3 = id_eqns(n,j+4);
-          if (m2 == 0) && (m3 == 0)       % If the node is unenriched
-            temp = size(bigk,2);
-            bigk(m,:) = zeros(1,temp);
-            big_force = big_force - (ubar(j,n) * bigk(:,m) * time(timestep + 1));
-            bigk(:,m) = zeros(temp,1);
-            bigk(m,m) = 1.0;
-            big_force(m) = ubar(j,n) * time(timestep + 1);
-          elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
-            if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-              n;
-              temp = size(bigk,2);
-              bigk(m,:) = zeros(1,temp);
-              big_force = big_force - (ubar(j,n) * bigk(:,m) * time(timestep + 1));
-              bigk(:,m) = zeros(temp,1);
-              bigk(m,m) = 1.0;
-              big_force(m) = ubar(j,n) * time(timestep+1);
-            end;
-          end;
-        end;
-
-        % The following if-structure manages the imposing of a second set
-        % of DBCs. It is only actice, if this second set is defined.
-        if exist('time2','var') == 1
-          if (dispbc2(j,n) == 1)          
-            m  = id_eqns(n,j);
-            m2 = id_eqns(n,j+2);
-            m3 = id_eqns(n,j+4);
-            if (m2 == 0) && (m3 == 0)       % If the node is unenriched
-              temp = size(bigk,2);
-              bigk(m,:) = zeros(1,temp);
-              big_force = big_force - (ubar2(j,n) * bigk(:,m) * time2(timestep + 1));
-              bigk(:,m) = zeros(temp,1);
-              bigk(m,m) = 1.0;
-              big_force(m) = ubar2(j,n) * time2(timestep + 1);
-            elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
-              if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-                n;
-                temp = size(bigk,2);
-                bigk(m,:) = zeros(1,temp);
-                big_force = big_force - (ubar2(j,n) * bigk(:,m) * time2(timestep + 1));
-                bigk(:,m) = zeros(temp,1);
-                bigk(m,m) = 1.0;
-                big_force(m) = ubar2(j,n) * time2(timestep+1);
-              end;
-            end;
-          end;
-        end;
-        
-        % The following if-structure manages the imposing of a third set
-        % of DBCs. It is only actice, if this third set is defined.
-        if exist('time3','var') == 1
-          if time3(timestep + 1) == 1
-            if (dispbc3(j,n) == 1)          
-              m  = id_eqns(n,j);
-              m2 = id_eqns(n,j+2);
-              m3 = id_eqns(n,j+4);
-              if (m2 == 0) && (m3 == 0)       % If the node is unenriched
-                temp = size(bigk,2);
-                bigk(m,:) = zeros(1,temp);
-                big_force = big_force - (ubar3(j,n) * bigk(:,m) * time3(timestep + 1));
-                bigk(:,m) = zeros(temp,1);
-                bigk(m,m) = 1.0;
-                big_force(m) = ubar3(j,n) * time3(timestep + 1);
-              elseif (m2 ~= 0) && (m3 == 0)             % If the node is enriched
-                if id_dof(n,j+2) ~= nodegrainmap(n);    % But only 1 dof is active
-                  n;
-                  temp = size(bigk,2);
-                  bigk(m,:) = zeros(1,temp);
-                  big_force = big_force - (ubar3(j,n) * bigk(:,m) * time3(timestep + 1));
-                  bigk(:,m) = zeros(temp,1);
-                  bigk(m,m) = 1.0;
-                  big_force(m) = ubar3(j,n) * time3(timestep+1);
-                end;
-              end;
-            end;
-          end;
-        end;
-      end;
-    end;
-
-    % clear some temporary variables
-    clear m m2 m3 temp;
-    %}
-    % ------------------------------------------------------------------- %
-    %% CHECK YIELD CONDITIONS
-    %{
-    % copy the external forces, since they global force vector might
-    % change, if there are prescribed displacements
-    big_force = big_force_loadstep;
-
-    % reset additional tractions at interface
-    big_force_traction = zeros(length(big_force),1);
-
-    % A return mapping is not nevessary for the fully tied case and the
-    % frictionless sliding case, but for all other cases.
-    switch IFsliding_switch
-      case 0  % fully tied case
-        % The fully tied case is posed as a fully elastic problem with a
-        % perfect bond. There are no yield conditions to check.
-      case 1  % frictionless sliding
-        % The frictionless sliding case is posed as a fully elastic problem
-        % with a prefect bond in normal direction at the interface. There
-        % are no yield conditions to check.
-      case 2  % perfect plasticity
-        % The plastic effects can only occur in tangential direction at the
-        % interface. So, here a yield condition has to be checked to
-        % decide, if a subsegment is in a 'stick' or a 'slip' state.
-        %% UPDATE SLIDING STATE AND TRACTION OF EACH INTERSECTED ELEMENT 
-        % initialize / reset additional tractions at interface due to
-        % plasticity
-        big_force_traction = zeros(length(big_force),1);
-          %% Prepare for Nitsche's method
-          if IFmethod == 2  % only if Nitsche's method is used
-            % RE-ASSEMBLE GLOBAL DISPLACEMENT VECTOR
-            % Reassemble displacement vector  - Enriched nodes need to have their
-            % degrees of freedom added to end up representing a total displacement.
-            % The extra degrees of freedom should only be added if the node is enriched
-            % with the grain in which it resides.  
-
-            % ndisp(i,:) are all of the solutions (base and enriched) at node i
-            ndisp = zeros(numnod,6);
-
-            % dis is a vector with traditional FEM numbering, and the final solution
-            % for each node. It stores the nodal displacements
-            dis = zeros(2*numnod,1);
-
-            for i = 1:numeqns
-              [nnode,doff] = find(id_eqns == i);
-              ndisp(nnode,doff) = fdisp(i);
-            end;
-            old_ndisp = ndisp;
-            for i = 1:numnod
-              grain = nodegrainmap(i);
-              for j = 3:6
-                if id_dof(i,j) ~= grain
-                  ndisp(i,j) = 0;
-                end
-              end
-              dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
-              dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
-            end;
-          end;
-          % ----------------------------------------------------------- % 
-          %% update subsegments
-          % loop over all intersected elements and update the
-          % 'slidestate'-flags
-          for i=1:size(seg_cut_info,1)            % loop over interface
-            for e=1:size(seg_cut_info,2)          % loop over elements
-              if seg_cut_info(i,e).elemno ~= -1   % only cut elements
-                % Now, get the maximum traction vector and the current
-                % traction vector. Both are based on stress, since the yield
-                % criterion is a stress criterion. Since the stresses on both
-                % sides of the interface can be different (especially when
-                % the materials are different), the greater traction vector
-                % has to be used for further computation.
-
-                % get current element ID
-                eleID = seg_cut_info(i,e).elemno; 
-
-                % get nodes of current element
-                elenodes = node(:,eleID);
-
-                % get global DOFs for 'elenodes'
-                DOFs = id_eqns(elenodes,:);
-
-                % get nodal contributions to 'big_force_traction' and the
-                % vector with the maximum tangential traction (limited due to
-                % plasticity)
-                [force_values force_id tang_traction_max he] = ...
-                  getnodaltractionsplasticity(x(elenodes), ...
-                  y(elenodes),seg_cut_info(i,e),IFyieldstress, ...
-                  INTERFACE_MAP(i).endpoints,id_dof(elenodes,:),DOFs, ...
-                  NODEINFO_ARR(1,elenodes));
-
-                % get the two grain IDs of the current interface 'i'
-                grains = seg_cut_info(i,e).grains;
-
-                % compute current traction at interface depending on
-                % 'Ifmethod'
-                switch IFmethod
-                  case 0  % Lagrange multipliers 
-                    % When a Lagrange multiplier method is used, the
-                    % tractions at the interface are primary unknows and so
-                    % they are part of the solution vector 'solu' or 'fdis'.
-                    % To get the traction vector in a subsegment, the
-                    % corresponding Lagrange multiplier has to be extracted
-                    % form the solution vector.
-
-                    % Extract Lagrange multipliers from current
-                    % solution-vector 'solu'
-                    lagmult = totaldis(old_size+1:old_size + 2 * multipliers);                        
-
-                    % find row in 'lagmult', that suits to current interface 'e'
-                    % and to the element, that is cut by 'i'
-                    index = find(lag_surf(:,2)==i & lag_surf(:,3)==eleID);
-                    traction = lagmult(index)';
-
-                    % reference frame of 'traction' depends on the slidestate
-                    if seg_cut_info(i,e).slidestate == 0      % stick
-                      % project traction into tangential direction  
-                      tang_traction = (traction * ...
-                        seg_cut_info(i,e).tangent) * seg_cut_info(i,e).tangent;
-                    elseif seg_cut_info(i,e).slidestate == 1  % slip
-                      tang_traction = traction';
-                    else
-                      error('MATLAB:XFEM:UnvalidState', ...
-                        'Current slide state is not valid!');
-                    end;
-
-                    % clear some temporary variables
-                    clear traction index lagmult;
-                  case 1  % penalty method
-                    % Compute Lagrange multipliers via 
-                    % 'lambda = alpha * \int _{\Gamma _e}[[u]] d \Gamma _e'
-
-                    % get penalty parameter
-                    penalty = IFpenalty;
-
-                    % Establish which nodes are "postively" enriched, and
-                    % which reside in the "negative" grain
-                    pos_g = seg_cut_info(i,e).positive_grain;
-                    neg_g = seg_cut_info(i,e).negative_grain;
-
-                    [pn_nodes] =... 
-                      get_positive_new(eleID,pos_g,neg_g);
-
-                    % get traction vector at interface
-                    traction = ...
-                      get_lag_mults_for_penalty(node,x,y,eleID, ...
-                      id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
-                      seg_cut_info(i,e).xint, ...
-                      INTERFACE_MAP(i).endpoints,penalty,fdisp);                    
-                    
-                    % project traction into tangential direction
-                    tang_traction = (traction * ...
-                      seg_cut_info(i,e).tangent) * seg_cut_info(i,e).tangent;
-
-  %                   disp(num2str(norm(tang_traction)));
-
-                    % clear some temporary variables
-                    clear traction penalty pn_nodes pos_g neg_g;
-                  case 2  % Nitsche's method
-                    % Compute Lagrange multipliers via 
-                    % 'lambda = alpha * \int _{\Gamma _e}[[u]] d \Gamma _e ...
-                    %                     - <sigma>*normal'
-
-                    % compute stress and strain in current element
-                    [straine,stresse] = post_process_better(node,x, ...
-                      y,eleID,dis,old_ndisp,id_dof,cutlist, ...
-                      maxngrains,INT_INTERFACE);
-
-                    % build stress tensors for current element
-                    % in first grain
-                    sigma_1 = [stresse(1,4,grains(1)) stresse(1,6,grains(1));
-                      stresse(1,6,grains(1)) stresse(1,5,grains(1))];
-                    % in second grain
-                    sigma_2 = [stresse(1,4,grains(2)) stresse(1,6,grains(2));
-                      stresse(1,6,grains(2)) stresse(1,5,grains(2))];
-
-                    % compute average stress
-                    sigma_avg = sigma_2;%(sigma_1 + sigma_2) / 2;
-
-                    % get nitsche contribution to traction vector at 
-                    % interface
-                    traction_nit = sigma_avg * seg_cut_info(i,e).normal;
-
-                    % get stabilization parameter (computed above when
-                    % applying the constraints
-                    penalty = seg_cut_info(i,e).nitsche;
-
-                    grains = seg_cut_info(i,e).grains;
-
-                    % Establish which nodes are "postively" enriched, and
-                    % which reside in the "negative" grain
-                    pos_g = seg_cut_info(i,e).positive_grain;
-                    neg_g = seg_cut_info(i,e).negative_grain;
-
-                    [pn_nodes] =... 
-                      get_positive_new(eleID,pos_g,neg_g);
-
-                    % get penalty contribution to traction vector at 
-                    % interface
-                    traction_pen = ...
-                      get_lag_mults_for_penalty(node,x,y,eleID, ...
-                      id_eqns,id_dof,pn_nodes,pos_g,neg_g, ...
-                      seg_cut_info(i,e).xint, ...
-                      INTERFACE_MAP(i).endpoints,penalty,fdisp);
-
-                    % compute traction vector at interface
-                    traction = traction_pen - traction_nit';
-
-                    % project traction into tangential direction
-                    tang_traction = (traction * ...
-                      seg_cut_info(i,e).tangent) * seg_cut_info(i,e).tangent;
-
-  %                   disp(num2str(norm(tang_traction)));
-
-                    % clear some temporary variables
-                      clear traction penalty pn_nodes pos_g neg_g ...
-                        traction_pen traction_nit;
-                  otherwise
-                    error('MATLAB:XFEM:UnvalidID',...
-                      'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
-                end;
-
-                % Determine sign of traction:
-                % The tangential traction hast to be applied in the opposite 
-                % direction of the tangential movement.
-
-%                   if tang_traction_max(1) > 0
-%                     force_values = force_values * (-1); 
-%                   end;
-
-                  % set sign of 'force_values'
-                  if tang_traction' * tang_traction_max < 0
-    %                 disp('*********************************');
-                    force_values = force_values * (-1); 
-                  end;
-
-                % check yield condition
-                if norm(tang_traction) - norm(tang_traction_max) <= 0
-                  % "trial traction" <= "yield traction" --> elastic
-                  % deformation
-                  %% check, if 'slidestate' changes
-                  if seg_cut_info(i,e).slidestate == 1;   % element was in 'slip' before
-                    seg_cut_info(i,e).slidestateconv = 0; % change in 'slidestate'
-                  else                                    % element was in 'stick' before
-                    seg_cut_info(i,e).slidestateconv = 1; % no change in 'slidestate' 
-                  end;
-                  % --------------------------------------------------- %
-                  %% set 'slidestate'
-                  seg_cut_info(i,e).slidestate = 0;
-                  % --------------------------------------------------- %
-                else
-                  % "trial traction" > "yield traction" --> plastic
-                  % deformation
-                  %% check, if 'slidestate' changes
-                  if seg_cut_info(i,e).slidestate == 0;   % element was in 'stick' before
-                    seg_cut_info(i,e).slidestateconv = 0; % change in 'slidestate'
-                  else                                    % element was in 'slip' before  
-                    seg_cut_info(i,e).slidestateconv = 1; % no change in 'slidestate'
-                  end;
-                  % --------------------------------------------------- %
-                  %% set 'slidestate'
-                  seg_cut_info(i,e).slidestate = 1;
-                  % --------------------------------------------------- %
-                  %% assemble new tangential traction into local force vector 'big_force_traction'
-                  % assemble 'force_values' into 'big_force_traction'
-                  % using the id-array 'force_id'
-                  for j=1:length(force_values)
-                    % assembly only possible, if current DOF 'force_id(j)'
-                    % is unequal to zero
-                    if force_id(j) ~= 0
-                      big_force_traction(force_id(j)) = ...
-                        big_force_traction(force_id(j)) + force_values(j);
-                    end;
-                  end;
-                  % --------------------------------------------------- %
-                  % %
-                end;
-              end;
-            end;
-          end;
-          % ----------------------------------------------------------- %
-          %% assemble plastic traction
-          % The assembling of the plastic tractions depends on the method of
-          % constraint enforcement. 
-          % Using Lagrange multipliers, there are extra variables for these
-          % tractions, namely the Lagrange multipliers. For penalty and
-          % Nitsche's method, where the displacements are the only  unknowns,
-          % the tractions have to be assembled into the global force vector
-          switch IFmethod
-            case 0  % Lagrange multipliers
-%               % loop over all interfaces 'i'
-%               for i=1:size(seg_cut_info,1)
-%                 % loop over all cut elements
-%                 for e=1:size(seg_cut_info,2)
-%                   % only over cut elements
-%                   if seg_cut_info(i,e).elemno ~= -1
-%                     % increase counter
-%                     count = count + 1;
-%                     
-%                     % assemble the maximum tangential traction only into those
-%                     % Lagrange multipliers in 'fdisp', which belong to an element
-%                     % with 'slidestate = 1 [slip]'.
-%                     if seg_cut_info(i,e).slidestate == 1
-%                       % set 'flag' to '1' or '-1' to indicate the direction
-%                       % of sliding
-%                       if tang_traction' * tang_traction_max < 0
-%                         flag = -1;
-%                       else
-%                         flag = 1;
-%                       end;
-%                           
-%                       % assemble absolute value of maximum traction into
-%                       % second (= tangential) Lagrange multiplier of this
-%                       % element
-%                       fdisp(old_size + 2 * count) = flag * ...
-%                         norm(tang_traction_max) * he;
-%                     end;
-%                   end;
-%                 end;
-%               end;
-            case 1  % penalty method
-              % assemble interface tractions 'big_force_traction' into global 
-              % force vector 'big_force'
-              big_force = big_force_loadstep + big_force_traction;
-            case 2  % Nitsche's method
-              % assemble interface tractions 'big_force_traction' into global 
-              % force vector 'big_force'
-              big_force = big_force_loadstep + big_force_traction;
-            otherwise
-              error('MATLAB:XFEM:UnvalidID',...
-                'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
-          end;
-
-%           big_force_traction2 = big_force_traction;
-
-          % clear some temporary variables
-          clear tang_traction tang_traction_max stress_interface ...
-            force_values force_id grains i e he eleID elenodes DOFs;
-          % --------------------------------------------------------------- %
-      case 3  % frictional contact (Coulomb)
-        warning('MATLAB:XFEM:main_xfem',...
-          'There exists no code for frictional contact (Coulomb), yet.')
-      case 4  % frictionless contact (only opening contact)
-        % The constraints will be enforced only in subsegments, which are
-        % in pressure. Subsegments in tension are allowed to separate and
-        % resolve the frictionless contact.
-        if timestep > 2
-        % loop over all subsegments and check, whether they are unter
-        % pressure or tension.
-        for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
-          for e=1:size(seg_cut_info,2)  % loop over all elements 'e'
-            if seg_cut_info(i,e).elemno ~= -1 % only cut elements
-              % The check depends on the method of constraint enforcement
-              % and on the current contact state.
-              switch IFmethod
-                case 0  % Lagrange multipliers
-                  if seg_cut_info(i,e).contactstate == 1
-                    % contact is closed
-                    % In order to check, if the closed contact holds, the
-                    % current Lagrange multiplier has to be evaluated to
-                    % check, if the element is still in pressure.
-
-                  else
-                    % contact open
-                    % In order to check, if the open contact stays open,
-                    % the current normal gap has to be evaluated to
-                    % check, if the contact is still open.
-
-                  end;
-                case 1  % penalty method
-                  % get global element ID
-                  eleID = seg_cut_info(i,e).elemno;
-
-                  % compute current normal gap
-                  normalgap = computenormalgap(node,x,y,eleID,id_eqns, ...
-                    id_dof,INTERFACE_MAP(i).endpoints,fdisp,seg_cut_info(i,e));
-
-                  if normalgap < 0 
-                    % check convergence for this element
-                    if seg_cut_info(i,e).contactstate == 0
-                      seg_cut_info(i,e).contactstateconv = 1;
-                    else
-                      seg_cut_info(i,e).contactstate = 0;
-                    end;
-
-                    % set new contactstate
-                    seg_cut_info(i,e).contactstate = 0;
-                  else
-                    % check convergence for this element
-                    if seg_cut_info(i,e).contactstate == 1
-                      seg_cut_info(i,e).contactstateconv = 1;
-                    else
-                      seg_cut_info(i,e).contactstate = 0;
-                    end;
-
-                    % set new contactstate
-                    seg_cut_info(i,e).contactstate = 1;
-                  end;
-                case 2  % Nitsche's method
-                otherwise
-                  error('MATLAB:XFEM:UnvalidID',...
-        'Unvalid method ID. Choose valid ID or add additional case to switch-case-structure');
-              end;
-            end;
-          end;
-        end;
-        end
-      otherwise
-        warning('MATLAB:XFEM:main_xfem',...
-          'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
-    end;
-    % ------------------------------------------------------------------- %
-    %}
+  end;
+%   % --------------------------------------------------------------------- %
     %% PREPARE IMPOSING DIRICHLET BOUNDARY CONDITIONS
     % The global displacement-vector 'totaldis' is copied and modified such
     % that its copy contains all Dirichlet boundary conditions for the
@@ -1581,6 +665,9 @@ for timestep = 1:(length(time)-1)
         totaldisDBC(m) = DBCmatrix(2,m);  % assign its value
       end;
     end;
+    
+    % clear some temporary variables
+    clear n j m;
     % ------------------------------------------------------------------- %
     %% BUILD RESIDUAL
 %     % The global stiffnes matrix is already built and the Dirichlet
@@ -1591,7 +678,7 @@ for timestep = 1:(length(time)-1)
 %     residual = big_force - bigk * totaldis;
     
     % initialize residual
-    residual = zeros(length(big_force),1);
+    residual = zeros(length(big_force_max),1);
 
 %{
     % Assemble the residual contribution of internal forces on an element 
@@ -1642,7 +729,9 @@ for timestep = 1:(length(time)-1)
     end; 
 %}
     
-   residual = bigk_el * totaldisDBC;
+    % contribution of elastic bulk field of the inner of the grains which
+    % will not be affected from plasticity at the interface
+    residual = bigk_el * totaldisDBC;
     
     % residual contributions due to constraints
     for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
@@ -1654,21 +743,37 @@ for timestep = 1:(length(time)-1)
           xcoords = x(elenodes);    % x-coordinates of 'elenodes'
           ycoords = y(elenodes);    % y-coordinates of 'elenodes'
           
-          % initialize a constant tangential traction which will be zero
-          % for elastic cases and unequal to zero for plastic cases
-          res_constant_tangent = zeros(12,1);
-          
           switch IFmethod
             case 0  % Lagrange multipliers
             case 1  % Penalty method
+              % get penalty parameters (depending on sliding case)
+              switch IFsliding_switch
+                case 0  % fully tied case
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = IFpenalty_tangential;
+                case 1  % frictionless sliding
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = 0;
+                case 2  % perfect plasticity
+                  % provide both penalty parameters: the normal one will be
+                  % used indepentent of the slidestate, the tangential one
+                  % is needed for the return mapping algorithm.
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = IFpenalty_tangential;
+                otherwise
+                  error('MATLAB:XFEM','Unvalid Sliding-ID');
+              end;
+              
               % get residual contributions vectors, but choose betweeb the
               % one- and two-integral formulation
               switch IFintegral
                 case 1  % one integral
-                  [res_penalty_normal res_penalty_tangent id] = ...
+                  [res_penalty_normal res_penalty_tangent id tgappl ttrac f_trial] = ...
                     get_ele_residual_penalty_alternative(xcoords,ycoords, ...
                     seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
-                    id_dof(elenodes,:),id_eqns(elenodes,:),totaldis);
+                    id_dof(elenodes,:),id_eqns(elenodes,:),totaldis, ...
+                    penalty_normal,penalty_tangent,IFyieldstress, ...
+                    deltaload,IFsliding_switch);
                 case 2  % two integrals
                   [res_penalty_normal res_penalty_tangent id] = ...
                     get_ele_residual_penalty(xcoords,ycoords, ...
@@ -1679,78 +784,21 @@ for timestep = 1:(length(time)-1)
                     'Unvalid number of integrals');
               end;
 
-              % get penalty parameters (depending on sliding case)
-              switch IFsliding_switch
-                case 0  % fully tied case
-                  penalty_normal = IFpenalty_normal;
-                  penalty_tangent = IFpenalty_tangential;
-                case 1  % frictionless sliding
-                  penalty_normal = IFpenalty_normal;
-                  penalty_tangent = 0;
-                case 2  % perfect plasticity
-                  %% evaluate current traction in tangential direction
-                  penalty_tangent = IFpenalty_tangential;
-                  
-                  % choose between one- and two-integral formulation
-                  switch IFintegral
-                    case 1  % one integral
-                      [normaltraction tangentialtraction] = ...
-                        get_lag_mults_for_penalty_alternative(xcoords, ...
-                          ycoords,seg_cut_info(i,e), ...
-                          INTERFACE_MAP(i).endpoints,id_dof(elenodes,:), ...
-                          id_eqns(elenodes,:),totaldis);
-                    case 2  % two integrals
-                      [normaltraction tangentialtraction] = ...
-                        get_lag_mults_for_penalty(xcoords, ...
-                          ycoords,seg_cut_info(i,e), ...
-                          INTERFACE_MAP(i).endpoints,id_dof(elenodes,:), ...
-                          id_eqns(elenodes,:),totaldis');
-                    otherwise
-                      error('MATLAB:XFEM:UnvalidID', ...
-                        'Unvalid number of integrals');
-                  end;
-
-                  tangentialtraction = penalty_tangent * tangentialtraction;
-                  % ----------------------------------------------------- %
-                  %% check, if interface deformation is elastic or plastic
-                  if abs(tangentialtraction) <= IFyieldstress
-                    % ==> elastic deformation
-                    % normal and tangential "stiffness"
-                    penalty_normal = IFpenalty_normal;
-                    penalty_tangent = IFpenalty_tangential;
-                    
-                    % set slidestate-flag
-                    seg_cut_info(i,e).slidestate = 0;
-                  else
-                    % ==> plastic deformation
-                    % no tangential "stiffness" due to "slip"
-                    penalty_normal = IFpenalty_normal;
-                    penalty_tangent = 0.2*IFpenalty_tangential;
-                    
-                    % assemble constant tangential traction
-                    % 'constant_tangent' equal to the yield stress
-                    constant_tangent = ...
-                      get_ele_residual_penalty_plastic(xcoords, ...
-                        ycoords,seg_cut_info(i,e), ...
-                        INTERFACE_MAP(i).endpoints,id_dof(elenodes,:), ...
-                        id_eqns(elenodes,:),totaldis');
-                      
-                    % mulitply with yieldstress and set the correct sign
-                    res_constant_tangent = IFyieldstress * constant_tangent;
-                    
-                    % set slidestate-flag
-                    seg_cut_info(i,e).slidestate = 1;
-                  end;
-                  % ----------------------------------------------------- %
-                otherwise
-                  error('MATLAB:XFEM','Unvalid Sliding-ID');
-              end;
-
+              % store plastic contribution to tangential gap
+              seg_cut_info(i,e).tgappl = tgappl;
+              
+              % store scalar values of current tangential traction at each
+              % gauss point
+              seg_cut_info(i,e).ttrac = ttrac;
+              
+              % store evaluated flow rules of trial state at both gauss
+              % points
+              seg_cut_info(i,e).f_trial = f_trial;
+              
               % compute ele_residual_constraint
-              ele_residual_constraint = penalty_normal * res_penalty_normal ...     % normal traction (linear in displacements)
-                                      + penalty_tangent * res_penalty_tangent ...   % tangential traction (linear in displacements)
-                                      + res_constant_tangent;                           % constant tangential traction
-                           
+              ele_residual_constraint = res_penalty_normal ...  % normal traction
+                                      + res_penalty_tangent;    % tangential traction
+                                                                 
               % assemble into global residual
               for a = 1:length(id)
                 if id(a) ~= 0
@@ -1766,6 +814,12 @@ for timestep = 1:(length(time)-1)
     end;
 
     residual = residual - big_force_loadstep;
+    
+    % clear some temporary variables
+    clear eleID elenodes xcoords ycoords res_constant_tangent i e a id ...
+      ele_residual_constraint constant_tangent res_penalty_normal ...
+      penalty_normal res_penalty_tangent penalty_tangent ...
+      normaltraction tangentialtraction;
     % ------------------------------------------------------------------- %
     %% BUILD TANGENT MATRIX
     % Here, the tangent matrix which is computed via
@@ -1795,23 +849,6 @@ for timestep = 1:(length(time)-1)
               xcoords = x(elenodes);              % x-coordinates
               ycoords = y(elenodes);              % y-coordinates
               
-              % get penalty matrices, but choose between one- and
-              % two-integral formulation
-              switch IFintegral
-                case 1  % one integral
-                  [pen_normal pen_tangent id_pen] = ... 
-                    lin_penalty_alternative(xcoords,ycoords,id_eqns(elenodes,:), ...
-                    id_dof(elenodes,:),seg_cut_info(i,e), ...
-                    INTERFACE_MAP(i).endpoints);
-                case 2  % two integrals
-                  [pen_normal pen_tangent id_pen] = ... 
-                    lin_penalty(xcoords,ycoords,id_eqns(elenodes,:), ...
-                    id_dof(elenodes,:),seg_cut_info(i,e), ...
-                    INTERFACE_MAP(i).endpoints);
-                otherwise
-                  error('MATLAB:XFEM:UnvalidID', ...
-                    'Unvalid number of integrals');
-              end;
               % distinguish between sliding cases
               switch IFsliding_switch
                 case 0  % fully tied case
@@ -1821,25 +858,34 @@ for timestep = 1:(length(time)-1)
                   penalty_normal = IFpenalty_normal;
                   penalty_tangent = 0;
                 case 2  % perfect plasticity
-                  % check slidestate-flag to decide, if the element is in
-                  % elastic or plastic deformation
-                  if seg_cut_info(i,e).slidestate == 0
-                    % ==> elastic deformation
-                    penalty_normal = IFpenalty_normal;
-                    penalty_tangent = IFpenalty_tangential;
-                  elseif seg_cut_info(i,e).slidestate == 1
-                    % ==> plastic deformation
-                    penalty_normal = IFpenalty_normal;
-                    penalty_tangent = 0;
-                  end;
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = IFpenalty_tangential;
                 otherwise
                   error('MATLAB:XFEM:UnvalidID', ...
                     'Unvalid sliding ID');
               end;
+                            
+              % get penalty matrices, but choose between one- and
+              % two-integral formulation
+              switch IFintegral
+                case 1  % one integral
+                  [pen_normal pen_tangent id_pen] = ... 
+                    lin_penalty_alternative(xcoords,ycoords, ...
+                    id_eqns(elenodes,:),id_dof(elenodes,:), ...
+                    seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+                    penalty_normal,penalty_tangent);
+                case 2  % two integrals
+                  [pen_normal pen_tangent id_pen] = ... 
+                    lin_penalty(xcoords,ycoords,id_eqns(elenodes,:), ...
+                    id_dof(elenodes,:),seg_cut_info(i,e), ...
+                    INTERFACE_MAP(i).endpoints);
+                otherwise
+                  error('MATLAB:XFEM:UnvalidID', ...
+                    'Unvalid number of integrals');
+              end;
               
               % build an elemental matrix
-              penalty_matrix  = penalty_normal * pen_normal ...
-                              + penalty_tangent * pen_tangent;
+              penalty_matrix  = pen_normal + pen_tangent;
                             
               % assemble 'penalty_matrix' into 'tangentmatrix'
               nlink = size(id_pen,2);
@@ -1879,7 +925,7 @@ for timestep = 1:(length(time)-1)
     end;
 
     % clear some temporary variables
-    clear m m2 m3 temp;
+    clear m numdof DBCmatrix totaldisDBC;
     % ------------------------------------------------------------------- %
     %% ADD CONSTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHED NODES
     %{
@@ -1993,6 +1039,17 @@ for timestep = 1:(length(time)-1)
                                  % (according to Laursen's Book)
     % ------------------------------------------------------------------- %
     %% UPDATE DISPLACEMENTS
+    % define a line serch parameter 'ls_par'
+    ls_par = 1;
+    
+    % compute the line search parameter according to 'Laursen2002' p. 59 ff
+    % eq. (2.235)
+    if iter > 1
+      ls_par = -(deltanewton' * residual) / (deltanewton' * tangentmatrix * deltanewton);
+    end;
+
+    deltanewton = ls_par * deltanewton;
+    
     deltaload = deltaload + deltanewton;
     totaldis = totaldis + deltanewton;
     % ------------------------------------------------------------------- %
@@ -2024,6 +1081,9 @@ for timestep = 1:(length(time)-1)
       dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
       dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
     end;
+    
+    % clear some temporary variables
+    clear i j nnode doff grain;
     % ------------------------------------------------------------------- %
     %% COMPUTE SOME NORMS TO PREPARE CONVERGENCE CHECK      
     % store first displacement increment in order to use a relative
@@ -2041,7 +1101,7 @@ for timestep = 1:(length(time)-1)
     % smaller than a given convergence tolerance 'IFconvtol' and there are 
     % no changes in the sliding states in comparison to the previous 
     % iteration step.
-
+    
     % compute normalized norm of residual
     res_norm = norm(residual) / res_null;
 
@@ -2076,45 +1136,51 @@ for timestep = 1:(length(time)-1)
       end;
     end;
     
-    % assume, that contact states are converged
-    contactstateconv = 'true';
-
-    % check, if contact states are converged
-    if IFsliding_switch == 4  % only for case with frictionless contact
-      % loop over all interfaces 'i'
-      for i=1:size(seg_cut_info,1)
-        % loop over all elements
-        for e=1:size(seg_cut_info,2)
-          % only cut elements
-          if seg_cut_info(i,e).elemno ~= -1
-            if seg_cut_info(i,e).contactstateconv == 0
-              % set 'slidestateconv'
-              contactstateconv = 'false';
-              
-              % make sure, that the for-loops will be aborted as soon as
-              % possible
-              i=size(seg_cut_info,1);
-              break;
-            end;
-          end;
-        end;
-      end;
-    end;
+%     % assume, that contact states are converged
+%     contactstateconv = 'true';
+% 
+%     % check, if contact states are converged
+%     if IFsliding_switch == 4  % only for case with frictionless contact
+%       % loop over all interfaces 'i'
+%       for i=1:size(seg_cut_info,1)
+%         % loop over all elements
+%         for e=1:size(seg_cut_info,2)
+%           % only cut elements
+%           if seg_cut_info(i,e).elemno ~= -1
+%             if seg_cut_info(i,e).contactstateconv == 0
+%               % set 'slidestateconv'
+%               contactstateconv = 'false';
+%               
+%               % make sure, that the for-loops will be aborted as soon as
+%               % possible
+%               i=size(seg_cut_info,1);
+%               break;
+%             end;
+%           end;
+%         end;
+%       end;
+%     end;
     
     % plot evolution of slip-stick-area during Newton steps
     % Uncomment the following call to show possible oszillations during the
     % Newton iterations.
 %     if timestep == 28
-    plotslidestateevolutionNewton;  % call a subroutine
+%     plotslidestateevolutionNewton;  % call a subroutine
 %     end
 
     % build a formatted string with some information about the current
     % newton step
-    iterdata = sprintf('  Iter %d  Res: %.4e  Delta: %.4e  Energ: %.4e  Slide: %s \t Cont: %s' , ...
-      iter,res_norm,deltanewton_norm,energ_norm,slidestateconv,contactstateconv);
+    iterdata = sprintf('  Iter %d  Res: %.4e  Delta: %.4e  Energ: %.4e', ...
+      iter,res_norm,deltanewton_norm,energ_norm);
+%     iterdata = sprintf('  Iter %d  Res: %.4e  Delta: %.4e  Energ: %.4e  Slide: %s \t Cont: %s' , ...
+%       iter,res_norm,deltanewton_norm,energ_norm,slidestateconv,contactstateconv);
     
+
     % print some information about the current newton step
     disp(iterdata);
+    
+    % clear some temporary variables
+    clear i j iterdata;
     % ------------------------------------------------------------------- %
     %% CHECK CONVERGENCE OF NEWTON-RAPHSON-SCHEME 
     if (res_norm < IFconvtol) && (deltanewton_norm < IFconvtol) && ...
@@ -2166,6 +1232,9 @@ for timestep = 1:(length(time)-1)
     dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
     dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
   end;
+  
+  % clear some temporary variables
+  clear i j nnode doff grain;
   % --------------------------------------------------------------------- %
   %% UPDATE AT END OF EACH LOAD-STEP  
 % clear x_def y_def;
@@ -2208,8 +1277,31 @@ for timestep = 1:(length(time)-1)
 %   plot(x_def(1),y_def(1),'*') 
 %   hold off;
     case 2  % perfect plasticity
-      %% reset additional tractions at interface
-      big_force_traction = zeros(length(big_force),1);
+      %% update plastic contribution to plastic gap and tangential tractions
+      % loop over interfaces 'i'
+      for i=1:size(seg_cut_info,1)
+        % loop over cut elements 'e'
+        for e=1:size(seg_cut_info,2)
+          % only, if 'e' is cut by 'i'
+          if seg_cut_info(i,e).elemno ~= -1
+            % current (converged) state is the converged step for the next
+            % load step
+
+            % plastic contribution to tangential gap
+            seg_cut_info(i,e).tgapplconv = seg_cut_info(i,e).tgappl;
+
+            % reset current gap
+            seg_cut_info(i,e).tgappl = [0 0];
+
+            % current (converged) tangential traction is the converged step 
+            % for the next load step
+            seg_cut_info(i,e).ttracconv = seg_cut_info(i,e).ttrac;
+
+            % reset current tangential traction at the two gauss points
+            seg_cut_info(i,e).ttrac = [0 0];
+          end;
+        end;
+      end;
       % ----------------------------------------------------------------- %
       %% visualize 'slidestate'-flags
 %{
@@ -2267,8 +1359,14 @@ for timestep = 1:(length(time)-1)
             % set color depending on current slidestate
             stylecell = {'b','r'};
 
-            % get 'index' for stylecell, depending on the 'slidestate'
-            index = seg_cut_info(i,e).slidestate + 1;
+            if any(seg_cut_info(i,e).f_trial > 0)
+              index = 2;
+            else
+              index = 1;
+            end;
+            
+%             % get 'index' for stylecell, depending on the 'slidestate'
+%             index = seg_cut_info(i,e).slidestate + 1;
 
             % get current normalized pseudotime of entire simulation
             timecoord = (timestep) / (length(time) - 1);
@@ -2345,6 +1443,9 @@ for timestep = 1:(length(time)-1)
       warning('MATLAB:XFEM:main_xfem',...
         'Unvalid slidingID. Choose valid ID or add additional case to switch-case-structure')
   end;  
+  
+  % clear some temporary variables
+  clear x_def y_def i;
   % --------------------------------------------------------------------- %
   %% LOAD STEPPING LOOP (END)
 end;
@@ -2386,6 +1487,9 @@ for i = 1:numnod
   dis(2*i-1) = ndisp(i,1) + ndisp(i,3) + ndisp(i,5);
   dis(2*i) = ndisp(i,2) + ndisp(i,4) + ndisp(i,6);
 end
+
+% clear some temporary variables
+clear i j nnode doff grain;
 % ----------------------------------------------------------------------- %
 %% POST PROCESS: STRESSES
 disp('postprocessing: stresses ...');
@@ -2608,6 +1712,11 @@ disp('postprocessing: tractions ...');
       error('MATLAB:XFEM:UnvalidID',...
         'Unvalid method ID. Choose a valid ID or add an additional case to switch-case-structure.');
   end;
+  
+  % clear some temporary variables
+  clear i j normaltraction tangentialtraction eleID elenodes xcoords ...
+    ycoords penalty_normal penalty_tangent normaltraction ...
+    tangentialtraction;
   % --------------------------------------------------------------------- %
   %% domain integral method 
 %   % Since the constraint enforcement methods represent the tractions at the
@@ -2753,6 +1862,10 @@ for i = 1:numnod
     x_def(i) = x(i) + dis(2*i-1);
     y_def(i) = y(i) + dis(2*i); 
 end
+
+% clear some temporary variables
+clear i;
+% ----------------------------------------------------------------------- %
 %% FINISH SOLVING PROCESS
 %  disp('saving to results file ...');
 

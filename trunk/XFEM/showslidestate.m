@@ -66,8 +66,15 @@ for i=1:size(seg_cut_info,1)
       % set color depending on current slidestate
       stylecell = {'b','r'};
       
-      % get 'index' for stylecell, depending on the 'slidestate'
-      index = seg_cut_info(i,e).slidestate + 1;
+      if any(seg_cut_info(i,e).f_trial > 0)
+        % ==> plastic deformation
+        index = 2;
+      else 
+        % ==> elastic deformation
+        index = 1;
+      end;
+%       % get 'index' for stylecell, depending on the 'slidestate'
+%       index = seg_cut_info(i,e).slidestate + 1;
       
       % plot subsegment
       plot(xcoord,ycoord,stylecell{index},'LineWidth',3.0);       

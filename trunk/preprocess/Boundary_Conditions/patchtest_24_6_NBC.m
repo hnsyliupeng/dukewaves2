@@ -21,3 +21,7 @@ force(1,175) = nodeload/2;
 % FORCE(1).shape = 'constant';
 % FORCE(1).values = [10 0];
 % FORCE(1).nodes = 169:175;
+
+% for i=70:7:175
+%   force(2,i) = 1.6;
+% end;
