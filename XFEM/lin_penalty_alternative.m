@@ -19,6 +19,8 @@
 %   id_dof              shows, if a node is enriched or not
 %   seg_cut_info        information about the interface in the element
 %   endpoints           endpoints of interface
+%   alpha_n             normal penalty parameter
+%   alpha_t             tangential penalty parameter
 %
 % Returned variables
 %   pen_normal          matrix for penalty constraints in normal direction
@@ -30,14 +32,11 @@
 
 function [pen_normal pen_tangent id] =... 
     lin_penalty_alternative(xcoords,ycoords,id_eqns,id_dof, ...
-    seg_cut_info,endpoints)
+    seg_cut_info,endpoints,alpha_n,alpha_t)
 %% Initialize
 % penalty stiffness contribution
-pen_normal = zeros(12);             % matrix for normal constraints
-pen_tangent = zeros(12);            % matrix for tangential constraints
-
-xep = xcoords;                      % x-coordinates of nodes
-yep = ycoords;                      % y-coordinates of nodes
+pen_normal = zeros(12,12);             % matrix for normal constraints
+pen_tangent = zeros(12,12);            % matrix for tangential constraints
 
 enrich1 = zeros(1,3);               % Is there a first enrichment?
 enrich2 = zeros(1,3);               % Is there a second enrichment?
@@ -46,8 +45,6 @@ normal = seg_cut_info.normal;       % vector normal to interface
 
 intersection = seg_cut_info.xint;   % intersection points between interface
                                     % and element edges
- 
-N = zeros(2,12);  % shape function matrix for first and second enrichments
 % ----------------------------------------------------------------------- %
 %% Establish a set of flags
 flg = [0 0 0 0 0 0];
@@ -115,7 +112,7 @@ elseif all(size(intersection) == [1 2])
   % Second endpoint of segment is also end point of interface
   endpoint = endpoints(1,:);
 
-  inside = polygon_contains_point_2d ( 3, [xep;yep], endpoint );
+  inside = polygon_contains_point_2d ( 3, [xcoords;ycorods], endpoint );
 
   if inside
     p2 = endpoint;
@@ -132,12 +129,8 @@ seg_jcob = he/2;
 gauss = [-sqrt(3)/3 sqrt(3)/3];
 weights = [1 1];
 
-% % 3 Gauss points on segments
-% gauss = [-sqrt(3/5) 0 sqrt(3/5)];
-% weights = [5/9 8/9 5/9];
-
 % get area of element
-Area = det([[1 1 1]' xep' yep'])/2;
+Area = det([[1 1 1]' xcoords' ycoords'])/2;
 % ----------------------------------------------------------------------- %
 %% loop over Gauss points to assemble N
 for g = 1:length(gauss)
@@ -169,8 +162,16 @@ for g = 1:length(gauss)
       N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
   end
   
-  pen_normal = pen_normal + N' * (normal * normal') * N * weights(g);
-  pen_tangent = pen_tangent + N' * (eye(2) - normal * normal') * N * weights(g);
+  % assemble normal penalty matrix
+  pen_normal = pen_normal ...
+    + alpha_n * N' * (normal * normal') * N * weights(g);
+  
+  % assemble tangential penalty matrix
+  if seg_cut_info.f_trial(g) <= 0   % only, if there is a tangential 
+                                  % stiffness at current gauss point
+    pen_tangent = pen_tangent ...
+      + alpha_t * N' * (eye(2) - normal * normal') * N * weights(g);
+  end;
 end;
 
 % multiply with jacobian due to gauss quadrature

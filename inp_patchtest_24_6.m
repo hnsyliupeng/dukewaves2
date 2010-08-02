@@ -135,10 +135,10 @@ IFintegral = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 16;
+IFyieldstress = 1.3;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -152,13 +152,13 @@ IFyieldstress = 16;
 IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
-IFmaxiter = 25;
+IFmaxiter = 50;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
 IFconvtol = 1.0e-7;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,501);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

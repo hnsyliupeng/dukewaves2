@@ -1,7 +1,7 @@
 % get_ele_residual_penalty_alternative.m
 %
-% CALL: get_ele_residual_penalty_alternative(xcoords,ycoords,seg_cut_info, ...
-%         endpoints,id_dof,id_eqns,totaldis)
+% CALL: get_ele_residual_penalty_alternative(xcoords,ycoords, ...
+%         seg_cut_info,endpoints,id_dof,id_eqns,totaldis)
 %
 % Computes the contribution of the contraints to the residual, depending on
 % the method of constraint enforcement.
@@ -14,18 +14,28 @@
 %   id_dof              shows, if a node is enriched or not
 %   id_eqns             mapping between element's nodes and global DOFs
 %   totaldis            displacements in base and extra DOFs of the element
+%   alpha_n             normal penalty parameter
+%   alpha_t             tangential penalty parameter
+%   yieldstress         yield stress
+%   deltaload           
+%   sliding_switch      indicates the sliding mode
 %
 % Returned variables
 %   penalty_normal      penalty residual in normal direction
 %   penalty_tangent     penalty residual in tangential direction 
 %   id                  id-array to enable assembly into 'residual'
+%   tgappl              plastic contribution to tangential gap
+%   tangtrac            tangential tractions at each gauss point
+%   f_trial             evalutated flow rule of trial state at both gauss 
+%                       points
 %
 
 % Author: Matthias Mayr (07/2010)
 
-function [penalty_normal penalty_tangent id] = ...
+function [penalty_normal penalty_tangent id tgappl tangtrac f_trial] = ...
   get_ele_residual_penalty_alternative(xcoords,ycoords,seg_cut_info, ...
-  endpoints,id_dof,id_eqns,totaldis)
+  endpoints,id_dof,id_eqns,totaldis,alpha_n,alpha_t,yieldstress, ...
+  deltaload,sliding_switch)
 %% Initialize
 penalty_normal = zeros(12,1);    % matrix for normal constraints
 penalty_tangent = zeros(12,1);   % matrix for tangential constraints
@@ -37,9 +47,16 @@ intersection = seg_cut_info.xint; % intersection points of interface with
                                   % element edges
 
 normal = seg_cut_info.normal;     % vector normal to interface
+tangent = seg_cut_info.tangent;   % vector tangential to interface
 
-% shape function matrix for first and second enrichments
-N = zeros(2,12);
+tgappl = [0 0];                   % plastic contribution to tangential gap
+plastictanggap = 0;
+
+tangtrac = [0 0];                 % scalar values of current traction at gauss points
+ttrac_scalar = 0;
+
+f_trial = [0 0];                  % flow rule of trial states at both gauss points
+f_trialgp = 0;
 % ----------------------------------------------------------------------- %
 %% Establish a set of flags
 flg = [0 0 0 0 0 0];
@@ -94,11 +111,7 @@ for n = 1:3     % loop over nodes
   end
 end
 % ----------------------------------------------------------------------- %
-%% EVALUATE GAP
-gap = evaluate_gap_penalty(xcoords,ycoords,id_eqns, ...
-    id_dof,seg_cut_info,endpoints,totaldis);
-% ----------------------------------------------------------------------- %
-%% PREPARE GAUSS QUADRATURE
+%% PREPARE GAUSS QUADRATURE (TWO GAUSS POINTS)
 % end points of intersection - direction doesn't matter - this is for the
 % segment jacobian calculation
 
@@ -124,18 +137,17 @@ end
 he = sqrt((p1(1)-p2(1))^2 + (p1(2)-p2(2))^2);
 seg_jcob = he/2;
 
-% 3 gauss points on segments, since the product of linear shape function
-% matrices is integrated, i.e. the integrand is quadratic, so at least 3
+% 2 gauss points on segments, since the product of linear shape function
+% matrices is integrated, i.e. the integrand is quadratic, so at least 2
 % gauss points are required for an exact integration.
-gauss = [-sqrt(3/5) 0 sqrt(3/5)];
-weights = [5/9 8/9 5/9];
+gauss = [-sqrt(3)/3 sqrt(3)/3];
+weights = [1 1];
 
 % get area of element
 Area = det([[1 1 1]' xcoords' ycoords'])/2;
 % ----------------------------------------------------------------------- %
 %% loop over Gauss points to assemble 'N'
 for g = 1:length(gauss)
-  %% assemble N
   % Get real coordinates of gauss points
   xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
   yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
@@ -143,7 +155,7 @@ for g = 1:length(gauss)
   % reset shape function matrix 'N'
   N = zeros(2,12);
   
-  % Evaluate shape functions
+  % Evaluate shape functions and assemble 'N'
   for b = 1:3     
     % Get coorindates of area opposite node of concern
     xes = xcoords;
@@ -164,17 +176,34 @@ for g = 1:length(gauss)
     N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
   end;
   
-  % evaluate gap at gauss point
-  gap = evaluate_gap_penalty_gp(xn,yn,flg,xcoords,ycoords,totaldis, ...
-    id_eqns,Area);
-  
+  % evaluate normal and tangential traction at gauss point
+  % distinguish bewteen pure elastic and plastic cases
+  if sliding_switch == 0 || sliding_switch == 1
+    [ntrac ttrac] = evaluate_traction_penalty_gp(xn,yn,flg,xcoords, ...
+      ycoords,totaldis,id_eqns,Area,normal,alpha_n,alpha_t);
+  elseif sliding_switch == 2
+    % perfect plasticity
+    [ntrac ttrac plastictanggap f_trialgp ttrac_scalar] = ...
+      evaluate_traction_penalty_gp_plastic(xn,yn,flg,xcoords,ycoords, ...
+      totaldis,id_eqns,Area,normal,tangent,alpha_n,alpha_t, ...
+      seg_cut_info.tgapplconv(g),seg_cut_info.ttracconv(g),yieldstress,deltaload);
+  else
+    error('MATLAB:XFEM:UnvalidID','Unvalid sliding ID');
+  end;
   % normal direction
-  penalty_normal  = penalty_normal ...
-                  + N' * (normal * normal') * gap * weights(g);
+  penalty_normal  = penalty_normal + N' * ntrac * weights(g);
 
   % tangential direction
-  penalty_tangent = penalty_tangent ...
-                  + N' * (eye(2) - normal * normal') * gap * weights(g);
+  penalty_tangent = penalty_tangent + N' * ttrac * weights(g);
+  
+  % store plastic contribution to tangential gap
+  tgappl(g) = plastictanggap;
+  
+  % store plastic contribution to tangential gap
+  tangtrac(g) = ttrac_scalar;
+  
+  % store flow rule of trial state
+  f_trial(g) = f_trialgp;
 end;
 
 % multiply with jacobian due to gauss quadrature
@@ -198,18 +227,5 @@ id(10) = id_eqns(2,6);  % 2nd extra y dof
 id(11) = id_eqns(3,5);  % 2nd extra x dof
 id(12) = id_eqns(3,6);  % 2nd extra y dof
 % ----------------------------------------------------------------------- %
-
-% nodal_dis = zeros(length(id),1);
-% for i=1:length(id)
-%   if id(i) ~= 0
-%     nodal_dis(i) = totaldis(id(i));
-%   else
-%     nodal_dis(i) = 0;
-%   end;
-% end;
-% 
-% penalty_normal = penalty_normal * nodal_dis;
-% penalty_tangent = penalty_tangent * nodal_dis;
-
 end
 
