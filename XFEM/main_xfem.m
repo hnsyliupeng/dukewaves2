@@ -676,7 +676,7 @@ for timestep = 1:(length(time)-1)
 %     % internal force is computed based on stiffness matrix 'bigk' and the
 %     % current global total displacement vector 'totaldis'.
 %     residual = big_force - bigk * totaldis;
-    
+
     % initialize residual
     residual = zeros(length(big_force_max),1);
 
@@ -1038,17 +1038,176 @@ for timestep = 1:(length(time)-1)
                                  % is considered as 'F_ext - F_int' 
                                  % (according to Laursen's Book)
     % ------------------------------------------------------------------- %
+%     %% UPDATE RESIDUAL
+% %     % The global stiffnes matrix is already built and the Dirichlet
+% %     % boundary conditions are imposed. A global force vector 'big_force' is
+% %     % assembled. So, now the residual 'residual' can be build, whereby the
+% %     % internal force is computed based on stiffness matrix 'bigk' and the
+% %     % current global total displacement vector 'totaldis'.
+% %     residual = big_force - bigk * totaldis;
+%     
+%     % copy old residual
+%     residual_old = residual;
+% 
+%     % initialize residual
+%     residual = zeros(length(big_force_max),1);
+% 
+% %{
+%     % Assemble the residual contribution of internal forces on an element 
+%     % based level.
+%     for e = 1:numele    % loop over all elements
+%       % get some element data
+%       elenodes = node(:,e);     % global node IDs of this element's nodes
+%       xcoords = x(elenodes);    % x-coordinates of 'elenodes'
+%       ycoords = y(elenodes);    % y-coordinates of 'elenodes'
+%       
+%       % get id-array to prepare assembly
+%       id = [id_eqns(elenodes(1),1:2) id_eqns(elenodes(2),1:2) id_eqns(elenodes(3),1:2)...
+%           id_eqns(elenodes(1),3:6) id_eqns(elenodes(2),3:6) id_eqns(elenodes(3),3:6)];
+%       eliminate = find(id == 0);
+%       for i = size(eliminate,2):-1:1  % eliminate dofs with index '0'
+%         id(eliminate(i)) = [];
+%       end
+%       
+%       % Compute contributions to an elements residual
+% %       ele_residual_int = get_ele_residual_int(elenodes,xcoords,ycoords, ...
+% %         dis,orig_ndisp,cutlist(e),maxngrains,e,id_dof(elenodes,:));          % residual of internal forces due to the inner of the grains
+% %       ele_residual_neumann = get_ele_residual_neumann(xcoords,ycoords);  % residual of tractions on Neumann boundary
+% %       ele_residual_body = residual_body();        % residual of body forces
+% 
+%       if cutlist(e) == 0
+%         nodal_dis = [ totaldis(id_eqns(elenodes(1),1)); ...
+%                       totaldis(id_eqns(elenodes(1),2)); ...
+%                       totaldis(id_eqns(elenodes(2),1)); ...
+%                       totaldis(id_eqns(elenodes(2),2)); ...
+%                       totaldis(id_eqns(elenodes(3),1)); ...
+%                       totaldis(id_eqns(elenodes(3),2))];
+%         ele_residual = elemstiff_class * nodal_dis;
+%       else
+%         nodal_dis = [ totaldis(id_eqns(elenodes(1),1)); ...
+%                       totaldis(id_eqns(elenodes(1),2)); ...
+%                       totaldis(id_eqns(elenodes(2),1)); ...
+%                       totaldis(id_eqns(elenodes(2),2)); ...
+%                       totaldis(id_eqns(elenodes(3),1)); ...
+%                       totaldis(id_eqns(elenodes(3),2))];
+%       end;
+%       % compute element's residual
+%       ele_residual = ele_residual_int;% - ele_residual_neumann;
+%            
+%       % assemble into global residual
+%       for index = 1:length(id)
+%         residual(id(index)) = residual(id(index)) + ele_residual(index);
+%       end;
+%     end; 
+% %}
+%     
+%     % contribution of elastic bulk field of the inner of the grains which
+%     % will not be affected from plasticity at the interface
+%     residual = bigk_el * totaldisDBC;
+%     
+%     % residual contributions due to constraints
+%     for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
+%       for e=1:size(seg_cut_info,2)  % loop over all cut elements 'e'
+%         if seg_cut_info(i,e).elemno ~= -1  % only, if 'e' is cut by 'i'
+%           % get some element data
+%           eleID = seg_cut_info(i,e).elemno; % global element ID
+%           elenodes = node(:,eleID); % global node IDs of this element's nodes
+%           xcoords = x(elenodes);    % x-coordinates of 'elenodes'
+%           ycoords = y(elenodes);    % y-coordinates of 'elenodes'
+%           
+%           switch IFmethod
+%             case 0  % Lagrange multipliers
+%             case 1  % Penalty method
+%               % get penalty parameters (depending on sliding case)
+%               switch IFsliding_switch
+%                 case 0  % fully tied case
+%                   penalty_normal = IFpenalty_normal;
+%                   penalty_tangent = IFpenalty_tangential;
+%                 case 1  % frictionless sliding
+%                   penalty_normal = IFpenalty_normal;
+%                   penalty_tangent = 0;
+%                 case 2  % perfect plasticity
+%                   % provide both penalty parameters: the normal one will be
+%                   % used indepentent of the slidestate, the tangential one
+%                   % is needed for the return mapping algorithm.
+%                   penalty_normal = IFpenalty_normal;
+%                   penalty_tangent = IFpenalty_tangential;
+%                 otherwise
+%                   error('MATLAB:XFEM','Unvalid Sliding-ID');
+%               end;
+%               
+%               % get residual contributions vectors, but choose betweeb the
+%               % one- and two-integral formulation
+%               switch IFintegral
+%                 case 1  % one integral
+%                   [res_penalty_normal res_penalty_tangent id tgappl ttrac f_trial] = ...
+%                     get_ele_residual_penalty_alternative(xcoords,ycoords, ...
+%                     seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+%                     id_dof(elenodes,:),id_eqns(elenodes,:),totaldis, ...
+%                     penalty_normal,penalty_tangent,IFyieldstress, ...
+%                     deltaload,IFsliding_switch);
+%                 case 2  % two integrals
+%                   [res_penalty_normal res_penalty_tangent id] = ...
+%                     get_ele_residual_penalty(xcoords,ycoords, ...
+%                     seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+%                     id_dof(elenodes,:),id_eqns(elenodes,:),totaldis);
+%                 otherwise
+%                   error('MATLAB:XFEM:UnvalidID', ...
+%                     'Unvalid number of integrals');
+%               end;
+% 
+%               % store plastic contribution to tangential gap
+%               seg_cut_info(i,e).tgappl = tgappl;
+%               
+%               % store scalar values of current tangential traction at each
+%               % gauss point
+%               seg_cut_info(i,e).ttrac = ttrac;
+%               
+%               % store evaluated flow rules of trial state at both gauss
+%               % points
+%               seg_cut_info(i,e).f_trial = f_trial;
+%               
+%               % compute ele_residual_constraint
+%               ele_residual_constraint = res_penalty_normal ...  % normal traction
+%                                       + res_penalty_tangent;    % tangential traction
+%                                                                  
+%               % assemble into global residual
+%               for a = 1:length(id)
+%                 if id(a) ~= 0
+%                   residual(id(a)) = residual(id(a)) + ele_residual_constraint(a);
+%                 end;
+%               end;
+%             case 2  % Nitsche's mehtod
+%             otherwise
+%               error('MATLAB:XFEM','Unvalid Method-ID');
+%           end;
+%         end;
+%       end;
+%     end;
+% 
+%     residual = residual - big_force_loadstep;
+%     
+%     % clear some temporary variables
+%     clear eleID elenodes xcoords ycoords res_constant_tangent i e a id ...
+%       ele_residual_constraint constant_tangent res_penalty_normal ...
+%       penalty_normal res_penalty_tangent penalty_tangent ...
+%       normaltraction tangentialtraction;
+    % ------------------------------------------------------------------- %
     %% UPDATE DISPLACEMENTS
-    % define a line serch parameter 'ls_par'
-    ls_par = 1;
-    
-    % compute the line search parameter according to 'Laursen2002' p. 59 ff
-    % eq. (2.235)
-    if iter > 1
-      ls_par = -(deltanewton' * residual) / (deltanewton' * tangentmatrix * deltanewton);
-    end;
-
-    deltanewton = ls_par * deltanewton;
+%     % define a line serch parameter 'ls_par'
+%     ls_par = 1;
+%     
+%     % check, if a line search is necessary
+%     stol = 0.5;   % The value 'stol = 0.5' is recommended in 'Matthies1979'
+%     G = totaldis * residual;
+%     G0 = totaldis * residual_old;
+%     if abs(G) > stol * abs(G0)
+%       % compute the line search parameter 'ls_par'
+%       ls_par = getlsparameter(stol,totaldis * residual_old, ...
+%         totaldis * residual,totaldis);
+%     end;
+% 
+%     deltanewton = ls_par * deltanewton;
     
     deltaload = deltaload + deltanewton;
     totaldis = totaldis + deltanewton;
