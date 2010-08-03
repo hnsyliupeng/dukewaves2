@@ -115,8 +115,8 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 5e+10;
-IFpenalty_tangential  = 5e+10;
+IFpenalty_normal      = 5e+5;
+IFpenalty_tangential  = 5e+5;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+3;
@@ -158,7 +158,7 @@ IFmaxiter = 50;
 IFconvtol = 1.0e-7;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,501);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,41);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
