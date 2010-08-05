@@ -86,6 +86,7 @@ dis = zeros(1,2*numnod);
 %   final tangential traction of previous load step 'ttracconv' at the two
 %     gauss points
 %   evalutated flow rules of trial state 'f_trial' at both gauss points
+%   normal traction at the gauss points 'ntracconv'
 for i=1:size(seg_cut_info,1)
   for e=1:size(seg_cut_info,2)
     seg_cut_info(i,e).slidestate = 0;     % initialize as 'stick'
@@ -93,9 +94,10 @@ for i=1:size(seg_cut_info,1)
     seg_cut_info(i,e).tgappl = [0 0];     % current plastic gap
     seg_cut_info(i,e).tgapplconv = [0 0]; % converged plastic gap of previous load step
 %     seg_cut_info(i,e).tgapconv = [0 0];   % converged total gap of previous load step
-    seg_cut_info(i,e).ttrac = [0 0];  % current tangential traction    
+    seg_cut_info(i,e).ttrac = [0 0];      % current tangential traction    
     seg_cut_info(i,e).ttracconv = [0 0];  % converged tangential traction of previous load step
     seg_cut_info(i,e).f_trial = [0 0];    % evalutated flow rules of trial state at both gauss points
+    seg_cut_info(i,e).ntracconv = [0 0];  % normal traction at gauss points
   end;
 end;
 
@@ -238,8 +240,8 @@ numeqns = max(max(id_eqns));
     numeqns = numeqns + 2*multipliers;
   end;
   % --------------------------------------------------------------------- %
-  %% add extra equations to enforce DBCs on enriched nodes via Lagrange
-  % multipliers
+  %% add extra equations to enforce DBCs on enriched nodes via Lagrange multipliers
+  %{
   % get nodes with x- and y-DBCs
   DOFs_x_DBCs = find(dispbc(1,:) ~= 0);
   DOFs_y_DBCs = find(dispbc(2,:) ~= 0);
@@ -326,6 +328,7 @@ numeqns = max(max(id_eqns));
   extra_eqns_DBC = extra_eqns_DBCx + extra_eqns_DBCx2 + extra_eqns_DBCy ...
     + extra_eqns_DBCy2;
   numeqns = numeqns + extra_eqns_DBC;
+  %}
   % --------------------------------------------------------------------- %
   %% allocate size of the stiffness matrix
   %bigk = zeros(numeqns);
@@ -613,6 +616,7 @@ for timestep = 1:(length(time)-1)
   end;
 %   % --------------------------------------------------------------------- %
     %% PREPARE IMPOSING DIRICHLET BOUNDARY CONDITIONS
+    %
     % The global displacement-vector 'totaldis' is copied and modified such
     % that its copy contains all Dirichlet boundary conditions for the
     % current load step. This modified displacement vector will be used to
@@ -622,16 +626,17 @@ for timestep = 1:(length(time)-1)
     DBCmatrix = zeros(2,length(totaldis));  % first line shows, if there is a DBC
                                             % seocnd line stores the value
     
+    % This structure works only to imposes DBCs on not enriched nodes.
     % loop over all nodes
     for n=1:numnod
       % loop x- and y-DOF of each node
       for j=1:2
         m  = id_eqns(n,j);    % global DOF ID for base DOF
-%         m2 = id_eqns(n,j+2);  % global DOF ID for first enriched DOF
 %         if m2 ~= 0  
-%           m,m2,n,j% check, if node is enriched
-%           error('MATLAB:XFEM:DBCs', ...
-%             'No Dirichlet boundary conditions allowed on enriched nodes.');
+% %           m,m2,n,j% check, if node is enriched
+% %           error('MATLAB:XFEM:DBCs', ...
+% %             'No Dirichlet boundary conditions allowed on enriched nodes.');
+%           break;
 %         end;
         
         % build vector with prescribed displacements
@@ -658,6 +663,70 @@ for timestep = 1:(length(time)-1)
       end;
     end;
     
+    % This structure imposes DBCs with value '0' also on enriched nodes.
+%{
+    % loop over all nodes
+    for n=1:numnod
+      % loop x- and y-DOF of each node
+      for j=1:2
+        m  = id_eqns(n,j);    % global DOF ID for base DOF
+        m2 = id_eqns(n,j+2);  % global DOF ID for first enriched DOF
+        m3 = id_eqns(n,j+3);  % global DOF ID for second enriched DOF
+        
+        %% first enrichment
+        if m2 ~= 0
+          % build vector with prescribed displacements
+          if (dispbc(j,n) == 1)
+            DBCmatrix(1,m2) = 1;
+            DBCmatrix(2,m2) = 0;
+          end
+
+          % add a second set of DBCs, if defined
+          if exist('time2','var') == 1
+            if (dispbc2(j,n) == 1)
+              DBCmatrix(1,m2) = 1;
+              DBCmatrix(2,m2) = 0;
+            end;
+          end;
+
+          % add a third set of DBCs, if defined
+          if exist('time3','var') == 1
+            if (dispbc3(j,n) == 1)
+              DBCmatrix(1,m2) = 1;
+              DBCmatrix(2,m2) = 0;
+            end;
+          end;
+        end;
+        % --------------------------------------------------------------- %
+        %% second enrichment
+        if m3 ~= 0
+          % build vector with prescribed displacements
+          if (dispbc(j,n) == 1)
+            DBCmatrix(1,m3) = 1;
+            DBCmatrix(2,m3) = 0;
+          end
+
+          % add a second set of DBCs, if defined
+          if exist('time2','var') == 1
+            if (dispbc2(j,n) == 1)
+              DBCmatrix(1,m3) = 1;
+              DBCmatrix(2,m3) = 0;
+            end;
+          end;
+
+          % add a third set of DBCs, if defined
+          if exist('time3','var') == 1
+            if (dispbc3(j,n) == 1)
+              DBCmatrix(1,m3) = 1;
+              DBCmatrix(2,m3) = 0;
+            end;
+          end;
+        end;
+        % --------------------------------------------------------------- %
+      end;
+    end;
+%}
+    
     % build the modified displacement vector 'totaldisDBC'
     totaldisDBC = totaldis;               % copy global displacement vector
     for m=1:length(totaldis)              % loop over all DOFs
@@ -668,18 +737,21 @@ for timestep = 1:(length(time)-1)
     
     % clear some temporary variables
     clear n j m;
+    %}
     % ------------------------------------------------------------------- %
     %% BUILD RESIDUAL
-%     % The global stiffnes matrix is already built and the Dirichlet
-%     % boundary conditions are imposed. A global force vector 'big_force' is
-%     % assembled. So, now the residual 'residual' can be build, whereby the
-%     % internal force is computed based on stiffness matrix 'bigk' and the
-%     % current global total displacement vector 'totaldis'.
-%     residual = big_force - bigk * totaldis;
+%     % The global stiffnes matrix for the elastic contribution is already 
+%     built. A global force vector 'big_force_loadstep' for the current 
+%     load step is assembled. So, now the residual 'residual' can be build,
+%     whereby the internal force is computed based on stiffness matrix 
+%     'bigk_el', the contributions from the constraints and the current 
+%     global total displacement vector 'totaldis'.
 
-    % initialize residual
-    residual = zeros(length(big_force_max),1);
+%     % initialize residual
+%     residual = zeros(length(big_force_max),1);
 
+% The following commented code should assemble the elastic part of the
+% residual, but it does not work correctly.
 %{
     % Assemble the residual contribution of internal forces on an element 
     % based level.
@@ -729,9 +801,19 @@ for timestep = 1:(length(time)-1)
     end; 
 %}
     
+    % call a subroutine to assemble the global residual
+    [residual seg_cut_info] = ...
+      buildresidual(bigk_el,seg_cut_info,INTERFACE_MAP,x,y, ...
+      big_force_loadstep,node,totaldis,IFpenalty_normal, ...
+      IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
+      IFyieldstress,id_eqns,id_dof,deltaload);
+
+% The following commented code is moved to the subroutine 'buildresidual.m'    
+%{
     % contribution of elastic bulk field of the inner of the grains which
     % will not be affected from plasticity at the interface
-    residual = bigk_el * totaldisDBC;
+%     residual = bigk_el * totaldisDBC;
+    residual = bigk_el * totaldis;
     
     % residual contributions due to constraints
     for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
@@ -820,6 +902,7 @@ for timestep = 1:(length(time)-1)
       ele_residual_constraint constant_tangent res_penalty_normal ...
       penalty_normal res_penalty_tangent penalty_tangent ...
       normaltraction tangentialtraction;
+%}
     % ------------------------------------------------------------------- %
     %% BUILD TANGENT MATRIX
     % Here, the tangent matrix which is computed via
@@ -912,20 +995,41 @@ for timestep = 1:(length(time)-1)
     end;
     % ------------------------------------------------------------------- %
     %% IMPOSE DISPLACEMENT BOUNDARY CONDITIONS 
+%     % loop over all DOFs
+%     numdof = length(totaldis);
+%     for m=1:numdof
+%       % check, if current DOF has a DBC
+%       if DBCmatrix(1,m) == 1
+%         tangentmatrix(:,m) = zeros(numdof,1);
+%         tangentmatrix(m,:) = zeros(1,numdof);
+%         tangentmatrix(m,m) = 1.0;
+%         residual(m) = totaldis(m) - totaldisDBC(m);
+%       end;
+%     end;
+    
     % loop over all DOFs
     numdof = length(totaldis);
     for m=1:numdof
       % check, if current DOF has a DBC
       if DBCmatrix(1,m) == 1
-        tangentmatrix(:,m) = zeros(numdof,1);
-        tangentmatrix(m,:) = zeros(1,numdof);
+%           if iter == 1
+        residual = residual - tangentmatrix(:,m) * (totaldis(m) - DBCmatrix(2,m));
+        residual(m) = totaldis(m) - DBCmatrix(2,m);%totaldisDBC(m); 
+%           else
+% %             residual = residual - tangentmatrix(:,m) * (totaldis(m) - DBCmatrix(2,m));
+%             residual(m) = 0;%totaldis(m) - DBCmatrix(2,m);%0;%totaldis(m) - DBCmatrix(2,m);%totaldisDBC(m);
+%           end;
+
+        % modify tangent matrix
+        tangentmatrix(:,m) = zeros(length(residual),1);
+        tangentmatrix(m,:) = zeros(1,length(residual));
         tangentmatrix(m,m) = 1.0;
-        residual(m) = totaldis(m) - totaldisDBC(m);
+ 
       end;
     end;
 
     % clear some temporary variables
-    clear m numdof DBCmatrix totaldisDBC;
+    clear m numdof totaldisDBC;
     % ------------------------------------------------------------------- %
     %% ADD CONSTRAINT EQUATIONS FOR DIRICHLET BOUNDARY CONDITIONS ON ENRICHED NODES
     %{
@@ -1194,20 +1298,23 @@ for timestep = 1:(length(time)-1)
 %       normaltraction tangentialtraction;
     % ------------------------------------------------------------------- %
     %% UPDATE DISPLACEMENTS
-%     % define a line serch parameter 'ls_par'
-%     ls_par = 1;
-%     
-%     % check, if a line search is necessary
-%     stol = 0.5;   % The value 'stol = 0.5' is recommended in 'Matthies1979'
-%     G = totaldis * residual;
-%     G0 = totaldis * residual_old;
-%     if abs(G) > stol * abs(G0)
-%       % compute the line search parameter 'ls_par'
-%       ls_par = getlsparameter(stol,totaldis * residual_old, ...
-%         totaldis * residual,totaldis);
-%     end;
-% 
-%     deltanewton = ls_par * deltanewton;
+% insert a block comment in the next line to disable the line search
+%{
+    if iter > 1
+      % set a tolerance for the line search
+      stol = 0.5;   % The value 'stol = 0.5' is recommended in 'Matthies1979'
+
+      % compute the line search parameter 'ls_par'
+      ls_par = getlsparameter(stol,residual,deltanewton,bigk_el,seg_cut_info,INTERFACE_MAP,x,y, ...
+        big_force_loadstep,node,totaldis,IFpenalty_normal, ...
+        IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
+        IFyieldstress,id_eqns,id_dof,deltaload,DBCmatrix);
+
+      % scale the displacement increment with the line search parameter
+      deltanewton = ls_par * deltanewton;
+    end;
+    
+%}
     
     deltaload = deltaload + deltanewton;
     totaldis = totaldis + deltanewton;
@@ -1712,8 +1819,9 @@ clear stresse straine maxstress_vec minstress_vec i e f j;
 %% POST PROCESS: TRACTIONS AT INTERFACE
 disp('postprocessing: tractions ...');
   %% direct evaluation
-  % computing the internal forces in the interface depends on the method of
+  % computing the traction at the interface depends on the method of
   % constraint enforcing
+%{
   switch IFmethod 
     case 0  % Lagrange multipliers
       % extract vector with lagrange multipliers from 'totaldis'
@@ -1876,6 +1984,133 @@ disp('postprocessing: tractions ...');
   clear i j normaltraction tangentialtraction eleID elenodes xcoords ...
     ycoords penalty_normal penalty_tangent normaltraction ...
     tangentialtraction;
+%}
+  
+  % distinguish between the methods of constraint enforcement
+  switch IFmethod
+    case 0  % Lagrange mulitpliers
+    case 1  % Penalty method
+      % The normal traction has to be computed for each sliding case. The
+      % tangential traction has to be computed only for the pure elastic
+      % cases. For perfect plasticity, its values at the gauss points are
+      % already stored in 'seg_cut_info(i,e).ttracconv'.
+            
+      % distinguish bewteen the sliding cases
+      switch IFsliding_switch
+        case 0  % fully tied case
+          % Normal and tangential tractions have to be computed.
+          
+          % loop over all interfaces 'i'
+          for i=1:size(seg_cut_info,1)
+            % loop over cut elements 'e'
+            for e=1:size(seg_cut_info,2)
+              % only, if 'e' is cut by 'i'
+              if seg_cut_info(i,e).elemno ~= -1
+                % get some element data
+                eleID = seg_cut_info(i,e).elemno;
+                elenodes = node(:,eleID);
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                
+                % set penalty parameters
+                alpha_n = IFpenalty_normal;
+                alpha_t = IFpenalty_tangential;
+                                
+                % compute traction at gauss points
+                [ntrac ttrac] = postprocess_traction_penalty(xcoords, ...
+                  ycoords,seg_cut_info(i,e),id_dof(elenodes,:), ...
+                  id_eqns(elenodes,:),totaldis,alpha_n,alpha_t, ...
+                  INTERFACE_MAP(i).endpoints);
+                
+                % assign these values to their storage
+                seg_cut_info(i,e).ntracconv = ntrac;
+                seg_cut_info(i,e).ttracconv = ttrac;
+              end;
+            end;
+          end;
+        case 1  % frictionless sliding
+          % Only normal tractions have to be computed, since the tangential
+          % tractions are a priori equal to zero. In order to use existing
+          % code, a routine, which computes normal and tangential traction
+          % is used, but the tangential penalty parameter 'alpha_t' is set
+          % to zero. This is consistent with the computation (see
+          % 'residual' and 'tangentmatrix').
+          
+          % loop over all interfaces 'i'
+          for i=1:size(seg_cut_info,1)
+            % loop over cut elements 'e'
+            for e=1:size(seg_cut_info,2)
+              % only, if 'e' is cut by 'i'
+              if seg_cut_info(i,e).elemno ~= -1
+                % get some element data
+                eleID = seg_cut_info(i,e).elemno;
+                elenodes = node(:,eleID);
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                
+                % set penalty parameters
+                alpha_n = IFpenalty_normal;
+                alpha_t = 0;
+                
+                % compute traction at gauss points
+                [ntrac ttrac] = postprocess_traction_penalty(xcoords, ...
+                  ycoords,seg_cut_info(i,e),id_dof(elenodes,:), ...
+                  id_eqns(elenodes,:),totaldis,alpha_n,alpha_t, ...
+                  INTERFACE_MAP(i).endpoints);
+                
+                % assign these values to their storage
+                seg_cut_info(i,e).ntracconv = ntrac;
+                seg_cut_info(i,e).ttracconv = ttrac;
+              end;
+            end;
+          end;
+        case 2  % perfect plasticity
+          % Only normal tractions have to be computed, since the tangential
+          % tractions have already been computed during the return mapping 
+          % algorithm. In order to use existing code, a routine, which 
+          % computes normal and tangential traction is used, but the 
+          % tangential values are not used for further computation.
+          
+          % loop over all interfaces 'i'
+          for i=1:size(seg_cut_info,1)
+            % loop over cut elements 'e'
+            for e=1:size(seg_cut_info,2)
+              % only, if 'e' is cut by 'i'
+              if seg_cut_info(i,e).elemno ~= -1
+                % get some element data
+                eleID = seg_cut_info(i,e).elemno;
+                elenodes = node(:,eleID);
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                
+                % set penalty parameters
+                alpha_n = IFpenalty_normal;
+                alpha_t = 0;
+                
+                % compute traction at gauss points
+                [ntrac ~] = postprocess_traction_penalty(xcoords, ...
+                  ycoords,seg_cut_info(i,e),id_dof(elenodes,:), ...
+                  id_eqns(elenodes,:),totaldis,alpha_n,alpha_t, ...
+                  INTERFACE_MAP(i).endpoints);
+                
+                % assign these values to their storage
+                seg_cut_info(i,e).ntracconv = ntrac;
+              end;
+            end;
+          end;
+        otherwise
+          error('MATLAB:XFEM:UnvalidID','Unvalid sliding-ID');
+      end;
+      
+      % clear some temporary variables
+      clear i e eleID elenodes xcoords ycoords alpha_n alpha_t ntrac ttrac;
+    case 2  % Nitsche's method
+    otherwise
+      error('MATLAB:XFEM:UnvalidID','Unvalied method-ID');
+  end;
+  
+  
+    
   % --------------------------------------------------------------------- %
   %% domain integral method 
 %   % Since the constraint enforcement methods represent the tractions at the
