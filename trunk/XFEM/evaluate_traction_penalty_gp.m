@@ -109,7 +109,7 @@ gap = N * localdis';
 % compute normal traction
 ntrac = alpha_n * (normal * normal') * gap;
 
-% compute tangential traction, using a return map algorithm
+% compute tangential traction
 ttrac = alpha_t *(eye(2) - normal * normal') * gap;
 % ----------------------------------------------------------------------- %
 end

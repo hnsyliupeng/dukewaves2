@@ -112,7 +112,7 @@ elseif all(size(intersection) == [1 2])
   % Second endpoint of segment is also end point of interface
   endpoint = endpoints(1,:);
 
-  inside = polygon_contains_point_2d ( 3, [xcoords;ycorods], endpoint );
+  inside = polygon_contains_point_2d ( 3, [xcoords;ycoords], endpoint );
 
   if inside
     p2 = endpoint;
