@@ -77,10 +77,10 @@ NJs(2) = 1;
 NJs(3) = -1;
 
 % compute derivatives of x and y wrt psi and eta
-xr = NJr*xep'; % derivatve of x-coord wrt 
-yr = NJr*yep'; 
-xs = NJs*xep';  
-ys = NJs*yep';
+xr = NJr*xep'; % derivatve of x-coord wrt r
+yr = NJr*yep'; % derivatve of y-coord wrt r
+xs = NJs*xep'; % derivatve of x-coord wrt s
+ys = NJs*yep'; % derivatve of y-coord wrt s
 
 Jinv = [ys, -yr; -xs, xr];
 elem_jcob = xr*ys - xs*yr;
@@ -171,9 +171,8 @@ for n = 1:3     % loop over nodes
     end        
   end
 end
-
 % ----------------------------------------------------------------------- %
-%% INTEGRATE SHAPE FUNCTIONS OVER SEGMENT AND ASSEMBLE NITSCHES TERMS
+%% PREPARE GAUSS QUADRATURE
 % end points of intersection - direction doesn't matter - this is for the
 % segment jacobian calculation only
 if all(size(intersection) == [2 2])
@@ -207,14 +206,15 @@ weights = [1 1];
 N = zeros(1,6);   % first three entries correspond to the first enrichment 
                   % of the three nodes, second three entries to the
                   % possible second enrichment.
-
+% ----------------------------------------------------------------------- %
+%% INTEGRATE SHAPE FUNCTIONS OVER SEGMENT AND ASSEMBLE NITSCHES TERMS
 for g = 1:2
   % Get real coordinates of gauss points
   xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
   yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
 
   for b = 1:3     % Evaluate shape functions
-    % Get coorindates of area opposite node of concern
+    % Get coordinates of area opposite node of concern
     for m=1:3
       jes = node(m,parent); 
       xes(m) = x(jes); 
