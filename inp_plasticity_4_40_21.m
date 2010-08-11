@@ -268,8 +268,8 @@ IFMatSet = 9;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal = 2.1e+6;%2.1e+6;
-IFpenalty_tangential = 2.1e+6;%2.1e+6;
+IFpenalty_normal = 2.1e+5;%2.1e+6;
+IFpenalty_tangential = 2.1e+5;%2.1e+6;
 %
 % Nitsche Parameter
 IFnitsche = 1.0e+4;
@@ -278,7 +278,7 @@ IFnitsche = 1.0e+4;
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)
 % 2     Two integrals (alpha ~1/h^2)
-IFintegral = 2;
+IFintegral = 1;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -308,14 +308,14 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-3;%12;
+IFconvtol = 1.0e-6;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 % IFtime = linspace(0,1,151);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-IFtime = [linspace(0,1,21) ones(1,140)];
-IFtime2 = [zeros(1,20) linspace(0,1,141)];
-% IFtime3 = [zeros(1,20) ones(1,80)];
+IFtime = [linspace(0,1,1) ones(1,100)];
+IFtime2 = [linspace(0,1,101)];
+IFtime3 = [ones(1,1) ones(1,100)];
 
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

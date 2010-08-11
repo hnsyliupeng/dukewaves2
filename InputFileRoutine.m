@@ -284,10 +284,12 @@ IFMatSet = 3;
 IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty = 3.03e+12;
+IFpenalty_normal      = 3.0294e+5;
+IFpenalty_tangential  = 3.0294e+5;
 %
 % Nitsche Parameter
-IFnitsche = -1;%1.0e+4;
+IFnitsche_normal      = -1;%1.0e+4;
+IFnitsche_tangential  = -1;%1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -345,14 +347,13 @@ disp(['IFnldivy:                ' num2str(IFnldivy)]);
 disp(['IFdatasetp:              ' num2str(IFdatasetp)]);
 disp(['IFDirichletBCs:          ' num2str(IFDirichletBCs)]);
 disp(['IFNeumannBCs:            ' num2str(IFNeumannBCs)]);
-disp(['IFneumann:               ' num2str(IFneumann)]);
 disp(['IFMatSet:                ' num2str(IFMatSet)]);
 disp(['IFsliding_switch:        ' num2str(IFsliding_switch)]);
 disp(['IFmethod:                ' num2str(IFmethod)]);
 disp(['IFpenalty_normal:        ' num2str(IFpenalty_normal)]);
 disp(['IFpenalty_tangential:    ' num2str(IFpenalty_tangential)]);
-disp(['IFnitsche:               ' num2str(IFnitsche)]);
-disp(['IFintegral:              ' num2str(IFintegral)]);
+disp(['IFnitsche_normal:        ' num2str(IFnitsche_normal)]);
+disp(['IFnitsche_tangential:    ' num2str(IFnitsche_tangential)]);
 disp(['IFSolverType:            ' num2str(IFSolverType)]);
 disp(['IFmaxiter:               ' num2str(IFmaxiter)]);
 disp(['IFconvtol:               ' num2str(IFconvtol)]);
@@ -368,11 +369,12 @@ save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
 save(filename3, 'IFsliding_switch','IFmethod','IFpenalty_normal', ...
-  'IFpenalty_tangential','IFnitsche','IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+  'IFpenalty_tangential','IFnitsche_normal','IFnitsche_tangential', ...
+  'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
-% clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
-%     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-%     IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-%     IFmaxiter IFconvtol;
+clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
+    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
+    IFsliding_switch IFmethod IFpenalty_normal IFpenalty_tangential ...
+    IFnitsche_normal IFnitsche_tangential IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

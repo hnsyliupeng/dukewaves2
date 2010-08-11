@@ -11,13 +11,11 @@
 %   cijkl           constitutive tensor of grain 'grn' (4-tensor)
 %
 
-function [cijkl] = find_cijkl(grn)
+function [cijkl] = find_cijkl(grain)
 
 global GRAININFO_ARR
 
 % Find Cijkl - a fourth order tensor
-
-grain = grn;
 
 % Grain material properties and D matrix
 

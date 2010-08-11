@@ -23,7 +23,7 @@ EXEC_XFEM = 1;              % solve
 % to be used.
 %
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-% filename_input_file = 'inp_plasticity_5_61_77';   % NO FILE EXTENSION '.m'
+% filename_input_file = 'inp_Simone2006_147_49';   % NO FILE EXTENSION '.m'
 filename_input_file = 'inp_patchtest_24_6';
 % filename_input_file = 'inp_frictionless_sliding1_72_18';
 % filename_input_file = 'inp_beambending_72_18';
@@ -47,7 +47,7 @@ if EXEC_comp_geo == 1
     % copy the mesh-file into the preprocess-directory
     source = fullfile(pwd,'comp_geo','my_new_mesh.mat');
     destination = fullfile(pwd,'preprocess','my_new_mesh.mat');
-    [status,message,messageid] = copyfile(source, destination);
+    [~,message,messageid] = copyfile(source, destination);
     if messageid ~= ''
         error('MATLAB:SimControl','Copying the mesh-file "my_new_mesh.mat" failed.');
     end;
@@ -62,7 +62,7 @@ if EXEC_preprocess == 1
     % copy the mesh-file with BCs into the XFEM-directory
     source = fullfile(pwd,'preprocess','my_new_mesh_with_BCs.mat');
     destination = fullfile(pwd,'XFEM','my_new_mesh_with_BCs.mat');
-    [status,message,messageid] = copyfile(source, destination);
+    [~,message,messageid] = copyfile(source, destination);
     if messageid ~= ''
         error('MATLAB:SimControl','Copying the mesh-file with BCs "my_new_mesh_with_BCs.mat" failed.');
     end;
@@ -81,7 +81,7 @@ end;
 
 % clear some temporary variables
 clear EXEC_comp_geo EXEC_preprocess EXEC_XFEM messageid ...
-    filename_comp_geo filename_input_file filename_preprocess ...
+    filename_comp_geo filename_preprocess ...
     filename_XFEM source destination status;
 
 disp('SimControl finished succesfully.');

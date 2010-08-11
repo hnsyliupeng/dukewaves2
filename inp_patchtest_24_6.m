@@ -115,11 +115,12 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 5e+5;
-IFpenalty_tangential  = 5e+5;
+IFpenalty_normal      = 5e+8;
+IFpenalty_tangential  = 1e+4;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+3;
+IFnitsche_normal      = 1.0e+8;
+IFnitsche_tangential  = 1.0e+8;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -138,7 +139,7 @@ IFintegral = 1;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 1.3;
+IFyieldstress = 1.5;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -152,13 +153,13 @@ IFyieldstress = 1.3;
 IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
-IFmaxiter = 50;
+IFmaxiter = 30;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-7;
+IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,41);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
@@ -179,7 +180,8 @@ disp(['IFsliding_switch:        ' num2str(IFsliding_switch)]);
 disp(['IFmethod:                ' num2str(IFmethod)]);
 disp(['IFpenalty_normal:        ' num2str(IFpenalty_normal)]);
 disp(['IFpenalty_tangential:    ' num2str(IFpenalty_tangential)]);
-disp(['IFnitsche:               ' num2str(IFnitsche)]);
+disp(['IFnitsche_normal:        ' num2str(IFnitsche_normal)]);
+disp(['IFnitsche_tangential:    ' num2str(IFnitsche_tangential)]);
 disp(['IFSolverType:            ' num2str(IFSolverType)]);
 disp(['IFmaxiter:               ' num2str(IFmaxiter)]);
 disp(['IFconvtol:               ' num2str(IFconvtol)]);
@@ -195,12 +197,12 @@ save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
 save(filename3, 'IFsliding_switch','IFmethod','IFpenalty_normal', ...
-  'IFpenalty_tangential','IFnitsche','IFSolverType','IFmaxiter', ...
-  'IFconvtol');                    % for 'XFEM'
+  'IFpenalty_tangential','IFnitsche_normal','IFnitsche_tangential', ...
+  'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-    IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-    IFmaxiter IFconvtol;
+    IFsliding_switch IFmethod IFpenalty_normal IFpenalty_tangential ...
+    IFnitsche_normal IFnitsche_tangential IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

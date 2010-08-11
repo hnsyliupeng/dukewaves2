@@ -23,11 +23,14 @@ if exist('IFyieldstress','var') == 0, IFyieldstress = 0;end;% yield stress
 if exist('IFpenalty_normal','var') == 0, IFpenalty_normal = IFpenalty;end;  % Penalty-Parameter for normal direction
 if exist('IFpenalty_tangential','var') == 0, IFpenalty_tangential = IFpenalty_normal;end; % Penalty-Parameter for tangential direction
 
+if exist('IFnitsche_normal','var') == 0, IFnitsche_normal = IFnitsche;end;  % Stabilization-Parameter for normal direction
+if exist('IFnitsche_tangential','var') == 0, IFnitsche_tangential = IFnitsche_normal;end; % Stabilization-Parameter for tangential direction
+
 % parameters for the loadstepping scheme
 if exist('IFtime','var') == 0, IFtime = [0 1];end;          % load steps
 
 % parameters for Quasi-Newton-scheme
-if IFmaxiter==1;maxiter = 25;end;     % maximum number of iterations
+if IFmaxiter<5;maxiter = 25;end;     % maximum number of iterations
 if IFconvtol==0;convtol = 1.0e-5;end; % convergence tolerance
 
 % some variables, that are necessary for specific sliding cases only
@@ -532,7 +535,7 @@ clear slot n j big_force DOFs1 DOFs2 nodenumbers force_values force_id k e i;
 totaldis = zeros(size(big_force_max));
 
 % needed to compute stresses
-orig_ndisp = zeros(numnod,6);
+old_ndisp = zeros(numnod,6);
 % ----------------------------------------------------------------------- %
 %% LOAD STEPPING LOOP (BEGIN)
 % The deformed state will be computed via a incremental loading procedure.
@@ -806,7 +809,9 @@ for timestep = 1:(length(time)-1)
       buildresidual(bigk_el,seg_cut_info,INTERFACE_MAP,x,y, ...
       big_force_loadstep,node,totaldis,IFpenalty_normal, ...
       IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
-      IFyieldstress,id_eqns,id_dof,deltaload);
+      IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal,...
+      IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
+      GRAININFO_ARR,nodegrainmap);
 
 % The following commented code is moved to the subroutine 'buildresidual.m'    
 %{
@@ -988,8 +993,94 @@ for timestep = 1:(length(time)-1)
           end;
         end;
       case 2  % Nitsche's method
-        error('MATLAB:XFEM:UnvalidID', ...
-          'No code for Nitsche´s method, yet');
+        % loop over all interfaces and cut elements and assemble their 
+        % penalty contributions into 'tangentmatrix'
+        for i=1:size(seg_cut_info,1)
+          for e=1:size(seg_cut_info,2)
+            if seg_cut_info(i,e).elemno ~= -1
+              % get some element data
+              eleID = seg_cut_info(i,e).elemno;   % global element ID
+              elenodes = node(:,eleID);           % global node IDs
+              xcoords = x(elenodes);              % x-coordinates
+              ycoords = y(elenodes);              % y-coordinates
+              
+              % distinguish between sliding cases
+              switch IFsliding_switch
+                case 0  % fully tied case
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = IFpenalty_tangential;
+                case 1  % frictionless sliding
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = 0;
+                case 2  % perfect plasticity
+                  penalty_normal = IFpenalty_normal;
+                  penalty_tangent = IFpenalty_tangential;
+                otherwise
+                  error('MATLAB:XFEM:UnvalidID', ...
+                    'Unvalid sliding ID');
+              end;
+                            
+              % get penalty matrices, but choose between one- and
+              % two-integral formulation
+              switch IFintegral
+                case 1  % one integral
+                  [pen_normal pen_tangent id_pen] = ... 
+                    lin_penalty_alternative(xcoords,ycoords, ...
+                    id_eqns(elenodes,:),id_dof(elenodes,:), ...
+                    seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+                    penalty_normal,penalty_tangent);
+                case 2  % two integrals
+                  [pen_normal pen_tangent id_pen] = ... 
+                    lin_penalty(xcoords,ycoords,id_eqns(elenodes,:), ...
+                    id_dof(elenodes,:),seg_cut_info(i,e), ...
+                    INTERFACE_MAP(i).endpoints);
+                otherwise
+                  error('MATLAB:XFEM:UnvalidID', ...
+                    'Unvalid number of integrals');
+              end;
+              
+              % build an elemental matrix
+              penalty_matrix  = pen_normal + pen_tangent;
+              
+              % Since the stabiliation contributions happen only in the
+              % enriched degrees of freedom, the penalty matrix is only
+              % 12x12. The Nitsche matrices are 18x18, so an enlarged
+              % penalty matrix has to be built by hand.
+              penalty_matrix = [zeros(6,6) zeros(6,12);
+                                zeros(12,6) penalty_matrix];
+              
+              % Establish which nodes are "postively" enriched, and
+              % which reside in the "negative" grain
+              pos_g = seg_cut_info(i,e).positive_grain;
+              neg_g = seg_cut_info(i,e).negative_grain;
+
+              [pn_nodes] =... 
+                get_positive_new(seg_cut_info(i,e).elemno,pos_g,neg_g);
+              
+              % get nitsche-contributions
+              ke_nit = nit_stiff(node,x,y,eleID,id_eqns,id_dof, ...
+              pn_nodes,pos_g,neg_g,seg_cut_info(i,e).normal,seg_cut_info(i,e).xint,INTERFACE_MAP(i).endpoints, ...
+              IFsliding_switch,0);
+             
+              elestiff = penalty_matrix - ke_nit - ke_nit';
+                            
+              % assemble 'penalty_matrix' into 'tangentmatrix'
+              nlink = size(id_pen,2);
+              for m=1:nlink
+                for n=1:nlink
+                  rbk = id_pen(m);
+                  cbk = id_pen(n);
+                  re = m;
+                  ce = n;
+                  if ((rbk ~= 0) && (cbk ~= 0))                        
+                    tangentmatrix(rbk,cbk) = tangentmatrix(rbk,cbk) + ...
+                        elestiff(re,ce);
+                  end;
+                end;
+              end;
+            end;
+          end;
+        end;
       otherwise
         error('MATLBA:XFEM:UnvalidID','Unvalid method-ID');
     end;
@@ -1796,7 +1887,7 @@ for e=1:numele
   
   % compute stress and strain in current element
   [straine,stresse] = post_process_better(node,x,y,e,dis,orig_ndisp, ...
-    id_dof,cutlist,maxngrains,INT_INTERFACE);
+    id_dof,cutlist,maxngrains);
   
   % assign 'stresse' to 'stress'
   stress(e,1:6,:) = stresse;
@@ -2259,6 +2350,9 @@ end
 
 % clear some temporary variables
 clear i;
+% ----------------------------------------------------------------------- %
+%% CLEAR SOME VARIABLES
+clear ce cbk count doff e eleID f loadsteptext n nlink p q2 rbk re;
 % ----------------------------------------------------------------------- %
 %% FINISH SOLVING PROCESS
 %  disp('saving to results file ...');
