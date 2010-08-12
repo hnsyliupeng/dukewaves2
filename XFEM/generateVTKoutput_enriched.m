@@ -2,11 +2,10 @@ disp('generate VTK data ...');
 
 % call a subroutine to compute the displacement vectors for the nodes of the
 % subelements
-% computedisplacements;
 getVTKdata;
 
 % create filename
-filenameVTK = sprintf('%s.vtk',filename_input_file);
+filenameVTK = sprintf('VTK_%s.vtk',filename_input_file);
 
 % get an pointer to the output file
 % options:
@@ -49,13 +48,19 @@ for i=1:size(VTKconn,1)
   fprintf(fileID,'5\n');
 end;
 
-% define displacement field as a scalars with 3 components
-%   1   x-displacements
-%   2   y-displacements
-%   3   absolute value of displacement
+% % define displacement field as a scalars with 3 components
+% %   1   x-displacements
+% %   2   y-displacements
+% %   3   z-displacement (=0)
+% fprintf(fileID,'POINT_DATA %d\n',size(VTKdis,1));
+% fprintf(fileID,'SCALARS u(x) float 3\n');
+% fprintf(fileID,'LOOKUP_TABLE default\n');
+% for i=1:size(VTKdis,1);
+%   fprintf(fileID,'%f %f 0.0\n',VTKdis(i,1),VTKdis(i,2));
+% end;
+
 fprintf(fileID,'POINT_DATA %d\n',size(VTKdis,1));
-fprintf(fileID,'SCALARS u(x) float 3\n');
-fprintf(fileID,'LOOKUP_TABLE default\n');
+fprintf(fileID,'VECTORS u(x) float\n');
 for i=1:size(VTKdis,1);
   fprintf(fileID,'%f %f 0.0\n',VTKdis(i,1),VTKdis(i,2));
 end;
