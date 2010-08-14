@@ -112,15 +112,15 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty_normal      = 5e+8;
 IFpenalty_tangential  = 1e+4;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+8;
-IFnitsche_tangential  = 1.0e+8;
+IFnitsche_normal      = 1.0e+4;
+IFnitsche_tangential  = 1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -136,7 +136,7 @@ IFintegral = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 2; 
+IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1.5;

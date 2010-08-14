@@ -21,7 +21,7 @@ dispbc(2,4) = 1;
 
 % right boundary with prescribed displacement
 displacement_x = -0.4;%0;%0.04;
-displacement_y = 0.5;%0.5;
+displacement_y = -2;%0.5;
 for i=169:175
   dispbc(1,i) = 1;
   ubar(1,i) = displacement_x;

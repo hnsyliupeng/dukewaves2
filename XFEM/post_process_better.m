@@ -208,7 +208,6 @@ else                    % element is cut by an interface
             stresse(1,4:6,j) = D(:,:,j)*straine(1,4:6,1)' ...
                              + D(:,:,j)*straine(1,4:6,j+1)';
             stresse(1,1,j) = e;
-
         else    % element 'e' doesn't overlap with grain 'j'. So there
                 % can't be stresses in element 'e', associated with that
                 % grain 'j'. Just set them to zero.

@@ -40,7 +40,7 @@ function [residual seg_cut_info] = ...
     big_force_loadstep,node,totaldis,IFpenalty_normal, ...
     IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
     IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal, ...
-    IFnitsche_tangential,dis,orig_ndisp,cutlist,maxngrains, ...
+    IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
     GRAININFO_ARR,nodegrainmap)
 
 % contribution of elastic bulk field of the inner of the grains which
@@ -138,8 +138,8 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
             otherwise
               error('MATLAB:XFEM','Unvalid Sliding-ID');
           end;
-          
-          % get penalty-residual contributions vectors, but choose between the
+
+          % get residual contributions vectors, but choose between the
           % one- and two-integral formulation
           switch IFintegral
             case 1  % one integral
@@ -158,7 +158,7 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
               error('MATLAB:XFEM:UnvalidID', ...
                 'Unvalid number of integrals');
           end;
-          
+
           % store plastic contribution to tangential gap
           seg_cut_info(i,e).tgappl = tgappl;
 
@@ -169,37 +169,29 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
           % store evaluated flow rules of trial state at both gauss
           % points
           seg_cut_info(i,e).f_trial = f_trial;
+          
+          % compute 'ele_residual_stabi' due to stabilization
+          ele_residual_stabi  = res_penalty_normal ...  % normal traction
+                              + res_penalty_tangent;    % tangential traction
 
+          % assemble stabilization contribution into global residual
+          for a = 1:length(id)
+            if id(a) ~= 0
+              residual(id(a)) = residual(id(a)) + ele_residual_stabi(a);
+            end;
+          end;
+          
           % get Nitsche contributions
-          res_nitsche = get_ele_residual_nitsche(xcoords,ycoords, ...
+          [res_nitsche id_array] = get_ele_residual_nitsche(xcoords,ycoords, ...
             seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node,x,y, ...
-            dis,orig_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
+            dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
             id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap);          
-          
-          
-          % compute ele_residual_constraint
-          ele_residual_penalty = res_penalty_normal ...  % normal traction
-                               + res_penalty_tangent; ... % tangential traction
-                               
-          % Since the penalty contributions act only int the enriched
-          % degrees of freedom, these have to be filled with zeros
-          ele_residual_constraint = [zeros(6,1); ele_residual_penalty] ... 
-                                  + res_nitsche; 
-                                
-          % add DOFs for base DOFs to 'id'
-          id_array = [zeros(1,6) id];
-          id_array(1) = id_eqns(elenodes(1),1);
-          id_array(2) = id_eqns(elenodes(1),2);
-          id_array(3) = id_eqns(elenodes(2),1);
-          id_array(4) = id_eqns(elenodes(2),2);
-          id_array(5) = id_eqns(elenodes(3),1);
-          id_array(6) = id_eqns(elenodes(3),2);
-          
-          % assemble into global residual
+                    
+          % assemble Nitsche contribution into global residual
           for a = 1:length(id_array)
             if id_array(a) ~= 0
               residual(id_array(a)) = residual(id_array(a)) ...
-                                    + ele_residual_constraint(a);
+                                    + res_nitsche(a);
             end;
           end;
         otherwise

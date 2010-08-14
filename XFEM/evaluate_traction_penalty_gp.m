@@ -1,6 +1,6 @@
 % evaluate_traction_penalty_gp.m
 %
-% CALL: evaluate_gap_penalty_gp(xn,yn,flg, ...
+% CALL: evaluate_traction_penalty_gp(xn,yn,flg, ...
 %         xcoords,ycoords,fdisp,id_eqns,Area,normal,alpha_n,alpha_t)
 %
 % This method computes the Lagrange multipliers (internal forces at the

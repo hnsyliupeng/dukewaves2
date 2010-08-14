@@ -236,7 +236,7 @@ IFMatSet = 1;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 1.0e+17;
+IFpenalty = 7.0e+4;%1.0e+17;
 %
 % Nitsche Parameter
 IFnitsche = 0;%1.0e+4;

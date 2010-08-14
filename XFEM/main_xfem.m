@@ -16,7 +16,7 @@ load my_new_mesh_with_BCs.mat
 if exist('IFmethod','var') == 0, IFmethod = 0;end;          % Lagrange multipliers
 if exist('IFpenalty','var') == 0, IFpenalty = 3.0e+5;end;   % Penalty-Parameter
 if exist('IFnitsche','var') == 0, IFnitsche = 3.0e+5;end;   % Stabilization-Parameter
-if exist('IFintegral','var') == 0, IFintegral = 2;end;      % variante of penalty term
+if exist('IFintegral','var') == 0, IFintegral = 1;end;      % variante of penalty term
 
 if exist('IFyieldstress','var') == 0, IFyieldstress = 0;end;% yield stress
 
@@ -220,7 +220,7 @@ numeqns = max(max(id_eqns));
 
 % ----------------------------------------------------------------------- %
 %% PREPARE ASSEMBLY OF STIFFNESS
-  disp('assembling stiffness ...');  
+  disp('assembling elastic stiffness of bulk field ...');  
   %% initialize
   % 'old_size' is the number of base-DOFs plus number of enriched DOFs 
   old_size = numeqns;
@@ -998,6 +998,10 @@ for timestep = 1:(length(time)-1)
         for i=1:size(seg_cut_info,1)
           for e=1:size(seg_cut_info,2)
             if seg_cut_info(i,e).elemno ~= -1
+              % First, apply only the stabilization contributions, which
+              % are the same as the penalty contributions, but with
+              % different parameters.
+              
               % get some element data
               eleID = seg_cut_info(i,e).elemno;   % global element ID
               elenodes = node(:,eleID);           % global node IDs
@@ -1007,14 +1011,14 @@ for timestep = 1:(length(time)-1)
               % distinguish between sliding cases
               switch IFsliding_switch
                 case 0  % fully tied case
-                  penalty_normal = IFpenalty_normal;
-                  penalty_tangent = IFpenalty_tangential;
+                  penalty_normal = IFnitsche_normal;
+                  penalty_tangent = IFnitsche_tangential;
                 case 1  % frictionless sliding
-                  penalty_normal = IFpenalty_normal;
+                  penalty_normal = IFnitsche_normal;
                   penalty_tangent = 0;
                 case 2  % perfect plasticity
-                  penalty_normal = IFpenalty_normal;
-                  penalty_tangent = IFpenalty_tangential;
+                  penalty_normal = IFnitsche_normal;
+                  penalty_tangent = IFnitsche_tangential;
                 otherwise
                   error('MATLAB:XFEM:UnvalidID', ...
                     'Unvalid sliding ID');
@@ -1041,28 +1045,6 @@ for timestep = 1:(length(time)-1)
               
               % build an elemental matrix
               penalty_matrix  = pen_normal + pen_tangent;
-              
-              % Since the stabiliation contributions happen only in the
-              % enriched degrees of freedom, the penalty matrix is only
-              % 12x12. The Nitsche matrices are 18x18, so an enlarged
-              % penalty matrix has to be built by hand.
-              penalty_matrix = [zeros(6,6) zeros(6,12);
-                                zeros(12,6) penalty_matrix];
-              
-              % Establish which nodes are "postively" enriched, and
-              % which reside in the "negative" grain
-              pos_g = seg_cut_info(i,e).positive_grain;
-              neg_g = seg_cut_info(i,e).negative_grain;
-
-              [pn_nodes] =... 
-                get_positive_new(seg_cut_info(i,e).elemno,pos_g,neg_g);
-              
-              % get nitsche-contributions
-              ke_nit = nit_stiff(node,x,y,eleID,id_eqns,id_dof, ...
-              pn_nodes,pos_g,neg_g,seg_cut_info(i,e).normal,seg_cut_info(i,e).xint,INTERFACE_MAP(i).endpoints, ...
-              IFsliding_switch,0);
-             
-              elestiff = penalty_matrix - ke_nit - ke_nit';
                             
               % assemble 'penalty_matrix' into 'tangentmatrix'
               nlink = size(id_pen,2);
@@ -1074,7 +1056,36 @@ for timestep = 1:(length(time)-1)
                   ce = n;
                   if ((rbk ~= 0) && (cbk ~= 0))                        
                     tangentmatrix(rbk,cbk) = tangentmatrix(rbk,cbk) + ...
-                        elestiff(re,ce);
+                        penalty_matrix(re,ce);
+                  end;
+                end;
+              end;
+              
+              % Now, consider additional terms due to Nitsche's method            
+              % Establish which nodes are "postively" enriched, and
+              % which reside in the "negative" grain
+              pos_g = seg_cut_info(i,e).positive_grain;
+              neg_g = seg_cut_info(i,e).negative_grain;
+
+              [pn_nodes] =... 
+                get_positive_new(seg_cut_info(i,e).elemno,pos_g,neg_g);
+              
+              % get nitsche-contributions
+              [ke_nit id_nit]= lin_nitsche(xcoords,ycoords,seg_cut_info(i,e), ...
+                INTERFACE_MAP(i).endpoints,node,id_dof, ...
+                id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap);
+              
+              % assemble 'penalty_matrix' into 'tangentmatrix'
+              nlink = size(id_nit,2);
+              for m=1:nlink
+                for n=1:nlink
+                  rbk = id_nit(m);
+                  cbk = id_nit(n);
+                  re = m;
+                  ce = n;
+                  if ((rbk ~= 0) && (cbk ~= 0))                        
+                    tangentmatrix(rbk,cbk) = tangentmatrix(rbk,cbk) + ...
+                        ke_nit(re,ce);
                   end;
                 end;
               end;
@@ -1084,6 +1095,9 @@ for timestep = 1:(length(time)-1)
       otherwise
         error('MATLBA:XFEM:UnvalidID','Unvalid method-ID');
     end;
+    
+    % clear some temporary variables
+    clear nlink id_pen id_nit m n cbk rbk re ce ke_nit;
     % ------------------------------------------------------------------- %
     %% IMPOSE DISPLACEMENT BOUNDARY CONDITIONS 
 %     % loop over all DOFs
@@ -2198,10 +2212,7 @@ disp('postprocessing: tractions ...');
     case 2  % Nitsche's method
     otherwise
       error('MATLAB:XFEM:UnvalidID','Unvalied method-ID');
-  end;
-  
-  
-    
+  end; 
   % --------------------------------------------------------------------- %
   %% domain integral method 
 %   % Since the constraint enforcement methods represent the tractions at the
