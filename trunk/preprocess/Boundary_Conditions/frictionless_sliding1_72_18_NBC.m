@@ -8,7 +8,7 @@
 % Author: Matthias Mayr (04/2010)
 
 % maximum load in x-direction
-totalload = 0;%-100;%-1000;   % 'totalload' = 'constant traction' * 'length of load'
+totalload = -1;%-100;%-1000;   % 'totalload' = 'constant traction' * 'length of load'
 
 
 % nodal load

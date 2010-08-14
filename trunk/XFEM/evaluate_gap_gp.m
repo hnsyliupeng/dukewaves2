@@ -1,30 +1,42 @@
-% evaluate_gap_penalty_gp.m
+% evaluate_gap_gp.m
 %
-% CALL: evaluate_gap_penalty_gp(xn,yn,flg,xcoords,ycoords,fdisp,id_eqns)
+% CALL: evaluate_gap_gp(xn,yn,flg, ...
+%         xcoords,ycoords,fdisp,id_eqns,Area,normal,alpha_n,alpha_t)
 %
 % This method computes the Lagrange multipliers (internal forces at the
 % interface) via the penalty method. They are obtained by integrating over
 % the gap, so they will be piecewise constant.
 %
 % Input arguments:
-%   parent          global element ID of current element
-%   id_eqns         mapping between nodes and global DOFs, respecting
-%                   enriched nodes
-%   fdisp           entire solution vector
+%   xn              x-coordinate of current gauss point
+%   yn              y-coordinate of current gauss point
+%   flg             "flag"-array which is used to evaluate the jump on
+%                   shape funftions
+%   xcoords         x-coordinates of current element's nodes
+%   ycoords         y-coordinates of current element's nodes
+%   fdisp           nodal displacements of current element
+%   id_eqns         mapping between nodes and DOFs for current element
+%   Area            area of the current element
+%   normal          vector normal to the interface
+%   alpha_n         normal penalty parameter
+%   alpha_t         tangential penalty parameter
 %
 % Returned variables
-%   lagmult         Vector of Lagrange multipliers
+%   ntrac           normal traction
+%   ttrac           tangential traction
 %
 
 % Author: Matthias Mayr (07/2010)
 
-function [gap] = evaluate_gap_penalty_gp(xn,yn,flg,xcoords,ycoords, ...
-  fdisp,id_eqns,Area)
+function [gap] = evaluate_gap_gp(xn,yn,flg,xcoords,ycoords,fdisp, ...
+  id_eqns,Area)
 
-% Initialize
+% initialize shape function matrix
 N = zeros(2,12);
 
-for b = 1:3     % Evaluate shape functions
+
+% Evaluate shape functions and assemble 'N'
+for b = 1:3     
   xes = xcoords;
   yes = ycoords;
   xes(b) = xn; 
@@ -44,7 +56,7 @@ end
 for c = 1:6
   N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
 end
-% here N contains the evaluated shape functions for two possible
+% here N contains the evatluated shape functions for two possible
 % enrichments. If there is only one enrichment in this element, the
 % corresponding entries in N are set to zero by the latter for-loop.
 
@@ -60,6 +72,7 @@ end
 % add two entries to 'localdis' and fill up with two zeros. If it is 
 % enriched twice, fill in the extra DOFs.
 
+%% get nodal displacement vector
 % Check first node
 index1 = id_eqns(1,3:6);
 if all(index1)      % node 1 of element 'parent' is enriched twice
@@ -87,9 +100,9 @@ else                % node 3 of element 'parent' is enriched once
 end;
 
 % Assemble 'localdis'
-localdis = localdis1' + localdis2' + localdis3'
-%--------------------------------------------------------------------------
-% compute lagrange multipliers
+localdis = localdis1' + localdis2' + localdis3';
+% ----------------------------------------------------------------------- %
+%% compute gap
 gap = N * localdis';
 
 end
