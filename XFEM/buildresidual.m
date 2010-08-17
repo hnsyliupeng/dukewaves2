@@ -3,7 +3,9 @@
 % CALL: buildresidual(bigk_el,seg_cut_info,INTERFACE_MAP,x,y, ...
 %         big_force_loadstep,node,totaldis,IFpenalty_normal, ...
 %         IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
-%         IFyieldstress,id_eqns,id_dof,deltaload)
+%         IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal, ...
+%         IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
+%         GRAININFO_ARR,nodegrainmap,youngs)
 %
 % This subroutine assembles the global residual. All variable names are 
 % adopted from 'main_xfem.m' to preserve consistency.
@@ -27,6 +29,15 @@
 %   id_dof                mapping between nodes and enriching grains
 %   deltaload             current displacement increment in comparison to
 %                         previous loadstep
+%   IFnitsche_normal      stabilization parameter in normal direction
+%   IFnitsche_tangential  stabilization parameter in tangential direction
+%   dis                   current re-assembled displacemement vector
+%   old_ndisp             unmodified total solution vector
+%   cutlist               list of cut elements
+%   maxngrains            total number of all grains
+%   GRAININFO_ARR         some data about all grains
+%   nodegrainmap          mapping between nodes and grains
+%   youngs                array with Young's moduli of all grains
 % 
 % Returned variables:
 %   residual              residual
@@ -41,7 +52,7 @@ function [residual seg_cut_info] = ...
     IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
     IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal, ...
     IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
-    GRAININFO_ARR,nodegrainmap)
+    GRAININFO_ARR,nodegrainmap,youngs)
 
 % contribution of elastic bulk field of the inner of the grains which
 % will not be affected from plasticity at the interface
@@ -123,18 +134,56 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
         case 2  % Nitsche's mehtod
           % get stabilization parameters (depending on sliding case)
           switch IFsliding_switch
+            % if IFnitsche > 0, then use the parameter given in the input
+            % file, else compute a minimal stabilization parameter as
+            % suggested in 'Dolbow2009'.
             case 0  % fully tied case
-              penalty_normal = IFnitsche_normal;
-              penalty_tangent = IFnitsche_tangential;
+              if IFnitsche_normal >= 0
+                penalty_normal = IFnitsche_normal;
+              else
+                penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
+              if IFnitsche_tangential >= 0
+                penalty_tangent = IFnitsche_tangential;
+              else
+                penalty_tangent = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
             case 1  % frictionless sliding
-              penalty_normal = IFnitsche_normal;
+              if IFnitsche_normal >= 0
+                penalty_normal = IFnitsche_normal;
+              else
+                penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
               penalty_tangent = 0;
             case 2  % perfect plasticity
               % provide both penalty parameters: the normal one will be
               % used indepentent of the slidestate, the tangential one
               % is needed for the return mapping algorithm.
-              penalty_normal = IFnitsche_normal;
-              penalty_tangent = IFnitsche_tangential;
+              if IFnitsche_normal >= 0
+                penalty_normal = IFnitsche_normal;
+              else
+                penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
+              if IFnitsche_tangential >= 0
+                penalty_tangent = IFnitsche_tangential;
+              else
+                penalty_tangent = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
             otherwise
               error('MATLAB:XFEM','Unvalid Sliding-ID');
           end;
@@ -182,11 +231,16 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
           end;
           
           % get Nitsche contributions
-          [res_nitsche id_array] = get_ele_residual_nitsche(xcoords,ycoords, ...
-            seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node,x,y, ...
-            dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
-            id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap);          
-                    
+          [res_nitsche id_array] = get_ele_residual_nitsche(xcoords, ...
+            ycoords,seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+            x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
+            id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
+            IFsliding_switch);          
+          
+          if length(id_array) ~= 18
+            error('MATLAB:XFEM','ID-array for Nitsche residual too short.');
+          end;
+          
           % assemble Nitsche contribution into global residual
           for a = 1:length(id_array)
             if id_array(a) ~= 0

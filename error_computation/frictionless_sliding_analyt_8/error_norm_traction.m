@@ -8,8 +8,8 @@ total_apprx = 0;
 
 
 % Define 3-point Gauss quadrature (since polynom is of order 2)
-gp = [-sqrt(3/5) 0 sqrt(3/5)];  % gauss points
-gw = [5/9 8/9 5/9];               % gauss weights
+gp = [-sqrt(3)/3 sqrt(3)/3];  % gauss points
+gw = [1 1];               % gauss weights
 
 % % Define 5-point Gauss quadrature
 % gp = [-1/3*sqrt(5+2*sqrt(10/7)) -1/3*sqrt(5-2*sqrt(10/7)) 0 1/3*sqrt(5-2*sqrt(10/7)) 1/3*sqrt(5+2*sqrt(10/7))];  % gauss points
@@ -118,10 +118,9 @@ for k=1:size(seg_cut_info,1)
           case 0    % Lagrange multipliers
             lag_normal = seg_cut_info(k,e).lagmult(1);
           case 1    % penalty method
-            lag_normal = seg_cut_info(k,e).lagmult(1);
+            lag_normal = seg_cut_info(k,e).ntracconv(1);
           case 2    % Nitsche's method
-            lag_normal = seg_cut_info(k,e).lagmult ...
-              * seg_cut_info(k,e).normal;
+            lag_normal = seg_cut_info(k,e).ntracconv(1);
         end;
 
 %         % x and y as a function of eta (for the analytical solution)

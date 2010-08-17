@@ -5,18 +5,25 @@
 % Evaluates the B-matrices 'Bhat', 'Btilde1' and 'Btilde2'.
 %
 % Input Parameters:
-%
-%
+%   xcoords         x-coordinates of element's nodes
+%   ycoords         y-coordinates of element's nodes
+%   elenodes        global IDs of element's nodes
+%   nodegrainmap    mapping between nodes and grains
+%   pos_g           global ID of "positive" grain
+%   id_dof          mapping between nodes and enriching grains
+%   
 % Returned variables:
-%
+%   Bhat
+%   Btilde1
+%   Btilde2
 %
 
 % Author: Matthias Mayr (08/2010)
 
 function [Bhat Btilde1 Btilde2] = getBmatrices(xcoords,ycoords, ...
-  elenodes,nodegrainmap,pos_g)
+  elenodes,nodegrainmap,pos_g,id_dof)
 
-global  NODAL_ENRICH;
+% global  NODAL_ENRICH;
 
 %% INITIALIZE
 Bhat = zeros(3,6);
@@ -55,21 +62,21 @@ Btilde1 = [Bhat Bhat];   % corresponds to positive_grain
 Btilde2 = [Bhat Bhat];   % corresponds to negative_grain
 
 % set entries of these nodes to zero, that reside in the other grain
-for i=1:3 % loop over nodes
-  if nodegrainmap(elenodes(i)) == pos_g
-    Btilde2(1:3,2*i-1:2*i) = 0;
-    Btilde2(1:3,2*i-1+6:2*i+6) = 0;
-  else
-    Btilde1(1:3,2*i-1:2*i) = 0;
-    Btilde1(1:3,2*i-1+6:2*i+6) = 0;
-  end;
-end;
+% for i=1:3 % loop over nodes
+%   if nodegrainmap(elenodes(i)) == pos_g
+%     Btilde2(1:3,2*i-1:2*i) = 0;
+%     Btilde2(1:3,2*i-1+6:2*i+6) = 0;
+%   else
+%     Btilde1(1:3,2*i-1:2*i) = 0;
+%     Btilde1(1:3,2*i-1+6:2*i+6) = 0;
+%   end;
+% end;
 
 % set entries to zero, if there is no second enrichment
 for i=1:3 % loop over nodes
-  if NODAL_ENRICH(elenodes(i)).cnt - 1 ~= 2
-    Btilde1(1:3,7:12) = 0;
-    Btilde2(1:3,7:12) = 0;
+  if id_dof(elenodes(i),5) == 0%NODAL_ENRICH(elenodes(i)).cnt - 1 ~= 2
+    Btilde1(1:3,6+2*i-1:6+2*i) = 0;
+    Btilde2(1:3,6+2*i-1:6+2*i) = 0;
   end;
 end;
 % ----------------------------------------------------------------------- %

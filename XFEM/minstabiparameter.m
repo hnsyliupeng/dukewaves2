@@ -6,9 +6,11 @@
 % This routine is needed for Nitsche's method only. It estimates a minimum
 % values for the stabilization parameter "alpha = penalty" in order to
 % guarantee the positive definiteness of the system. For linear triangular
-% elements, an estimate is given in "Dolbow, John and Harari, Isaac: An 
-% efficient finite element method for embedded interface problems. Int. J.
-% Numer. Meth. Engng. 2009; 78(2): 229-252"
+% elements in scalar problems, an estimate is given in "Dolbow, John and 
+% Harari, Isaac: An efficient finite element method for embedded interface 
+% problems. Int. J. Numer. Meth. Engng. 2009; 78(2): 229-252". 
+% A first idea without any mathematical analysis is to use the Young's
+% modulus E as the matrial constant without considering Poisson's ratio.
 %
 % Input parameters:
 %   xcoords         x-coordinates of the element's nodes

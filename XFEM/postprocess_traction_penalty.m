@@ -1,6 +1,7 @@
 % postprocess_traction_penalty.m
 %
-% CALL: postprocess_traction_penalty()
+% CALL: postprocess_traction_penalty(xcoords,ycoords,seg_cut_info, ...
+%         id_dof,id_eqns,fdisp,alpha_n,alpha_t,endpoints)
 %
 % Evaluates the normal tractions at the two gauss points in an subsegment
 % of the interface for a penalty method.
@@ -17,8 +18,9 @@
 %   alpha_t             tangential penalty parameter
 %
 % Returned variables
-%   ntrac
-%
+%   ntrac               scalar value of normal traction
+%   ttrac               scalar value of tangential traction
+% 
 
 % Author: Matthias Mayr (08/2010)
 
