@@ -667,7 +667,7 @@ for timestep = 1:(length(time)-1)
     end;
     
     % This structure imposes DBCs with value '0' also on enriched nodes.
-%{
+%
     % loop over all nodes
     for n=1:numnod
       % loop x- and y-DOF of each node
@@ -811,7 +811,7 @@ for timestep = 1:(length(time)-1)
       IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
       IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal,...
       IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
-      GRAININFO_ARR,nodegrainmap);
+      GRAININFO_ARR,nodegrainmap,youngs);
 
 % The following commented code is moved to the subroutine 'buildresidual.m'    
 %{
@@ -1010,15 +1010,56 @@ for timestep = 1:(length(time)-1)
               
               % distinguish between sliding cases
               switch IFsliding_switch
-                case 0  % fully tied case
-                  penalty_normal = IFnitsche_normal;
-                  penalty_tangent = IFnitsche_tangential;
-                case 1  % frictionless sliding
-                  penalty_normal = IFnitsche_normal;
-                  penalty_tangent = 0;
-                case 2  % perfect plasticity
-                  penalty_normal = IFnitsche_normal;
-                  penalty_tangent = IFnitsche_tangential;
+                % if IFnitsche > 0, then use the parameter given in the input
+            % file, else compute a minimal stabilization parameter as
+            % suggested in 'Dolbow2009'.
+            case 0  % fully tied case
+              if IFnitsche_normal >= 0
+                penalty_normal = IFnitsche_normal;
+              else
+                penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
+              if IFnitsche_tangential >= 0
+                penalty_tangent = IFnitsche_tangential;
+              else
+                penalty_tangent = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
+            case 1  % frictionless sliding
+              if IFnitsche_normal >= 0
+                penalty_normal = IFnitsche_normal;
+              else
+                penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
+              penalty_tangent = 0;
+            case 2  % perfect plasticity
+              % provide both penalty parameters: the normal one will be
+              % used indepentent of the slidestate, the tangential one
+              % is needed for the return mapping algorithm.
+              if IFnitsche_normal >= 0
+                penalty_normal = IFnitsche_normal;
+              else
+                penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
+              if IFnitsche_tangential >= 0
+                penalty_tangent = IFnitsche_tangential;
+              else
+                penalty_tangent = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+              end;
                 otherwise
                   error('MATLAB:XFEM:UnvalidID', ...
                     'Unvalid sliding ID');
@@ -1060,25 +1101,21 @@ for timestep = 1:(length(time)-1)
                   end;
                 end;
               end;
-              
-              % Now, consider additional terms due to Nitsche's method            
-              % Establish which nodes are "postively" enriched, and
-              % which reside in the "negative" grain
-              pos_g = seg_cut_info(i,e).positive_grain;
-              neg_g = seg_cut_info(i,e).negative_grain;
 
-              [pn_nodes] =... 
-                get_positive_new(seg_cut_info(i,e).elemno,pos_g,neg_g);
-              
+              % Now, consider additional terms due to Nitsche's method
               % get nitsche-contributions
-              [ke_nit id_nit]= lin_nitsche(xcoords,ycoords,seg_cut_info(i,e), ...
-                INTERFACE_MAP(i).endpoints,node,id_dof, ...
-                id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap);
+              [ke_nit id_nit] = lin_nitsche(xcoords,ycoords, ...
+                seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+                id_dof,id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
+                IFsliding_switch);
+              
+              if length(id_nit) ~= 18
+                error('MATLAB:XFEM','ID-array for Nitsche residual too short.');
+              end;
               
               % assemble 'penalty_matrix' into 'tangentmatrix'
-              nlink = size(id_nit,2);
-              for m=1:nlink
-                for n=1:nlink
+              for m=1:length(id_nit)
+                for n=1:length(id_nit)
                   rbk = id_nit(m);
                   cbk = id_nit(n);
                   re = m;
@@ -2210,6 +2247,155 @@ disp('postprocessing: tractions ...');
       % clear some temporary variables
       clear i e eleID elenodes xcoords ycoords alpha_n alpha_t ntrac ttrac;
     case 2  % Nitsche's method
+      % The normal traction has to be computed for each sliding case. The
+      % tangential traction has to be computed only for the pure elastic
+      % cases. For perfect plasticity, its values at the gauss points are
+      % already stored in 'seg_cut_info(i,e).ttracconv'.
+            
+      % distinguish bewteen the sliding cases
+      switch IFsliding_switch
+        case 0  % fully tied case
+          % Normal and tangential tractions have to be computed.
+          
+          % loop over all interfaces 'i'
+          for i=1:size(seg_cut_info,1)
+            % loop over cut elements 'e'
+            for e=1:size(seg_cut_info,2)
+              % only, if 'e' is cut by 'i'
+              if seg_cut_info(i,e).elemno ~= -1
+                % get some element data
+                eleID = seg_cut_info(i,e).elemno;
+                elenodes = node(:,eleID);
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                        
+                % if IFnitsche > 0, then use the parameter given in the input
+                % file, else compute a minimal stabilization parameter as
+                % suggested in 'Dolbow2009'.
+                if IFnitsche_normal >= 0
+                   alpha_n = IFnitsche_normal;
+                else
+                   alpha_n = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+                end;
+                if IFnitsche_tangential >= 0
+                   alpha_t = IFnitsche_tangential;
+                else
+                   alpha_t = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+                end;
+            
+                                
+                % compute traction at gauss points
+                [ntrac ttrac] = postprocess_traction_nitsche(xcoords, ...
+                  ycoords,seg_cut_info(i,e),id_dof(elenodes,:), ...
+                  id_eqns(elenodes,:),totaldis,alpha_n,alpha_t, ...
+                  INTERFACE_MAP(i).endpoints,stress(eleID,:,:));
+                
+                % assign these values to their storage
+                seg_cut_info(i,e).ntracconv = ntrac;
+                seg_cut_info(i,e).ttracconv = ttrac;
+              end;
+            end;
+          end;
+        case 1  % frictionless sliding
+          % Only normal tractions have to be computed, since the tangential
+          % tractions are a priori equal to zero. In order to use existing
+          % code, a routine, which computes normal and tangential traction
+          % is used, but the tangential penalty parameter 'alpha_t' is set
+          % to zero. This is consistent with the computation (see
+          % 'residual' and 'tangentmatrix').
+          
+          % loop over all interfaces 'i'
+          for i=1:size(seg_cut_info,1)
+            % loop over cut elements 'e'
+            for e=1:size(seg_cut_info,2)
+              % only, if 'e' is cut by 'i'
+              if seg_cut_info(i,e).elemno ~= -1
+                % get some element data
+                eleID = seg_cut_info(i,e).elemno;
+                elenodes = node(:,eleID);
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                
+                % if IFnitsche_normal > 0, then use the parameter given in 
+                % the input file, else compute a minimal stabilization 
+                % parameter as suggested in 'Dolbow2009'.
+                if IFnitsche_normal >= 0
+                   alpha_n = IFnitsche_normal;
+                else
+                   alpha_n = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+                end;
+                alpha_t = 0;
+                
+                % compute traction at gauss points
+                [ntrac ttrac] = postprocess_traction_nitsche(xcoords, ...
+                  ycoords,seg_cut_info(i,e),id_dof(elenodes,:), ...
+                  id_eqns(elenodes,:),totaldis,alpha_n,alpha_t, ...
+                  INTERFACE_MAP(i).endpoints,stress(eleID,:,:));
+                
+                % assign these values to their storage
+                seg_cut_info(i,e).ntracconv = ntrac;
+                seg_cut_info(i,e).ttracconv = ttrac;
+              end;
+            end;
+          end;
+        case 2  % perfect plasticity
+          % Only normal tractions have to be computed, since the tangential
+          % tractions have already been computed during the return mapping 
+          % algorithm. In order to use existing code, a routine, which 
+          % computes normal and tangential traction is used, but the 
+          % tangential values are not used for further computation.
+          
+          % loop over all interfaces 'i'
+          for i=1:size(seg_cut_info,1)
+            % loop over cut elements 'e'
+            for e=1:size(seg_cut_info,2)
+              % only, if 'e' is cut by 'i'
+              if seg_cut_info(i,e).elemno ~= -1
+                % get some element data
+                eleID = seg_cut_info(i,e).elemno;
+                elenodes = node(:,eleID);
+                xcoords = x(elenodes);
+                ycoords = y(elenodes);
+                
+                % if IFnitsche_normal > 0, then use the parameter given in 
+                % the input file, else compute a minimal stabilization 
+                % parameter as suggested in 'Dolbow2009'.
+                if IFnitsche_normal >= 0
+                   alpha_n = IFnitsche_normal;
+                else
+                   alpha_n = minstabiparameter(xcoords,ycoords, ...
+                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                  IFintegral);
+                end;
+                alpha_t = 0;
+                
+                % compute traction at gauss points
+                [ntrac ~] = postprocess_traction_penalty(xcoords, ...
+                  ycoords,seg_cut_info(i,e),id_dof(elenodes,:), ...
+                  id_eqns(elenodes,:),totaldis,alpha_n,alpha_t, ...
+                  INTERFACE_MAP(i).endpoints);
+                
+                % assign these values to their storage
+                seg_cut_info(i,e).ntracconv = ntrac;
+              end;
+            end;
+          end;
+        otherwise
+          error('MATLAB:XFEM:UnvalidID','Unvalid sliding-ID');
+      end;
+      
+      % clear some temporary variables
+      clear i e eleID elenodes xcoords ycoords alpha_n alpha_t ntrac ttrac;
     otherwise
       error('MATLAB:XFEM:UnvalidID','Unvalied method-ID');
   end; 

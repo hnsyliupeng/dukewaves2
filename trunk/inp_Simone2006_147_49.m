@@ -36,8 +36,8 @@ IFlength = 3;
 IFheight = sqrt(3);
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx =147;%28;%147;
-IFnldivy = 49;%19;%49;
+IFnldivx = 28;%28;%147;
+IFnldivy = 19;%19;%49;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -269,14 +269,15 @@ IFMatSet = 10;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 3.0294e+6;
-IFpenalty_tangential  = 3.0294e+5;
+IFpenalty_normal      = 4.2508e+006;
+IFpenalty_tangential  = 4.2508e+006;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+4;%
+IFnitsche_normal      = 1.0e+1;%1.0e+3;
+IFnitsche_tangential  = 1.0e+1;%1.0e+3; 
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)
@@ -291,7 +292,7 @@ IFintegral = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 0.8;%3.329;
@@ -311,7 +312,7 @@ IFSolverType = 1;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-8;%12;
+IFconvtol = 1.0e-7;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
@@ -332,14 +333,13 @@ disp(['IFnldivy:                ' num2str(IFnldivy)]);
 disp(['IFdatasetp:              ' num2str(IFdatasetp)]);
 disp(['IFDirichletBCs:          ' num2str(IFDirichletBCs)]);
 disp(['IFNeumannBCs:            ' num2str(IFNeumannBCs)]);
-disp(['IFneumann:               ' num2str(IFneumann)]);
 disp(['IFMatSet:                ' num2str(IFMatSet)]);
 disp(['IFsliding_switch:        ' num2str(IFsliding_switch)]);
 disp(['IFmethod:                ' num2str(IFmethod)]);
 disp(['IFpenalty_normal:        ' num2str(IFpenalty_normal)]);
 disp(['IFpenalty_tangential:    ' num2str(IFpenalty_tangential)]);
-disp(['IFnitsche:               ' num2str(IFnitsche)]);
-disp(['IFintegral:              ' num2str(IFintegral)]);
+disp(['IFnitsche_normal:        ' num2str(IFnitsche_normal)]);
+disp(['IFnitsche_tangential:    ' num2str(IFnitsche_tangential)]);
 disp(['IFSolverType:            ' num2str(IFSolverType)]);
 disp(['IFmaxiter:               ' num2str(IFmaxiter)]);
 disp(['IFconvtol:               ' num2str(IFconvtol)]);
@@ -355,11 +355,12 @@ save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
 save(filename3, 'IFsliding_switch','IFmethod','IFpenalty_normal', ...
-  'IFpenalty_tangential','IFnitsche','IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+  'IFpenalty_tangential','IFnitsche_normal','IFnitsche_tangential', ...
+  'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
-% clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
-%     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-%     IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-%     IFmaxiter IFconvtol;
+clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
+    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
+    IFsliding_switch IFmethod IFpenalty_normal IFpenalty_tangential ...
+    IFnitsche_normal IFnitsche_tangential IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

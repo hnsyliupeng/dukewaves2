@@ -173,7 +173,8 @@ for g = 1:length(gauss)
   
   % multiply values belonging to nodes in the 'negative' grain with '-1'
   for c = 1:6
-    N(:,2*c-1:2*c) = N(:,2*c-1:2*c)*flg(c);
+    N(1,2*c-1:2*c-1)  = N(1,2*c-1:2*c-1)*flg(c);
+    N(2,2*c:2*c)      = N(2,2*c:2*c)    *flg(c);
   end;
   
   % evaluate normal and tangential traction at gauss point

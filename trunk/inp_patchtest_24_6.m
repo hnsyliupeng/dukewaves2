@@ -112,15 +112,15 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 5e+8;
-IFpenalty_tangential  = 1e+4;
+IFpenalty_normal      = 1e+8;
+IFpenalty_tangential  = 1e+8;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+4;
-IFnitsche_tangential  = 1.0e+4;
+IFnitsche_normal      = 1.0e+3;
+IFnitsche_tangential  = 1.0e+3;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -159,7 +159,7 @@ IFmaxiter = 30;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

@@ -1,22 +1,35 @@
 % lin_nitsche.m
 %
-% CALL: get_ele_residual_nitsche()
+% CALL: lin_nitsche(xcoords,ycoords,seg_cut_info,endpoints,node,id_dof, ...
+%         id_eqns,GRAININFO_ARR,nodegrainmap,IFsliding_switch)
 %
 % Computes the element residual contributions due to the two Nitsche terms
-% with the averaged stresses.
+% with the averaged stresses and provides an id-array to prepare the
+% assembly into the global 'tangentmatrix'.
 %
 % Input Parameters:
-%
+%   xcoords           x-coordinates of current element
+%   ycoords           y-coordinates of current element
+%   seg_cut_info      information about current subsegment
+%   endpoints         endpoints of current interface
+%   node              connectivity between all nodes and elements
+%   id_dof            mapping between DOFs and enriching grains
+%   id_eqns           mappint between nodes and global DOFs (only for this
+%                     element)
+%   GRAININFO_ARR     some data about the grains
+%   nodegrainmap      mapping between nodes and grains
+%   IFsliding_switch  indicates sliding case at interface
 %
 % Returned variables:
-%
+%   ke_nit            element stiffnes contribution to global 'tangentmatrix'
+%   id                id-array to prepare assembly into 'tangentmatrix'
 %
 
 % Author: Matthias Mayr (08/2010)
 
 function [ke_nit id] = lin_nitsche(xcoords,ycoords, ...
   seg_cut_info,endpoints,node,id_dof, ...
-  id_eqns,GRAININFO_ARR,nodegrainmap)
+  id_eqns,GRAININFO_ARR,nodegrainmap,IFsliding_switch)
 
 %% INITIALIZE
 eleID = seg_cut_info.elemno;    % global element ID
@@ -27,6 +40,8 @@ intersection = seg_cut_info.xint;
 normal = seg_cut_info.normal;                 % normal vector
 n_matrix = [normal(1) 0         normal(2);    % normal matrix to keep dimensions 
             0         normal(2) normal(1)];   %   consistent in discrete space
+ntn = normal * normal';                       % "normal tensor normal" to project
+                                              %   into normal direction
           
 pos_g = seg_cut_info.positive_grain;            % positive grain
 neg_g = seg_cut_info.negative_grain;            % negative grain
@@ -35,31 +50,28 @@ pn_nodes = get_positive_new(eleID,pos_g,neg_g); % pos. and neg. nodes
 enrich1 = zeros(1,3);
 enrich2 = zeros(1,3);
 
-flg = zeros(1,6);
+flg = zeros(1,6);           % flags to evalueat jump in shape functions
 
-ke_nit_12 = zeros(6,12);
-ke_nit_21 = zeros(12,6);
-ke_nit_22 = zeros(12,12);
+ke_nit_12 = zeros(6,12);    % upper right submatrix
+ke_nit_21 = zeros(12,6);    % bottom left submatrix
+ke_nit_22 = zeros(12,12);   % bottom right submatrix
 % ----------------------------------------------------------------------- %
 %% GET DISCRETE CONSTITUTIVE MATRICES 'C1' and 'C2'
 % grain 1
 E = GRAININFO_ARR(pos_g).youngs;
 pr = GRAININFO_ARR(pos_g).poisson;
 fac = E/(1 - (pr)^2);
-C1 = fac*[1.0,  pr,   0;
-          pr,   1.0,  0.0;
-          0,    0,    (1.-pr)/2 ];
+C1 = fac * [1.0 pr  0;
+            pr  1.0 0.0;
+            0   0   (1.-pr)/2 ];
 
 % grain 2
 E = GRAININFO_ARR(neg_g).youngs;
 pr = GRAININFO_ARR(neg_g).poisson;
 fac = E/(1 - (pr)^2);
-C2 = fac*[1.0,  pr,   0;
-          pr,   1.0,  0.0;
-          0,    0,    (1.-pr)/2 ];
-        
-% clear some temporary variables
-clear E pr fac;
+C2 = fac * [1.0 pr  0;
+            pr  1.0 0.0;
+            0   0   (1.-pr)/2 ];
 % ----------------------------------------------------------------------- %
 %% GET AVERAGED 'CBhat' and 'CBtilde'
 % Since the matrices 'Bhat' and 'Btilde' are constant in an element due to 
@@ -68,7 +80,7 @@ clear E pr fac;
 
 % get B-matrices
 [Bhat Btilde1 Btilde2] = getBmatrices(xcoords,ycoords, ...
-  elenodes,nodegrainmap,pos_g);
+  elenodes,nodegrainmap,pos_g,id_dof);
 
 
 % Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
@@ -176,10 +188,10 @@ for g=1:2
     Larea = det([[1 1 1]' xes' yes'])/2;
 
     % Evaluate shape function
-    N(1,2*b-1)  = N(1,2*b-1)  + Larea/Area;   % First enrichment
-    N(2,2*b)    = N(2,2*b)    + Larea/Area;
-    N(1,2*b+5)  = N(1,2*b+5)  + Larea/Area;   % Second enrichment
-    N(2,2*b+6)  = N(2,2*b+6)  + Larea/Area;
+    N(1,2*b-1)  = N(1,2*b-1)          + Larea/Area;   % First enrichment
+    N(2,2*b)    = N(2,2*b)            + Larea/Area;
+    N(1,2*b-1 + 6)  = N(1,2*b-1 + 6)  + Larea/Area;   % Second enrichment
+    N(2,2*b + 6)  = N(2,2*b + 6)      + Larea/Area;
   end;
   
   % build jump by multiplying with 'flg'
@@ -188,21 +200,35 @@ for g=1:2
     N(2,2*i)    = N(2,2*i)    * flg(i);
   end;
   
+  % compute contributions due to normal constraints
   ke_nit_12 = ke_nit_12 ...
-            + CBhat_avg' * n_matrix' * N * seg_jcob;
+            + CBhat_avg' * n_matrix' * ntn * N * seg_jcob;
   ke_nit_21 = ke_nit_21 ...
-            + N' * n_matrix * CBhat_avg * seg_jcob;
+            + N' * ntn * n_matrix * CBhat_avg * seg_jcob;
   ke_nit_22 = ke_nit_22 ...
-            + (N' * n_matrix * CBtilde_avg ...
-            + CBtilde_avg' * n_matrix' * N) * seg_jcob;
+            + (N' * ntn * n_matrix * CBtilde_avg ...
+            + CBtilde_avg' * n_matrix' * ntn * N) * seg_jcob;
+          
+  % add contributions due to tangential constraints, if interface is fully
+  % tied
+  if IFsliding_switch == 0
+    ke_nit_12 = ke_nit_12 ...
+              + CBhat_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob;
+    ke_nit_21 = ke_nit_21 ...
+              + N' * (eye(2) - ntn) * n_matrix * CBhat_avg * seg_jcob;
+    ke_nit_22 = ke_nit_22 ...
+              + (N' * (eye(2) - ntn) * n_matrix * CBtilde_avg ...
+              + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * N) * seg_jcob;
+  end;
 end;
 % ----------------------------------------------------------------------- %
-%% ASSEMBLE ELEMENT STIFFNESS CONTRIBUTION FOR NITSCHE
+%% BUILD ELEMENT STIFFNESS CONTRIBUTION FOR NITSCHE
 ke_nit = -1 * [ zeros(6,6)  ke_nit_12;
                 ke_nit_21   ke_nit_22];
-if norm(ke_nit - ke_nit',inf) ~= 0
-  error('Nitsche-stiffnes not symmetric');
-end;
+% if norm(ke_nit - ke_nit',inf) ~= 0
+%   ke_nit
+%   error('Nitsche-stiffnes not symmetric');
+% end;
 % ----------------------------------------------------------------------- %
 %% BUILD ID-ARRAY FOR ASSEMBLY
 id = zeros(1,18);
