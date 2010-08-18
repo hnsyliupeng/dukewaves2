@@ -80,7 +80,7 @@ C2 = fac * [1.0 pr  0;
 
 % get B-matrices
 [Bhat Btilde1 Btilde2] = getBmatrices(xcoords,ycoords, ...
-  elenodes,nodegrainmap,pos_g,id_dof);
+  elenodes,nodegrainmap,pos_g,neg_g,pn_nodes,id_dof);
 
 
 % Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
@@ -163,21 +163,21 @@ seg_jcob = he/2;
 % matrices is integrated, i.e. the integrand is quadratic, so at least 2
 % gauss points are required for an exact integration.
 gauss = [-sqrt(3)/3 sqrt(3)/3];
-% weights = [1 1];  % weights can be dropped for two gauss points since
+weights = [1 1];  % weights can be dropped for two gauss points since
                     % they hace no influence
 
 % get area of element
 Area = det([[1 1 1]' xcoords' ycoords'])/2;
 % ----------------------------------------------------------------------- %
 %% LOOP OVER GAUSS POINTS
-for g=1:2
-  % reset 'N'
-  N = zeros(2,12);  % shape function matrix for base DOFs and two possible enrichments
-  
+for g = 1:length(gauss)
   % Get real coordinates of gauss points
   xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
   yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
 
+  % reset shape function matrix 'N'
+  N = zeros(2,12);
+  
   % Evaluate shape functions and assemble 'N'
   for b = 1:3     
     % Get coorindates of area opposite node of concern
@@ -188,37 +188,37 @@ for g=1:2
     Larea = det([[1 1 1]' xes' yes'])/2;
 
     % Evaluate shape function
-    N(1,2*b-1)  = N(1,2*b-1)          + Larea/Area;   % First enrichment
-    N(2,2*b)    = N(2,2*b)            + Larea/Area;
-    N(1,2*b-1 + 6)  = N(1,2*b-1 + 6)  + Larea/Area;   % Second enrichment
-    N(2,2*b + 6)  = N(2,2*b + 6)      + Larea/Area;
+    N(1,2*b-1) = N(1,2*b-1) + Larea/Area;   % First enrichment
+    N(2,2*b)   = N(2,2*b)   + Larea/Area;
+    N(1,2*b+5) = N(1,2*b+5) + Larea/Area;   % Second enrichment
+    N(2,2*b+6) = N(2,2*b+6) + Larea/Area;
   end;
   
-  % build jump by multiplying with 'flg'
-  for i=1:6
-    N(1,2*i-1)  = N(1,2*i-1)  * flg(i);
-    N(2,2*i)    = N(2,2*i)    * flg(i);
+  % multiply values belonging to nodes in the 'negative' grain with '-1'
+  for c = 1:6
+    N(1,2*c-1:2*c-1)  = N(1,2*c-1:2*c-1)*flg(c);
+    N(2,2*c:2*c)      = N(2,2*c:2*c)    *flg(c);
   end;
   
   % compute contributions due to normal constraints
   ke_nit_12 = ke_nit_12 ...
-            + CBhat_avg' * n_matrix' * ntn * N * seg_jcob;
+            + CBhat_avg' * n_matrix' * ntn * N * seg_jcob * weights(g);
   ke_nit_21 = ke_nit_21 ...
-            + N' * ntn * n_matrix * CBhat_avg * seg_jcob;
+            + N' * ntn * n_matrix * CBhat_avg * seg_jcob * weights(g);
   ke_nit_22 = ke_nit_22 ...
-            + (N' * ntn * n_matrix * CBtilde_avg ...
-            + CBtilde_avg' * n_matrix' * ntn * N) * seg_jcob;
+            + N' * ntn * n_matrix * CBtilde_avg * seg_jcob * weights(g)...
+            + CBtilde_avg' * n_matrix' * ntn * N * seg_jcob * weights(g);
           
   % add contributions due to tangential constraints, if interface is fully
   % tied
   if IFsliding_switch == 0
     ke_nit_12 = ke_nit_12 ...
-              + CBhat_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob;
+              + CBhat_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
     ke_nit_21 = ke_nit_21 ...
-              + N' * (eye(2) - ntn) * n_matrix * CBhat_avg * seg_jcob;
+              + N' * (eye(2) - ntn) * n_matrix * CBhat_avg * seg_jcob * weights(g);
     ke_nit_22 = ke_nit_22 ...
-              + (N' * (eye(2) - ntn) * n_matrix * CBtilde_avg ...
-              + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * N) * seg_jcob;
+              + N' * (eye(2) - ntn) * n_matrix * CBtilde_avg * seg_jcob * weights(g) ...
+              + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
   end;
 end;
 % ----------------------------------------------------------------------- %

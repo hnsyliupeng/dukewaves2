@@ -54,7 +54,6 @@ for m=1:3
     xep(m) = x(jep); 
     yep(m) = y(jep);
 end
-
 % ----------------------------------------------------------------------- %
 %% MATERIAL PROPERTIES
 
@@ -63,7 +62,6 @@ cijkl_p = find_cijkl(pos_g);
 
 % get cijkl negative (2)
 cijkl_n = find_cijkl(neg_g);
-
 % ----------------------------------------------------------------------- %
 %% ASSEMBLE DERIVITAVES
 
@@ -104,7 +102,7 @@ for m = 1:3
     end
   end
 end
-% Now, 'NJdx1' contains the derivatived of the shape functions for grain
+% Now, 'NJdx1' contains the derivatives of the shape functions for grain
 % (1). First row corresponds to x, second row to y. The zeros in between 
 % are ommitted here. First 3 colums correspond to base DOFs, second 3 
 % columns to first enrichment, last 3 columns to a possible second 
@@ -125,7 +123,7 @@ for m = 1:3
     end
   end
 end
-% Now, 'NJdx2' contains the derivatived of the shape functions for grain
+% Now, 'NJdx2' contains the derivatives of the shape functions for grain
 % (2). First row corresponds to x, second row to y. The zeros in between 
 % are ommitted here. First 3 colums correspond to base DOFs, second 3 
 % columns to first enrichment, last 3 columns to a possible second 
