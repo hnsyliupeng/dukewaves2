@@ -37,8 +37,8 @@ IFlength = 4;
 IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 61;%2;%5;%11;%21;%41;%61;%81;%141;
-IFnldivy = 77;%3;%6;%14;%27;%51;%77;%101;%176;
+IFnldivx = 21;%2;%5;%11;%21;%41;%61;%81;%141;
+IFnldivy = 27;%3;%6;%14;%27;%51;%77;%101;%176;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -278,14 +278,15 @@ IFMatSet = 11;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 4e+8;
-IFpenalty_tangential  = 4e+8;
+IFpenalty_normal      = 4e+6;
+IFpenalty_tangential  = 4e+5;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+4;
+IFnitsche_normal      = 1.0e+4;
+IFnitsche_tangential  = 1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -345,7 +346,8 @@ disp(['IFsliding_switch:        ' num2str(IFsliding_switch)]);
 disp(['IFmethod:                ' num2str(IFmethod)]);
 disp(['IFpenalty_normal:        ' num2str(IFpenalty_normal)]);
 disp(['IFpenalty_tangential:    ' num2str(IFpenalty_tangential)]);
-disp(['IFnitsche:               ' num2str(IFnitsche)]);
+disp(['IFnitsche_normal:        ' num2str(IFnitsche_normal)]);
+disp(['IFnitsche_tangential:    ' num2str(IFnitsche_tangential)]);
 disp(['IFSolverType:            ' num2str(IFSolverType)]);
 disp(['IFmaxiter:               ' num2str(IFmaxiter)]);
 disp(['IFconvtol:               ' num2str(IFconvtol)]);
@@ -361,12 +363,12 @@ save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
 save(filename3, 'IFsliding_switch','IFmethod','IFpenalty_normal', ...
-  'IFpenalty_tangential','IFnitsche','IFSolverType','IFmaxiter', ...
-  'IFconvtol');                    % for 'XFEM'
+  'IFpenalty_tangential','IFnitsche_normal','IFnitsche_tangential', ...
+  'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
 clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-    IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-    IFmaxiter IFconvtol;
+    IFsliding_switch IFmethod IFpenalty_normal IFpenalty_tangential ...
+    IFnitsche_normal IFnitsche_tangential IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

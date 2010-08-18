@@ -73,7 +73,7 @@ pr = GRAININFO_ARR(pos_g).poisson;
 fac = E/(1 - (pr)^2);
 C1 = fac*[1.0,  pr,   0;
           pr,   1.0,  0.0;
-          0,    0,    (1.-pr)/2 ];
+          0,    0,    (1.0-pr)/2 ];
 
 % grain 2
 E = GRAININFO_ARR(neg_g).youngs;
@@ -81,7 +81,7 @@ pr = GRAININFO_ARR(neg_g).poisson;
 fac = E/(1 - (pr)^2);
 C2 = fac*[1.0,  pr,   0;
           pr,   1.0,  0.0;
-          0,    0,    (1.-pr)/2 ];
+          0,    0,    (1.0-pr)/2 ];
         
 % clear some temporary variables
 clear E pr fac;
@@ -132,7 +132,7 @@ stress_avg = 0.5 * (stress1 + stress2);
 
 % get B-matrices
 [Bhat Btilde1 Btilde2] = getBmatrices(xcoords,ycoords, ...
-  elenodes,nodegrainmap,pos_g,id_dof);
+  elenodes,nodegrainmap,pos_g,neg_g,pn_nodes,id_dof);
 
 
 % Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
@@ -215,21 +215,21 @@ seg_jcob = he/2;
 % matrices is integrated, i.e. the integrand is quadratic, so at least 2
 % gauss points are required for an exact integration.
 gauss = [-sqrt(3)/3 sqrt(3)/3];
-% weights = [1 1];  % weights can be dropped for two gauss points since
-                    % they hace no influence
+weights = [1 1];  % weights can be dropped for two gauss points since
+                  % they hace no influence
 
 % get area of element
 Area = det([[1 1 1]' xcoords' ycoords'])/2;
 % ----------------------------------------------------------------------- %
 %% LOOP OVER GAUSS POINTS
-for g=1:2
-  % reset 'N'
-  N = zeros(2,12);  % shape function matrix for base DOFs and two possible enrichments
-  
+for g = 1:length(gauss)
   % Get real coordinates of gauss points
   xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
   yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
 
+  % reset shape function matrix 'N'
+  N = zeros(2,12);
+  
   % Evaluate shape functions and assemble 'N'
   for b = 1:3     
     % Get coorindates of area opposite node of concern
@@ -240,16 +240,16 @@ for g=1:2
     Larea = det([[1 1 1]' xes' yes'])/2;
 
     % Evaluate shape function
-    N(1,2*b-1)  = N(1,2*b-1)  + Larea/Area;   % First enrichment
-    N(2,2*b)    = N(2,2*b)    + Larea/Area;
-    N(1,2*b+5)  = N(1,2*b+5)  + Larea/Area;   % Second enrichment
-    N(2,2*b+6)  = N(2,2*b+6)  + Larea/Area;
+    N(1,2*b-1) = N(1,2*b-1) + Larea/Area;   % First enrichment
+    N(2,2*b)   = N(2,2*b)   + Larea/Area;
+    N(1,2*b+5) = N(1,2*b+5) + Larea/Area;   % Second enrichment
+    N(2,2*b+6) = N(2,2*b+6) + Larea/Area;
   end;
   
-  % build jump by multiplying with 'flg'
-  for i=1:6
-    N(1,2*i-1)  = N(1,2*i-1)  * flg(i);
-    N(2,2*i)    = N(2,2*i)    * flg(i);
+  % multiply values belonging to nodes in the 'negative' grain with '-1'
+  for c = 1:6
+    N(1,2*c-1:2*c-1)  = N(1,2*c-1:2*c-1)*flg(c);
+    N(2,2*c:2*c)      = N(2,2*c:2*c)    *flg(c);
   end;
   
   % evaluate gap at current gauss point
@@ -258,19 +258,19 @@ for g=1:2
   
   % compute residual for normal constraints;
   res_nit_base      = res_nit_base ...
-                    + CBhat_avg' * n_matrix' * ntn * gap * seg_jcob;
+                    + CBhat_avg' * n_matrix' * ntn * gap * seg_jcob * weights(g);
   res_nit_enriched  = res_nit_enriched ...
-                    + N' * ntn * n_matrix * stress_avg * seg_jcob ...
-                    + CBtilde_avg' * n_matrix' * ntn * gap * seg_jcob;
+                    + N' * ntn * n_matrix * stress_avg * seg_jcob * weights(g) ...
+                    + CBtilde_avg' * n_matrix' * ntn * gap * seg_jcob * weights(g);
                   
   % check, if it is a fully tied problem
   if IFsliding_switch == 0
     % add residual for tangential constraints
     res_nit_base      = res_nit_base ...
-                      + CBhat_avg' * n_matrix' * (eye(2) - ntn) * gap * seg_jcob;
+                      + CBhat_avg' * n_matrix' * (eye(2) - ntn) * gap * seg_jcob * weights(g);
     res_nit_enriched  = res_nit_enriched ...
-                      + N' * (eye(2) - ntn) * n_matrix * stress_avg * seg_jcob ...
-                      + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * gap * seg_jcob;
+                      + N' * (eye(2) - ntn) * n_matrix * stress_avg * seg_jcob * weights(g) ...
+                      + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * gap * seg_jcob * weights(g);
   end;
 end;
 % ----------------------------------------------------------------------- %

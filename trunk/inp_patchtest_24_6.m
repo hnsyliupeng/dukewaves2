@@ -115,12 +115,12 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 1e+8;
-IFpenalty_tangential  = 1e+8;
+IFpenalty_normal      = 1e+6;
+IFpenalty_tangential  = 1e+5;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+3;
-IFnitsche_tangential  = 1.0e+3;
+IFnitsche_normal      = 1.0e+4;
+IFnitsche_tangential  = 1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -136,7 +136,7 @@ IFintegral = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1.5;
@@ -159,7 +159,7 @@ IFmaxiter = 30;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!

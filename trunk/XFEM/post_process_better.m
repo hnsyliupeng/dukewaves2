@@ -32,7 +32,7 @@
 %               maximum number of grains)
 %
 % 'stresse' will be assembled to global stress matrix 'stress' in
-% 'main_xfem_m'. There, it will have the same structure, but the first
+% 'main_xfem.m'. There, it will have the same structure, but the first
 % index will go up to the number of elements 'numele'.
 %
 % 'straine' is structured and used in a similar way.
