@@ -276,8 +276,8 @@ IFpenalty_normal      = 4.2508e+006;
 IFpenalty_tangential  = 4.2508e+005;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+6;
-IFnitsche_tangential  = 1.0e+5; 
+IFnitsche_normal      = 4.2508e+006;
+IFnitsche_tangential  = 4.2508e+005; 
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)
