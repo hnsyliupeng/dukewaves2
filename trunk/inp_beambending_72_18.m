@@ -45,7 +45,7 @@ IFnldivy = 18;
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 11;%4;
+IFdatasetp = 4;%4;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -87,8 +87,8 @@ IFpenalty_normal      = 3.0e+5;
 IFpenalty_tangential  = 3.0e+5;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1e+4;
-IFnitsche_tangential  = 1e+4;
+IFnitsche_normal      = -1;%1e+4;
+IFnitsche_tangential  = -1;%1e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
