@@ -536,6 +536,9 @@ totaldis = zeros(size(big_force_max));
 
 % needed to compute stresses
 old_ndisp = zeros(numnod,6);
+old_ndisp_conv = zeros(numnod,6);
+
+dis_conv = zeros(2*numnod,1);
 % ----------------------------------------------------------------------- %
 %% LOAD STEPPING LOOP (BEGIN)
 % The deformed state will be computed via a incremental loading procedure.
@@ -811,7 +814,7 @@ for timestep = 1:(length(time)-1)
       IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
       IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal,...
       IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
-      GRAININFO_ARR,nodegrainmap,youngs,poissons);
+      GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv,old_ndisp_conv);
 
 % The following commented code is moved to the subroutine 'buildresidual.m'    
 %{
@@ -937,7 +940,8 @@ for timestep = 1:(length(time)-1)
               xcoords = x(elenodes);              % x-coordinates
               ycoords = y(elenodes);              % y-coordinates
               
-              % distinguish between sliding cases
+              % distinguish between sliding cases to choose penalty
+              % parameters
               switch IFsliding_switch
                 case 0  % fully tied case
                   penalty_normal = IFpenalty_normal;
@@ -1010,61 +1014,61 @@ for timestep = 1:(length(time)-1)
               
               % distinguish between sliding cases
               switch IFsliding_switch
-                % if IFnitsche > 0, then use the parameter given in the input
-            % file, else compute a minimal stabilization parameter as
-            % suggested in 'Dolbow2009'.
-            case 0  % fully tied case
-              if IFnitsche_normal >= 0
-                penalty_normal = IFnitsche_normal;
-              else
-                penalty_normal = minstabiparameter(xcoords,ycoords, ...
-                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
-                  poissons(seg_cut_info(i,e).grains), ...
-                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
-                  IFintegral);
-              end;
-              if IFnitsche_tangential >= 0
-                penalty_tangent = IFnitsche_tangential;
-              else
-                penalty_tangent = minstabiparameter(xcoords,ycoords, ...
-                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
-                  poissons(seg_cut_info(i,e).grains), ...
-                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
-                  IFintegral);
-              end;
-            case 1  % frictionless sliding
-              if IFnitsche_normal >= 0
-                penalty_normal = IFnitsche_normal;
-              else
-                penalty_normal = minstabiparameter(xcoords,ycoords, ...
-                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
-                  poissons(seg_cut_info(i,e).grains), ...
-                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
-                  IFintegral);
-              end;
-              penalty_tangent = 0;
-            case 2  % perfect plasticity
-              % provide both penalty parameters: the normal one will be
-              % used indepentent of the slidestate, the tangential one
-              % is needed for the return mapping algorithm.
-              if IFnitsche_normal >= 0
-                penalty_normal = IFnitsche_normal;
-              else
-                penalty_normal = minstabiparameter(xcoords,ycoords, ...
-                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
-                  poissons(seg_cut_info(i,e).grains), ...
-                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
-                  IFintegral);
-              end;
-              if IFnitsche_tangential >= 0
-                penalty_tangent = IFnitsche_tangential;
-              else
-                penalty_tangent = minstabiparameter(xcoords,ycoords, ...
-                  seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
-                  poissons(seg_cut_info(i,e).grains), ...
-                  INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
-                  IFintegral);
-              end;
+                % if IFnitsche >= 0, then use the parameter given in the input
+                % file, else compute a minimal stabilization parameter as
+                % suggested in 'Dolbow2009'.
+                case 0  % fully tied case
+                  if IFnitsche_normal >= 0
+                    penalty_normal = IFnitsche_normal;
+                  else
+                    penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                      seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                      poissons(seg_cut_info(i,e).grains), ...
+                      INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                      IFintegral);
+                  end;
+                  if IFnitsche_tangential >= 0
+                    penalty_tangent = IFnitsche_tangential;
+                  else
+                    penalty_tangent = minstabiparameter(xcoords,ycoords, ...
+                      seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                      poissons(seg_cut_info(i,e).grains), ...
+                      INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                      IFintegral);
+                  end;
+                case 1  % frictionless sliding
+                  if IFnitsche_normal >= 0
+                    penalty_normal = IFnitsche_normal;
+                  else
+                    penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                      seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                      poissons(seg_cut_info(i,e).grains), ...
+                      INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                      IFintegral);
+                  end;
+                  penalty_tangent = 0;
+                case 2  % perfect plasticity
+                  % provide both penalty parameters: the normal one will be
+                  % used independently of the slidestate, the tangential one
+                  % is needed for the return mapping algorithm.
+                  if IFnitsche_normal >= 0
+                    penalty_normal = IFnitsche_normal;
+                  else
+                    penalty_normal = minstabiparameter(xcoords,ycoords, ...
+                      seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                      poissons(seg_cut_info(i,e).grains), ...
+                      INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                      IFintegral);
+                  end;
+                  if IFnitsche_tangential >= 0
+                    penalty_tangent = IFnitsche_tangential;
+                  else
+                    penalty_tangent = minstabiparameter(xcoords,ycoords, ...
+                      seg_cut_info(i,e),youngs(seg_cut_info(i,e).grains), ...
+                      poissons(seg_cut_info(i,e).grains), ...
+                      INTERFACE_MAP(i).endpoints,nodegrainmap(elenodes), ...
+                      IFintegral);
+                  end;
                 otherwise
                   error('MATLAB:XFEM:UnvalidID', ...
                     'Unvalid sliding ID');
@@ -1089,9 +1093,12 @@ for timestep = 1:(length(time)-1)
                     'Unvalid number of integrals');
               end;
               
-              % build an elemental matrix
-              penalty_matrix  = pen_normal + pen_tangent;
-                            
+              if IFsliding_switch == 0
+                penalty_matrix = pen_normal + pen_tangent;
+              else
+                penalty_matrix = pen_normal;
+              end;
+              
               % assemble 'penalty_matrix' into 'tangentmatrix'
               nlink = size(id_pen,2);
               for m=1:nlink
@@ -1109,10 +1116,23 @@ for timestep = 1:(length(time)-1)
 
               % Now, consider additional terms due to Nitsche's method
               % get nitsche-contributions
-              [ke_nit id_nit] = lin_nitsche(xcoords,ycoords, ...
-                seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
-                id_dof,id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
-                IFsliding_switch);
+              if IFsliding_switch == 0 || IFsliding_switch == 1
+                [ke_nit id_nit] = lin_nitsche(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+                  id_dof,id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
+                  IFsliding_switch);
+              else
+                % set 'sliding_switch' to '1 = frictionless sliding'
+                [ke_nit_normal id_nit] = lin_nitsche(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+                  id_dof,id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap,1);
+                
+                ke_nit_tangent = lin_nitsche_tangent_plastic(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+                  id_dof,GRAININFO_ARR,nodegrainmap,penalty_tangent);
+                
+                ke_nit = ke_nit_normal + ke_nit_tangent;
+              end;
               
               if length(id_nit) ~= 18
                 error('MATLAB:XFEM','ID-array for Nitsche residual too short.');
@@ -1285,7 +1305,8 @@ for timestep = 1:(length(time)-1)
     % ------------------------------------------------------------------- %
     %% SOLVE (NEWTON-RAPHSON-SCHEME)
     % compute the increment vector 'deltanewton'
-    deltanewton = -tangentmatrix\residual; % no negative sign here, since 'residual' 
+    deltanewton = - inv(tangentmatrix) * residual;
+%     deltanewton = -tangentmatrix\residual; % no negative sign here, since 'residual' 
                                  % is considered as 'F_ext - F_int' 
                                  % (according to Laursen's Book)
     % ------------------------------------------------------------------- %
@@ -1660,6 +1681,12 @@ for timestep = 1:(length(time)-1)
 %     y_def(i) = y(i) + dis(2*i); 
 % end
   
+% store the re-assembled displacement vector
+dis_conv = dis;
+
+% store 'old_ndisp' to compute the stress at the end of the laod step
+old_ndisp_conv = old_ndisp;
+
   % updates at the end of each load step, that are specific with respect to
   % the sliding case
   switch IFsliding_switch
@@ -1667,28 +1694,6 @@ for timestep = 1:(length(time)-1)
       % no updates necessary
     case 1  % frictionless sliding
       % no updates necessary
-      
-%       figure(51)
-%       hold on;
-%       plot(x_def(881)-x(881),x_def(891)-x(891),'*') ;
-%     %   axis([-0.012 0.008 -0.0005 0.0025]);
-%       hold off;
-
-%       figure(52)
-%       hold on;
-%       plot(x_def(1),y_def(1),'*r'); 
-%       hold off;
-      
-      % figure(51)
-%   hold on;
-%   plot(x_def(3361)-x(3361),x_def(3381)-x(3381),'*') 
-% %   axis([-0.012 0.008 -0.0005 0.0025]);
-%   hold off;
-%   
-%   figure(52)
-%   hold on;
-%   plot(x_def(1),y_def(1),'*') 
-%   hold off;
     case 2  % perfect plasticity
       %% update plastic contribution to plastic gap and tangential tractions
       % loop over interfaces 'i'
@@ -2545,17 +2550,17 @@ disp('postprocessing: tractions ...');
 %   clear i e eleID elenodes DOFs;
 %   % --------------------------------------------------------------------- %
 %% POST PROCESS: PREPARE showdeform2
-x_def = [];
-y_def = [];
-
-% get coordinates of deformed mesh
-for i = 1:numnod
-    x_def(i) = x(i) + dis(2*i-1);
-    y_def(i) = y(i) + dis(2*i); 
-end
-
-% clear some temporary variables
-clear i;
+% x_def = [];
+% y_def = [];
+% 
+% % get coordinates of deformed mesh
+% for i = 1:numnod
+%     x_def(i) = x(i) + dis(2*i-1);
+%     y_def(i) = y(i) + dis(2*i); 
+% end
+% 
+% % clear some temporary variables
+% clear i;
 % ----------------------------------------------------------------------- %
 %% CLEAR SOME VARIABLES
 clear ce cbk count doff e eleID f loadsteptext n nlink p q2 rbk re;

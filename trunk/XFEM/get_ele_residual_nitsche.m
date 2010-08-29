@@ -82,9 +82,6 @@ fac = E/(1 - (pr)^2);
 C2 = fac*[1.0,  pr,   0;
           pr,   1.0,  0.0;
           0,    0,    (1.0-pr)/2 ];
-        
-% clear some temporary variables
-clear E pr fac;
 % ----------------------------------------------------------------------- %
 %% GET AVERAGED STRESS
 % Since the stress is constant in an element due to linear shape functions,

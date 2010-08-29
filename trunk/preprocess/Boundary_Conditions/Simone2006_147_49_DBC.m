@@ -1,8 +1,8 @@
 % DBC
 
 % mesh data
-num_x = 28;%28;%147;
-num_y = 19;%19;%49;
+num_x = 28;%28;%89;%147;
+num_y = 19;%19;%57;%49;
 
 % left boundary
 for i=1:(num_y + 1)
@@ -14,7 +14,7 @@ end;
 for i=1:(num_y + 1)
   nodeID = num_x * (num_y + 1) + i;
   dispbc(1,nodeID) = 1;
-  ubar(1,nodeID) = -3.0e-3;
+  ubar(1,nodeID) = 3.0e-3;
 end;
 
 % bottom boundary

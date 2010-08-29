@@ -23,7 +23,7 @@ EXEC_XFEM = 1;              % solve
 % to be used.
 %
 % filename_input_file = 'InputFileRoutine';   % NO FILE EXTENSION '.m'
-filename_input_file = 'inp_frictionless_sliding_analyt_8_81_20';   % NO FILE EXTENSION '.m'
+filename_input_file = 'inp_Simone2006_147_49';   % NO FILE EXTENSION '.m'
 % filename_input_file = 'inp_patchtest_24_6';
 % filename_input_file = 'inp_frictionless_sliding1_2020';
 % filename_input_file = 'inp_beambending_72_18';
