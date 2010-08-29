@@ -36,8 +36,8 @@ IFlength = 3;
 IFheight = sqrt(3);
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 28;%28;%147;
-IFnldivy = 19;%19;%49;
+IFnldivx = 28;%28;%89a;%147;
+IFnldivy = 19;%19;%57;%49;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -269,15 +269,15 @@ IFMatSet = 10;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
 IFpenalty_normal      = 4.2508e+006;
 IFpenalty_tangential  = 4.2508e+005;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 4.2508e+006;
-IFnitsche_tangential  = 4.2508e+005; 
+IFnitsche_normal      = -1;
+IFnitsche_tangential  = 4.2508e+004; 
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)

@@ -53,7 +53,7 @@ function [residual seg_cut_info] = ...
     IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
     IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal, ...
     IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
-    GRAININFO_ARR,nodegrainmap,youngs,poissons)
+    GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv,old_ndisp_conv)
 
 % contribution of elastic bulk field of the inner of the grains which
 % will not be affected from plasticity at the interface
@@ -194,26 +194,138 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
               error('MATLAB:XFEM','Unvalid Sliding-ID');
           end;
 
-          % get residual contributions vectors, but choose between the
-          % one- and two-integral formulation
-          switch IFintegral
-            case 1  % one integral
-              [res_penalty_normal res_penalty_tangent id tgappl ttrac f_trial] = ...
-                get_ele_residual_penalty_alternative(xcoords,ycoords, ...
-                seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
-                id_dof(elenodes,:),id_eqns(elenodes,:),totaldis, ...
-                penalty_normal,penalty_tangent,IFyieldstress, ...
-                deltaload,IFsliding_switch);
-            case 2  % two integrals
-              [res_penalty_normal res_penalty_tangent id] = ...
-                get_ele_residual_penalty(xcoords,ycoords, ...
-                seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
-                id_dof(elenodes,:),id_eqns(elenodes,:),totaldis);
-            otherwise
-              error('MATLAB:XFEM:UnvalidID', ...
-                'Unvalid number of integrals');
-          end;
+          if IFsliding_switch == 0 || IFsliding_switch == 1
+            % get residual contributions vectors, but choose between the
+            % one- and two-integral formulation
+            switch IFintegral
+              case 1  % one integral
+                [res_penalty_normal res_penalty_tangent id tgappl ttrac f_trial] = ...
+                  get_ele_residual_penalty_alternative(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+                  id_dof(elenodes,:),id_eqns(elenodes,:),totaldis, ...
+                  penalty_normal,penalty_tangent,IFyieldstress, ...
+                  deltaload,IFsliding_switch);
+              case 2  % two integrals
+                [res_penalty_normal res_penalty_tangent id] = ...
+                  get_ele_residual_penalty(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+                  id_dof(elenodes,:),id_eqns(elenodes,:),totaldis);
+              otherwise
+                error('MATLAB:XFEM:UnvalidID', ...
+                  'Unvalid number of integrals');
+            end;
 
+
+            % store plastic contribution to tangential gap
+            seg_cut_info(i,e).tgappl = tgappl;
+
+
+            % store scalar values of current tangential traction at each
+            % gauss point
+            seg_cut_info(i,e).ttrac = ttrac;
+
+
+            % store evaluated flow rules of trial state at both gauss
+            % points
+            seg_cut_info(i,e).f_trial = f_trial;
+
+            % compute 'ele_residual_stabi' due to stabilization
+            ele_residual_stabi  = res_penalty_normal ...  % normal traction
+                                + res_penalty_tangent;    % tangential traction
+
+
+            % assemble stabilization contribution into global residual
+            for a = 1:length(id)
+              if id(a) ~= 0
+                residual(id(a)) = residual(id(a)) + ele_residual_stabi(a);
+              end;
+            end;
+
+            % get Nitsche contributions
+            [res_nitsche id_array] = get_ele_residual_nitsche(xcoords, ...
+              ycoords,seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+              x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
+              id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
+              IFsliding_switch);          
+
+            if length(id_array) ~= 18
+              error('MATLAB:XFEM','ID-array for Nitsche residual too short.');
+            end;
+
+            % assemble Nitsche contribution into global residual
+            for a = 1:length(id_array)
+              if id_array(a) ~= 0
+                residual(id_array(a)) = residual(id_array(a)) ...
+                                      + res_nitsche(a);
+              end;
+            end;
+          else
+            % get residual contributions vectors for normal direction, but 
+            % choose between the one- and two-integral formulation
+            switch IFintegral
+              case 1  % one integral
+                [res_penalty_normal res_penalty_tangent id tgappl ttrac f_trial] = ...
+                  get_ele_residual_penalty_alternative(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+                  id_dof(elenodes,:),id_eqns(elenodes,:),totaldis, ...
+                  penalty_normal,0,IFyieldstress, ...
+                  deltaload,1);
+              case 2  % two integrals
+                [res_penalty_normal res_penalty_tangent id] = ...
+                  get_ele_residual_penalty(xcoords,ycoords, ...
+                  seg_cut_info(i,e),INTERFACE_MAP(i).endpoints, ...
+                  id_dof(elenodes,:),id_eqns(elenodes,:),totaldis);
+              otherwise
+                error('MATLAB:XFEM:UnvalidID', ...
+                  'Unvalid number of integrals');
+            end;
+
+            % compute 'ele_residual_stabi' due to stabilization
+            ele_residual_stabi  = res_penalty_normal; ...  % normal traction
+
+            % assemble stabilization contribution into global residual
+            for a = 1:length(id)
+              if id(a) ~= 0
+                residual(id(a)) = residual(id(a)) + ele_residual_stabi(a);
+              end;
+            end;
+
+            % get Nitsche contributions for normal direction
+            [res_nitsche id_array] = get_ele_residual_nitsche(xcoords, ...
+              ycoords,seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+              x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
+              id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
+              1);          
+
+            if length(id_array) ~= 18
+              error('MATLAB:XFEM','ID-array for Nitsche residual too short.');
+            end;
+
+            % assemble Nitsche contribution into global residual
+            for a = 1:length(id_array)
+              if id_array(a) ~= 0
+                residual(id_array(a)) = residual(id_array(a)) ...
+                                      + res_nitsche(a);
+              end;
+            end;
+            
+            % get residual contribution for tangential direction
+            [res_nit_tang id ttrac tgappl f_trial] = ...
+              get_ele_residual_nitsche_plasticity(xcoords, ...
+              ycoords,seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
+              x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
+              id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
+              IFsliding_switch,penalty_tangent,IFyieldstress,deltaload, ...
+              dis_conv,old_ndisp_conv); 
+
+            % assemble tangential Nitsche contribution into global residual
+            for a = 1:18
+              if id(a) ~= 0
+                residual(id(a)) = residual(id(a)) + res_nit_tang(a);
+              end;
+            end;
+          end;
+          
           % store plastic contribution to tangential gap
           seg_cut_info(i,e).tgappl = tgappl;
 
@@ -223,37 +335,7 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
 
           % store evaluated flow rules of trial state at both gauss
           % points
-          seg_cut_info(i,e).f_trial = f_trial;
-          
-          % compute 'ele_residual_stabi' due to stabilization
-          ele_residual_stabi  = res_penalty_normal ...  % normal traction
-                              + res_penalty_tangent;    % tangential traction
-
-          % assemble stabilization contribution into global residual
-          for a = 1:length(id)
-            if id(a) ~= 0
-              residual(id(a)) = residual(id(a)) + ele_residual_stabi(a);
-            end;
-          end;
-          
-          % get Nitsche contributions
-          [res_nitsche id_array] = get_ele_residual_nitsche(xcoords, ...
-            ycoords,seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
-            x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
-            id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
-            IFsliding_switch);          
-          
-          if length(id_array) ~= 18
-            error('MATLAB:XFEM','ID-array for Nitsche residual too short.');
-          end;
-          
-          % assemble Nitsche contribution into global residual
-          for a = 1:length(id_array)
-            if id_array(a) ~= 0
-              residual(id_array(a)) = residual(id_array(a)) ...
-                                    + res_nitsche(a);
-            end;
-          end;
+          seg_cut_info(i,e).f_trial = f_trial;          
         otherwise
           error('MATLAB:XFEM','Unvalid Method-ID');
       end;

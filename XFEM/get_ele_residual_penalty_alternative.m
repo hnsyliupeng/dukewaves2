@@ -192,10 +192,10 @@ for g = 1:length(gauss)
     error('MATLAB:XFEM:UnvalidID','Unvalid sliding ID');
   end;
   % normal direction
-  penalty_normal  = penalty_normal + N' * ntrac * weights(g);
+  penalty_normal  = penalty_normal + N' * ntrac * weights(g) * seg_jcob;
 
   % tangential direction
-  penalty_tangent = penalty_tangent + N' * ttrac * weights(g);
+  penalty_tangent = penalty_tangent + N' * ttrac * weights(g) * seg_jcob;
   
   % store plastic contribution to tangential gap
   tgappl(g) = plastictanggap;
@@ -206,10 +206,6 @@ for g = 1:length(gauss)
   % store flow rule of trial state
   f_trial(g) = f_trialgp;
 end;
-
-% multiply with jacobian due to gauss quadrature
-penalty_normal = penalty_normal .* seg_jcob;
-penalty_tangent = penalty_tangent .* seg_jcob;
 % ----------------------------------------------------------------------- %
 %% Build id array
 % get DOFs for first enrichment

@@ -219,11 +219,11 @@ IFMatSet = 3;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 6.46e+5;%2.27e+3;%1.63e+6;%8.0e+7;
-IFpenalty_tangential  = 6.46e+5;%2.27e+3;%1.63e+6;%8.0e+7;
+IFpenalty_normal      = 4.64e+6;
+IFpenalty_tangential  = 4.64e+6;
 %
 % Nitsche Parameter
 IFnitsche_normal      = -1;%2.58e+5;%3.59e+4;%2.58e+5;%5.0e+4;

@@ -115,12 +115,12 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 1e+6;
-IFpenalty_tangential  = 1e+5;
+IFpenalty_normal      = 1.0e+6;
+IFpenalty_tangential  = 1.0e+5;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+4;
-IFnitsche_tangential  = 1.0e+4;
+IFnitsche_normal      = -1;%1.0e+4;
+IFnitsche_tangential  = -1;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
