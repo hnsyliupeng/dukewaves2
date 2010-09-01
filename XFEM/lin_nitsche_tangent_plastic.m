@@ -1,19 +1,31 @@
 % lin_nitsche_tangent_plastic.m
 %
-% CALL: lin_nitsche_tangent_plastic()
+% CALL: lin_nitsche_tangent_plastic(xcoords,ycoords, ...
+%         seg_cut_info,endpoints,node,id_dof, ...
+%         GRAININFO_ARR,nodegrainmap,alpha_t,IFsymmetrized)
 %
 % Input parameters:
-%
+%   xcoords           x-coordinates of current element
+%   ycoords           y-coordinates of current element
+%   seg_cut_info      information about current subsegment
+%   endpoints         endpoints of current interface
+%   node              connectivity between all nodes and elements
+%   id_dof            mapping between DOFs and enriching grains
+%   GRAININFO_ARR     some data about the grains
+%   nodegrainmap      mapping between nodes and grains
+%   alpha_t           tangential stabilization parameter
+%   IFsymmetrized     unsymmetric or symmetrized version of Nitsche's
+%                     method with plasticity
 %
 % Returned variables
-%
+%   ke_nit            element stiffnes matrix for tangential constraints
 %
 
 % Author: Matthias Mayr (08/2010)
 
 function [ke_nit] = lin_nitsche_tangent_plastic(xcoords,ycoords, ...
   seg_cut_info,endpoints,node,id_dof, ...
-  GRAININFO_ARR,nodegrainmap,alpha_t)
+  GRAININFO_ARR,nodegrainmap,alpha_t,IFsymmetrized)
 
 %% INITIALIZE
 eleID = seg_cut_info.elemno;    % global element ID
@@ -36,6 +48,7 @@ enrich2 = zeros(1,3);
 
 flg = zeros(1,6);           % flags to evalueat jump in shape functions
 
+ke_nit_12 = zeros(6,12);    % upper right submatrix
 ke_nit_21 = zeros(12,6);    % bottom left submatrix
 ke_nit_22 = zeros(12,12);   % bottom right submatrix
 % ----------------------------------------------------------------------- %
@@ -183,8 +196,17 @@ for g = 1:length(gauss)
     N(2,2*c:2*c)      = N(2,2*c:2*c)    *flg(c);
   end;
   
-  % add contributions due to tangential constraints, if interface is fully
-  % tied
+  % add contributions due to tangential constraints
+  % unsymmetric contributions due to Nitsche
+  if IFsymmetrized == 0
+    % unsymmetric
+    ke_nit_12 = ke_nit_12 ...
+              - CBhat_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
+    ke_nit_22 = ke_nit_22 ...
+              - CBtilde_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
+  end;
+  
+  % tangential stiffnes due to plasticity
   if seg_cut_info.f_trial(g) <= 0
     ke_nit_21 = ke_nit_21 ...
               - N' * (eye(2) - ntn) * n_matrix * CBhat_avg * seg_jcob * weights(g);
@@ -194,8 +216,8 @@ for g = 1:length(gauss)
   end;
 end;
 % ----------------------------------------------------------------------- %
-%% BUILD ELEMENT STIFFNESS CONTRIBUTION FOR NITSCHE
-ke_nit = [zeros(6,6)  zeros(6,12);  % no extra negative sign here, since it
+%% BUILD ELEMENT STIFFNESS CONTRIBUTION FOR TANGENTIAL DIRECTION
+ke_nit = [zeros(6,6)  ke_nit_12;  % no extra negative sign here, since it
           ke_nit_21   ke_nit_22];   % already included in 'ke_nit_21' and 'ke_nit_22'
 % ----------------------------------------------------------------------- %
 end

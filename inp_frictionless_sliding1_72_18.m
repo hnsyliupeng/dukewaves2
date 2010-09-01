@@ -48,7 +48,7 @@ IFnldivy = 18;
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 4;%4;%19;
+IFdatasetp = 38;%4;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -125,8 +125,8 @@ IFMatSet = 1;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal = 7.0e+4;
-IFpenalty_tangential = 7.0e+4;
+IFpenalty_normal = 1.0e+6;
+IFpenalty_tangential = 1.5e+4;
 %
 % Nitsche Parameter
 IFnitsche = 0;%1.0e+2;
@@ -145,10 +145,10 @@ IFintegral = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 2;
+IFyieldstress = 1.0e+12;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a

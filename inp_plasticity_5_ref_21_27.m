@@ -37,7 +37,7 @@ IFlength = 4;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 3;%21;%41;%61;%121;%161;
+IFnldivx = 21;%21;%41;%61;%121;%161;
 IFnldivy = IFnldivx;
 %
 % filename for boundary description file for structured meshing and NBCs 
@@ -280,15 +280,30 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 3.03e+12;
+IFpenalty_normal      = 1.0e+4;
+IFpenalty_tangential  = 1.0e+4;
 %
 % Nitsche Parameter
-IFnitsche = 1.0e+4;
+IFnitsche_normal      = -1;%1.5e+3;
+IFnitsche_tangential  = -1;%1.5e+3;
+%
+% Choose a penalty variant: One or two integrals
+% ID    Number of integrals
+% 1     One integral (alpha ~1/h)
+% 2     Two integrals (alpha ~1/h^2)
+IFintegral = 1;
+%
+% Choose, if the unsymmetric or symmetrized version of Nitsche's method
+% with plasticity is applied.
+% ID    Version
+% 0     unsymmetric
+% 1     symmetrized
+IFsymmetrized = 0;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
 % ID    Description
-% 0     no slidung at all (full constraint)
+% 0     no sliding at all (full constraint)
 % 1     frictionless sliding
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
@@ -296,7 +311,7 @@ IFnitsche = 1.0e+4;
 IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 0.25;%44.1;%13.23;%8.82;%0.441;
+IFyieldstress = 0.7;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -307,41 +322,43 @@ IFyieldstress = 0.25;%44.1;%13.23;%8.82;%0.441;
 % ID    Description
 % 0     explicit
 % 1     implicit (Newton-Raphson-scheme)
-IFSolverType = 0;
+IFSolverType = 1;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
-IFmaxiter = 25;
+IFmaxiter = 30;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-10;%12;
+IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
-                            % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,21) ones(1,21)];
-% IFtime2 = [zeros(1,21) linspace(0,1,21)];
+% IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
+                           % possible, but first element has to be '0'
+IFtime = [zeros(1,2) linspace(0,1,3)]
+IFtime2 = [linspace(0,1,3) ones(1,2)]
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------
 
 % print parameters in console
-disp(['IFmeshstructure:     ' num2str(IFmeshstructure)]);
-disp(['IFshapegeometryID:   ' num2str(IFshapegeometryID)]);
-disp(['IFlength:            ' num2str(IFlength)]);
-disp(['IFheight:            ' num2str(IFheight)]);
-disp(['IFnldivx:            ' num2str(IFnldivx)]);
-disp(['IFnldivy:            ' num2str(IFnldivy)]);
-disp(['IFdatasetp:          ' num2str(IFdatasetp)]);
-disp(['IFDirichletBCs:      ' num2str(IFDirichletBCs)]);
-disp(['IFNeumannBCs:        ' num2str(IFNeumannBCs)]);
-disp(['IFMatSet:            ' num2str(IFMatSet)]);
-disp(['IFsliding_switch:    ' num2str(IFsliding_switch)]);
-disp(['IFmethod:            ' num2str(IFmethod)]);
-disp(['IFpenalty:           ' num2str(IFpenalty)]);
-disp(['IFnitsche:           ' num2str(IFnitsche)]);
-disp(['IFSolverType:        ' num2str(IFSolverType)]);
-disp(['IFmaxiter:           ' num2str(IFmaxiter)]);
-disp(['IFconvtol:           ' num2str(IFconvtol)]);
+disp(['IFmeshstructure:         ' num2str(IFmeshstructure)]);
+disp(['IFshapegeometryID:       ' num2str(IFshapegeometryID)]);
+disp(['IFlength:                ' num2str(IFlength)]);
+disp(['IFheight:                ' num2str(IFheight)]);
+disp(['IFnldivx:                ' num2str(IFnldivx)]);
+disp(['IFnldivy:                ' num2str(IFnldivy)]);
+disp(['IFdatasetp:              ' num2str(IFdatasetp)]);
+disp(['IFDirichletBCs:          ' num2str(IFDirichletBCs)]);
+disp(['IFNeumannBCs:            ' num2str(IFNeumannBCs)]);
+disp(['IFMatSet:                ' num2str(IFMatSet)]);
+disp(['IFsliding_switch:        ' num2str(IFsliding_switch)]);
+disp(['IFmethod:                ' num2str(IFmethod)]);
+disp(['IFpenalty_normal:        ' num2str(IFpenalty_normal)]);
+disp(['IFpenalty_tangential:    ' num2str(IFpenalty_tangential)]);
+disp(['IFnitsche_normal:        ' num2str(IFnitsche_normal)]);
+disp(['IFnitsche_tangential:    ' num2str(IFnitsche_tangential)]);
+disp(['IFSolverType:            ' num2str(IFSolverType)]);
+disp(['IFmaxiter:               ' num2str(IFmaxiter)]);
+disp(['IFconvtol:               ' num2str(IFconvtol)]);
 
 %--------------------------------------------------------------------------
 % create filenames for input files from type '*.mat'
@@ -353,12 +370,13 @@ filename3 = fullfile(pwd, 'XFEM', 'xfeminputdata_xfem.mat');
 save(filename1, 'IFmeshstructure', 'IFshapegeometryID', 'IFlength', ...
     'IFheight', 'IFnldivx', 'IFnldivy', 'IFdatasetp');  % for 'comp_geo'
 save(filename2, 'IFDirichletBCs', 'IFNeumannBCs', 'IFMatSet'); % for 'preprocess'
-save(filename3, 'IFsliding_switch','IFmethod','IFpenalty','IFnitsche',...
-    'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
+save(filename3, 'IFsliding_switch','IFmethod','IFpenalty_normal', ...
+  'IFpenalty_tangential','IFnitsche_normal','IFnitsche_tangential', ...
+  'IFSolverType','IFmaxiter','IFconvtol');                    % for 'XFEM'
 
 % clear workspace
-% clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
-%     IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
-%     IFsliding_switch IFmethod IFpenalty IFnitsche IFSolverType ...
-%     IFmaxiter IFconvtol;
+clear IFmeshstructure IFshapegeometryID IFlength IFheight IFnldivx ...
+    IFnldivy IFdatasetp IFDirichletBCs IFNeumannBCs IFMatSet ...
+    IFsliding_switch IFmethod IFpenalty_normal IFpenalty_tangential ...
+    IFnitsche_normal IFnitsche_tangential IFSolverType IFmaxiter IFconvtol;
 clear filename1 filename2 filename3;

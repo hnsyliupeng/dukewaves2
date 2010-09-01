@@ -1,7 +1,7 @@
 % NBC
 
 % mesh data
-num_x = 3;%21;%41;%61;%121;%161;
+num_x = 21;%21;%41;%61;%121;%161;
 num_y = num_x;
 
 p = -0.25;         % load per length

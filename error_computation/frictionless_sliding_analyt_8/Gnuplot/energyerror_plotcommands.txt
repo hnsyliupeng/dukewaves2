@@ -1,0 +1,16 @@
+cd 'C:\a_Daten\TUM\DA_Ausland\Matlab\SVN_Code\error_computation\frictionless_sliding_analyt_8\Gnuplot'
+set output "energyerror.tex"
+set terminal latex rotate
+set logscale xy
+set format xy "$%g$"
+set xlabel "mesh size $h$"
+set ylabel "error" 5,0 rotate
+set xrange [0.03:1.0]
+set yrange [0.01:1]
+set format xy "$10^{%L}$"
+set size square
+set pointsize 1.5
+plot "eng.dat" using 1:2 title "Lagrange mutlipliers" with linespoints lc rgb "#00FF00",\
+"eng.dat" using 1:3 title "Penalty method" with linespoints lc rgb "#0000FF",\
+"eng.dat" using 1:4 title "Nitsche's method" with linespoints lc rgb "#FF0000",\
+"eng_triangle.dat" using 1:2 notitle with lines
