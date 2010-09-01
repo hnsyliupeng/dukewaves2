@@ -115,18 +115,25 @@ IFMatSet = 3;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 1.0e+6;
-IFpenalty_tangential  = 1.0e+5;
+IFpenalty_normal      = 1.0e+4;
+IFpenalty_tangential  = 1.0e+4;
 %
 % Nitsche Parameter
-IFnitsche_normal      = -1;%1.0e+4;
-IFnitsche_tangential  = -1;
+IFnitsche_normal      = -1;%1.5e+3;
+IFnitsche_tangential  = -1;%1.5e+3;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)
 % 2     Two integrals (alpha ~1/h^2)
 IFintegral = 1;
+%
+% Choose, if the unsymmetric or symmetrized version of Nitsche's method
+% with plasticity is applied.
+% ID    Version
+% 0     unsymmetric
+% 1     symmetrized
+IFsymmetrized = 0;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
@@ -139,7 +146,7 @@ IFintegral = 1;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 1.5;
+IFyieldstress = 0.7;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a

@@ -235,6 +235,8 @@ switch IFdatasetp
         p = [100.0 51.5; 600.0 1.5; 100.0 -48.5];    % horizontal interface at y=1.5
     case 37
         p = [100.0 48.5; 600.0 -1.5; 100.0 -51.5];    % horizontal interface at y=-1.5
+    case 38
+        p = [0 0; 11 0; 5.5 9];       % 2 grains for beambending example
     otherwise
         error('MATLAB:comp_geo:vdata_multi',...
             'Unvalid ID for "IFdatasetp" !!!');

@@ -1,6 +1,10 @@
 % get_ele_residual_nitsche_plasticity.m
 %
-% CALL: get_ele_residual_nitsche_plasticity()
+% CALL: get_ele_residual_nitsche_plasticity(xcoords, ...
+%         ycoords,seg_cut_info,endpoints,node, ...
+%         x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis, ...
+%         id_eqns,GRAININFO_ARR,nodegrainmap,IFsliding_switch,alpha_t, ...
+%         yieldstress,deltaload,dis_conv,old_ndisp_conv,IFsymmetrized)
 %
 % Evaluates the tangential residual contribution for an unsymmetric Nitsche
 % formulation with perfect plasticity in tangential direction. The
@@ -25,6 +29,16 @@
 %                       this element)
 %   GRAININFO_ARR       some data about the grains
 %   nodegrainmap        mapping between nodes and grains
+%   IFsliding_switch    indicates the sliding case
+%   alpha _t            tangential stabilization parameter
+%   yieldstress         yield stress / traction
+%   deltaload           displacement increment for return mapping algorithm
+%   dis_conv            total displacement vector of previous converged
+%                       load step
+%   old_ndisp_conv      unmodified total solution vector of previous 
+%                       converged load step
+%   IFsymmetrized       unsymmetric or symmetrized version of Nitsche's
+%                       method with plasticity
 %
 % Returned variables:
 %   res_nit_tangential  vector with tangential residual contribution
@@ -41,12 +55,13 @@ function [res_nit_tangential id ttrac tgappl f_trial] = ...
     ycoords,seg_cut_info,endpoints,node, ...
     x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis, ...
     id_eqns,GRAININFO_ARR,nodegrainmap,IFsliding_switch,alpha_t, ...
-    yieldstress,deltaload,dis_conv,old_ndisp_conv)
+    yieldstress,deltaload,dis_conv,old_ndisp_conv,IFsymmetrized)
 
 %% Initialize
 elenodes = node(:,seg_cut_info.elemno);
 
-res_nit_tang = zeros(12,1);       % matrix for tangential constraints
+res_nit_tang_base = zeros(6,1);       % residual for tangential constraints in base DOFs
+res_nit_tang_enriched = zeros(12,1);  % residual for tangential constraints in enriched DOFs
 
 enrich1 = zeros(1,3);             % Is there a first enrichment?
 enrich2 = zeros(1,3);             % Is there a second enrichment?
@@ -56,6 +71,11 @@ intersection = seg_cut_info.xint; % intersection points of interface with
 
 normal = seg_cut_info.normal;     % vector normal to interface
 tangent = seg_cut_info.tangent;   % vector tangential to interface
+
+n_matrix = [normal(1) 0         normal(2);    % normal matrix to keep dimensions 
+            0         normal(2) normal(1)];   %   consistent in discrete space
+ntn = normal * normal';                       % "normal tensor normal" to project
+                                              %   into normal direction
 
 tgappl = [0 0];                   % plastic contribution to tangential gap
 % plastictanggap = 0;
@@ -119,6 +139,23 @@ for n = 1:3     % loop over nodes
   end
 end
 % ----------------------------------------------------------------------- %
+%% GET DISCRETE CONSTITUTIVE MATRICES 'C1' and 'C2'
+% grain 1
+E = GRAININFO_ARR(pos_g).youngs;
+pr = GRAININFO_ARR(pos_g).poisson;
+fac = E/(1 - (pr)^2);
+C1 = fac*[1.0,  pr,   0;
+          pr,   1.0,  0.0;
+          0,    0,    (1.0-pr)/2 ];
+
+% grain 2
+E = GRAININFO_ARR(neg_g).youngs;
+pr = GRAININFO_ARR(neg_g).poisson;
+fac = E/(1 - (pr)^2);
+C2 = fac*[1.0,  pr,   0;
+          pr,   1.0,  0.0;
+          0,    0,    (1.0-pr)/2 ];
+% ----------------------------------------------------------------------- %
 %% COMPUTE AVERAGED STRESS
 % Since the stress is constant in an element due to linear shape functions,
 % this quantity can be computed outside the loop over the gauss points.
@@ -156,19 +193,50 @@ end
 % compute stress increment
 stresse = stresse_current - stresse_conv;
               
-% stress in positive part of the element (Voigt-notation)
+% stress increment in positive part of the element (Voigt-notation)
 delta_stress1 = [ stresse(1,4,pos_g);
                   stresse(1,5,pos_g);
                   stresse(1,6,pos_g)];
           
           
-% stress in negative part of the element (Voigt-notation)
+% stress increment in negative part of the element (Voigt-notation)
 delta_stress2 = [ stresse(1,4,neg_g);
             stresse(1,5,neg_g);
             stresse(1,6,neg_g)];
 
-% compute averaged stress (Voigt-notation)
+% compute averaged stress increment (Voigt-notation)
 delta_stress_avg = 0.5 * (delta_stress1 + delta_stress2);
+
+% stress in positive part of the element (Voigt-notation)
+stress1 = [ stresse_current(1,4,pos_g);
+            stresse_current(1,5,pos_g);
+            stresse_current(1,6,pos_g)];
+          
+          
+% stress increment in negative part of the element (Voigt-notation)
+stress2 = [ stresse_current(1,4,neg_g);
+            stresse_current(1,5,neg_g);
+            stresse_current(1,6,neg_g)];
+
+% compute averaged stress (Voigt-notation)
+stress_avg = 0.5 * (stress1 + stress2);
+% ----------------------------------------------------------------------- %
+%% GET AVERAGED 'CBhat' and 'CBtilde'
+% Since the matrices 'Bhat' and 'Btilde' are constant in an element due to 
+% linear shape functions, these quantities can be computed outside the loop
+% over the gauss points.
+
+% get B-matrices
+[Bhat Btilde1 Btilde2] = getBmatrices(xcoords,ycoords, ...
+  elenodes,nodegrainmap,pos_g,neg_g,pn_nodes,id_dof);
+
+
+% Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
+CBhat_avg = 0.5 * (C1 + C2) * Bhat;
+
+% Since 'Btilde1' ~= 'Btilde2', the average of 'Btilde' has to be
+% considered, too.
+CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);
 % ----------------------------------------------------------------------- %
 %% PREPARE GAUSS QUADRATURE (TWO GAUSS POINTS)
 % end points of intersection - direction doesn't matter - this is for the
@@ -236,6 +304,10 @@ for g = 1:length(gauss)
     N(2,2*c:2*c)      = N(2,2*c:2*c)    *flg(c);
   end;
   
+  % evaluate total gap at current gauss point (elastic + plastic part)
+  gap = evaluate_gap_gp(xn,yn,flg,xcoords,ycoords,totaldis', ...
+    id_eqns,Area);
+  
   % evaluate normal and tangential traction at gauss point
   % distinguish bewteen pure elastic and plastic cases
   if IFsliding_switch == 0 || IFsliding_switch == 1
@@ -246,13 +318,24 @@ for g = 1:length(gauss)
       evaluate_traction_nitsche_gp_plastic(xn,yn,flg,xcoords,ycoords, ...
       id_eqns,Area,normal,tangent,alpha_t, ...
       seg_cut_info.tgapplconv(g),seg_cut_info.ttracconv(g),yieldstress, ...
-      deltaload,delta_stress_avg);
+      deltaload,delta_stress_avg,stress_avg,gap);
   else
     error('MATLAB:XFEM:UnvalidID','Unvalid sliding ID');
   end;
   
+  % subtract the plastic part
+  gap_el = gap;%seg_cut_info.tgapplconv(g) * [0;1];%tangent
+
   % tangential direction
-  res_nit_tang = res_nit_tang + N' * ttrac * weights(g) * seg_jcob;
+  if IFsymmetrized == 0
+    % unsymmetric
+    res_nit_tang_base = res_nit_tang_base ...
+      - CBhat_avg' * n_matrix' * (eye(2) - ntn) * gap_el * seg_jcob * weights(g);
+    res_nit_tang_enriched = res_nit_tang_enriched ...
+      - CBtilde_avg' * n_matrix' * (eye(2) - ntn) * gap_el * seg_jcob * weights(g);
+  end;
+  
+  res_nit_tang_enriched = res_nit_tang_enriched + N' * ttrac * seg_jcob * weights(g);
   
   % store plastic contribution to tangential gap
   tgappl(g) = plastictanggap;
@@ -264,8 +347,9 @@ for g = 1:length(gauss)
   f_trial(g) = f_trialgp;
 end;
 
-% put 6 zeros at the beginning of 'res_nit_tang' for the 6 base DOFs
-res_nit_tangential = [zeros(6,1); res_nit_tang];
+% assemble element residual from base and enriched contributions
+res_nit_tangential = [res_nit_tang_base; 
+                      res_nit_tang_enriched];
 % ----------------------------------------------------------------------- %
 %% Build id array
 id = zeros(1,18);

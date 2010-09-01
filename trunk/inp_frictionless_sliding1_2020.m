@@ -53,7 +53,7 @@ IFfilename_msh_file = 'patchtest_2020';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 4;%4;%19;
+IFdatasetp = 38;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -236,7 +236,7 @@ IFMatSet = 1;
 IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty = 7.0e+4;%1.0e+17;
+IFpenalty = 12.3e+5;%1.0e+17;
 %
 % Nitsche Parameter
 IFnitsche = 0;%1.0e+4;
@@ -249,7 +249,10 @@ IFnitsche = 0;%1.0e+4;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 2; 
+%
+% Set a yield stress for plasticity
+IFyieldstress = 0.5;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -267,6 +270,10 @@ IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
 IFconvtol = 1.0e-8;
+%
+% vector with pseudo-time-steps (always between '0' and '1')
+IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
+                            % possible, but first element has to be '0'
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

@@ -39,6 +39,12 @@
 %   nodegrainmap          mapping between nodes and grains
 %   youngs                array with Young's moduli of all grains
 %   poissons              array with Poisson's ratios of all grains
+%   dis_conv              total displacement vector of previous converged
+%                         load step
+%   old_ndisp_conv        unmodified total solution vector of previous 
+%                         converged load step
+%   IFsymmetrized         unsymmetric or symmetrized version of Nitsche's
+%                         method with plasticity
 % 
 % Returned variables:
 %   residual              residual
@@ -53,7 +59,8 @@ function [residual seg_cut_info] = ...
     IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
     IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal, ...
     IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
-    GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv,old_ndisp_conv)
+    GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv,old_ndisp_conv, ...
+    IFsymmetrized)
 
 % contribution of elastic bulk field of the inner of the grains which
 % will not be affected from plasticity at the interface
@@ -316,7 +323,7 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
               x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
               id_eqns(elenodes,:),GRAININFO_ARR,nodegrainmap, ...
               IFsliding_switch,penalty_tangent,IFyieldstress,deltaload, ...
-              dis_conv,old_ndisp_conv); 
+              dis_conv,old_ndisp_conv,IFsymmetrized); 
 
             % assemble tangential Nitsche contribution into global residual
             for a = 1:18

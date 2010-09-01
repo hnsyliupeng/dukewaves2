@@ -22,7 +22,8 @@
 
 function [ttrac tgappl f_trial] = returnmappingnitsche(alpha_t, ...
   tgapplconv,ttracconv,yieldstress,tgapcurrent, ...
-  delta_stress_avg_tang_scalar,delta_stress_avg,normal,tangent,gap_inc,n_matrix)
+  delta_stress_avg_tang_scalar,delta_stress_avg,normal,tangent,gap_inc, ...
+  n_matrix,stress_avg,gap)
 % The computation is done in a reference frame attaced to the interface, so
 % it is sufficient to compute the scalar value of the tangential traction.
 % The vector in the 2D-plane can be obtained by projecting the scalar value
@@ -30,7 +31,8 @@ function [ttrac tgappl f_trial] = returnmappingnitsche(alpha_t, ...
 %% compute the trial state
 % trial traction
 % ttrac_trial = ttracconv + alpha_t * tgapcurrent - delta_stress_avg_tang_scalar;
-ttrac_trial = ttracconv + tangent' * (alpha_t * gap_inc - n_matrix * delta_stress_avg);
+% ttrac_trial = ttracconv + tangent' * (alpha_t * gap_inc - n_matrix * delta_stress_avg);
+ttrac_trial = alpha_t * (gap' * tangent - tgapplconv) - (n_matrix * stress_avg)' * tangent;
 
 % trial plastic gap
 tgappl_trial = tgapplconv;                        
@@ -48,8 +50,8 @@ if f_trial <= 0
   tgappl = tgappl_trial; 
 else
   % ==> plastic deformation
-  % 
-  Deltagamma = f_trial / alpha_t; % is > 0 since f_trial and alpha_t > 0
+  % algorithmic consistency parameter
+  Deltagamma = f_trial / alpha_t; % is > 0 since f_trial > 0 and alpha_t > 0
 
   % tangential traction
   ttrac = ttrac_trial - alpha_t * Deltagamma * sign(ttrac_trial); 

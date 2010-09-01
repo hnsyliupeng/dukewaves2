@@ -26,6 +26,8 @@ if exist('IFpenalty_tangential','var') == 0, IFpenalty_tangential = IFpenalty_no
 if exist('IFnitsche_normal','var') == 0, IFnitsche_normal = IFnitsche;end;  % Stabilization-Parameter for normal direction
 if exist('IFnitsche_tangential','var') == 0, IFnitsche_tangential = IFnitsche_normal;end; % Stabilization-Parameter for tangential direction
 
+if exist('IFsymmetrized','var') == 0; IFsymmetrized = 0;end; % Chosse unsymmetric Nitsche formulation for plasticity
+
 % parameters for the loadstepping scheme
 if exist('IFtime','var') == 0, IFtime = [0 1];end;          % load steps
 
@@ -814,7 +816,8 @@ for timestep = 1:(length(time)-1)
       IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
       IFyieldstress,id_eqns,id_dof,deltaload,IFnitsche_normal,...
       IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
-      GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv,old_ndisp_conv);
+      GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv, ...
+      old_ndisp_conv,IFsymmetrized);
 
 % The following commented code is moved to the subroutine 'buildresidual.m'    
 %{
@@ -1129,7 +1132,8 @@ for timestep = 1:(length(time)-1)
                 
                 ke_nit_tangent = lin_nitsche_tangent_plastic(xcoords,ycoords, ...
                   seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
-                  id_dof,GRAININFO_ARR,nodegrainmap,penalty_tangent);
+                  id_dof,GRAININFO_ARR,nodegrainmap,penalty_tangent, ...
+                  IFsymmetrized);
                 
                 ke_nit = ke_nit_normal + ke_nit_tangent;
               end;
@@ -1519,6 +1523,55 @@ for timestep = 1:(length(time)-1)
     % clear some temporary variables
     clear i j nnode doff grain;
     % ------------------------------------------------------------------- %
+    %% PLOT SOME QUANTITIES
+    %{
+    for i=1:size(seg_cut_info,1)            % loop over interfaces 'i'
+      for e=1:size(seg_cut_info,2)          % loop over cut elements 'e'
+        if seg_cut_info(i,e).elemno ~= -1   % if 'e' is cut by 'i'
+          eleID = seg_cut_info(i,e).elemno;
+          elenodes = node(:,eleID);
+          xcoords = x(elenodes);
+          ycoords = y(elenodes);
+          endpoints = INTERFACE_MAP(i).endpoints;
+          intersection = seg_cut_info(i,e).xint;
+          gauss = [-sqrt(3)/3 sqrt(3)/3];
+          for g=1:2                         % loop over Gauss points
+            %% GET COORDINATES OF GAUSS POINT
+            % end points of intersection - direction doesn't matter - this is for the
+            % segment jacobian calculation
+
+            if all(size(intersection) == [2 2])
+              p1 = intersection(1,:);
+              p2 = intersection(2,:);
+            elseif all(size(intersection) == [1 2])
+              p1 = intersection(1,:);
+
+              % Second endpoint of segment is also end point of interface
+              endpoint = endpoints(1,:);
+
+              inside = polygon_contains_point_2d ( 3, [xcoords;ycoords], endpoint );
+
+              if inside
+                p2 = endpoint;
+              else
+                p2 = endpoints(2,:);
+              end
+            end
+            
+            xn = 0.5*(1-gauss(g))*p1(1)+0.5*(1+gauss(g))*p2(1);
+            yn = 0.5*(1-gauss(g))*p1(2)+0.5*(1+gauss(g))*p2(2);
+            % ----------------------------------------------------------- %
+            
+            % plot current plastic gap
+            figure(55);
+            hold on;
+            plot(seg_cut_info(i,e).tgappl(g),yn,'*');
+          end;
+        end;
+      end;
+    end;
+    %}
+    % ------------------------------------------------------------------- %
     %% COMPUTE SOME NORMS TO PREPARE CONVERGENCE CHECK      
     % store first displacement increment in order to use a relative
     % increment measure for the convergence check. The norms are normalized
@@ -1722,7 +1775,7 @@ old_ndisp_conv = old_ndisp;
       end;
       % ----------------------------------------------------------------- %
       %% visualize 'slidestate'-flags
-%{
+%
       % create a new figure
       if timestep == 1
         figure(30)

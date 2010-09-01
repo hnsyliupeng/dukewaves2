@@ -1,19 +1,19 @@
-% Input File 'inp_frictionless_sliding_analyt_8_104.m'
+% Input File 'inp_frictionless_sliding1_8_2.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Elastic and almost rigid block to simulate a 2D frictional sliding 
-% situation.
+% Modified patchtest for frictionless sliding with 8x2 linear triangular
+% elements in a 16x4 domain with one interface at x=5
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
 % strored in this file. Save it to an own file, afterwards.
 %
 
-% Author: Matthias Mayr (07/2010)
+% Author: Matthias Mayr (08/2010)
 
 %--------------------------------------------------------------------------
 % PARAMETERS FOR BACKGROUND MESH
@@ -24,7 +24,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 2;
+IFmeshstructure = 0;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -37,8 +37,8 @@ IFlength = 16;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 641;
-IFnldivy = 160;
+IFnldivx = 8;
+IFnldivy = 2;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +53,7 @@ IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 25;%25;%19;
+IFdatasetp = 4;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -153,7 +153,8 @@ IFdatasetp = 25;%25;%19;
 % 88    plasticity_5_ref_21_27_DBC.m
 % 89    frictionless_sliding_analyt_8_3592_DBC.m
 % 90    frictionless_sliding_analyt_8_104_DBC.m
-IFDirichletBCs = 90;
+% 91    frictionless_sliding1_8_2_DBC.m
+IFDirichletBCs = 91;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -248,7 +249,8 @@ IFDirichletBCs = 90;
 % 88    plasticity_5_ref_20_27_NBC.m
 % 89    plasticity_5_61_77_NBC.m
 % 90    plasticity_4_80_41_NBC.m
-IFNeumannBCs = 74;%74;
+% 91    frictionless_sliding1_8_2_NBC.m
+IFNeumannBCs = 91;%74;
 %
 % method of giving NBCs
 % ID    Description
@@ -272,7 +274,7 @@ IFneumann = 0;
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
 % 11    3 grains, grain 3 much stiffer
-IFMatSet = 3;
+IFMatSet = 1;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -284,8 +286,8 @@ IFMatSet = 3;
 IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 3.0294e+5;
-IFpenalty_tangential  = 3.0294e+5;
+IFpenalty_normal      = 1.0e+7;
+IFpenalty_tangential  = 1.0e+7;
 %
 % Nitsche Parameter
 IFnitsche_normal      = -1;%1.0e+4;
@@ -306,7 +308,7 @@ IFintegral = 1;
 % 3     frictional sliding with Coulomb's friction
 % 4     frictionless contact (only opening contact)
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
