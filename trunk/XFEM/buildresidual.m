@@ -317,7 +317,7 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
             end;
             
             % get residual contribution for tangential direction
-            [res_nit_tang id ttrac tgappl f_trial] = ...
+            [res_nit_tang id_tang ttrac tgappl f_trial] = ...
               get_ele_residual_nitsche_plasticity(xcoords, ...
               ycoords,seg_cut_info(i,e),INTERFACE_MAP(i).endpoints,node, ...
               x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis', ...
@@ -327,22 +327,22 @@ for i=1:size(seg_cut_info,1)    % loop over all interfaces 'i'
 
             % assemble tangential Nitsche contribution into global residual
             for a = 1:18
-              if id(a) ~= 0
-                residual(id(a)) = residual(id(a)) + res_nit_tang(a);
+              if id_tang(a) ~= 0
+                residual(id_tang(a)) = residual(id_tang(a)) + res_nit_tang(a);
               end;
             end;
-          end;
-          
-          % store plastic contribution to tangential gap
-          seg_cut_info(i,e).tgappl = tgappl;
+            
+            % store plastic contribution to tangential gap
+            seg_cut_info(i,e).tgappl = tgappl;
 
-          % store scalar values of current tangential traction at each
-          % gauss point
-          seg_cut_info(i,e).ttrac = ttrac;
+            % store scalar values of current tangential traction at each
+            % gauss point
+            seg_cut_info(i,e).ttrac = ttrac;
 
-          % store evaluated flow rules of trial state at both gauss
-          % points
-          seg_cut_info(i,e).f_trial = f_trial;          
+            % store evaluated flow rules of trial state at both gauss
+            % points
+            seg_cut_info(i,e).f_trial = f_trial;     
+          end;     
         otherwise
           error('MATLAB:XFEM','Unvalid Method-ID');
       end;

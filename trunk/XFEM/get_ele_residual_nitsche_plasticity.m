@@ -50,7 +50,7 @@
 
 % Author: Matthias Mayr (08/2010)
 
-function [res_nit_tangential id ttrac tgappl f_trial] = ...
+function [res_nit_tangential id tangtrac tgappl f_trial] = ...
   get_ele_residual_nitsche_plasticity(xcoords, ...
     ycoords,seg_cut_info,endpoints,node, ...
     x,y,dis,old_ndisp,id_dof,cutlist,maxngrains,totaldis, ...
@@ -205,7 +205,7 @@ delta_stress2 = [ stresse(1,4,neg_g);
             stresse(1,6,neg_g)];
 
 % compute averaged stress increment (Voigt-notation)
-delta_stress_avg = 0.5 * (delta_stress1 + delta_stress2);
+delta_stress_avg = 0.5 * (delta_stress1 + delta_stress2);%delta_stress1;%
 
 % stress in positive part of the element (Voigt-notation)
 stress1 = [ stresse_current(1,4,pos_g);
@@ -219,7 +219,7 @@ stress2 = [ stresse_current(1,4,neg_g);
             stresse_current(1,6,neg_g)];
 
 % compute averaged stress (Voigt-notation)
-stress_avg = 0.5 * (stress1 + stress2);
+stress_avg = 0.5 * (stress1 + stress2);%stress1;%
 % ----------------------------------------------------------------------- %
 %% GET AVERAGED 'CBhat' and 'CBtilde'
 % Since the matrices 'Bhat' and 'Btilde' are constant in an element due to 
@@ -232,11 +232,11 @@ stress_avg = 0.5 * (stress1 + stress2);
 
 
 % Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
-CBhat_avg = 0.5 * (C1 + C2) * Bhat;
+CBhat_avg = 0.5 * (C1 + C2) * Bhat;%C1*Bhat;%
 
 % Since 'Btilde1' ~= 'Btilde2', the average of 'Btilde' has to be
 % considered, too.
-CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);
+CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);%C1*Btilde1;%
 % ----------------------------------------------------------------------- %
 %% PREPARE GAUSS QUADRATURE (TWO GAUSS POINTS)
 % end points of intersection - direction doesn't matter - this is for the
@@ -292,10 +292,10 @@ for g = 1:length(gauss)
     Larea = det([[1 1 1]' xes' yes'])/2;
 
     % Evaluate shape function
-    N(1,2*b-1) = N(1,2*b-1) + Larea/Area;   % First enrichment
-    N(2,2*b)   = N(2,2*b)   + Larea/Area;
-    N(1,2*b+5) = N(1,2*b+5) + Larea/Area;   % Second enrichment
-    N(2,2*b+6) = N(2,2*b+6) + Larea/Area;
+    N(1,2*b-1)    = N(1,2*b-1)    + Larea/Area;   % First enrichment
+    N(2,2*b)      = N(2,2*b)      + Larea/Area;
+    N(1,2*b-1+6)  = N(1,2*b-1+6)  + Larea/Area;   % Second enrichment
+    N(2,2*b+6)    = N(2,2*b+6)    + Larea/Area;
   end;
   
   % multiply values belonging to nodes in the 'negative' grain with '-1'
@@ -324,8 +324,8 @@ for g = 1:length(gauss)
   end;
   
   % subtract the plastic part
-  gap_el = gap;%seg_cut_info.tgapplconv(g) * [0;1];%tangent
-
+  gap_el = gap - seg_cut_info.tgapplconv(g) * tangent;
+  
   % tangential direction
   if IFsymmetrized == 0
     % unsymmetric

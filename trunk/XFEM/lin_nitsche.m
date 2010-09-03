@@ -84,11 +84,11 @@ C2 = fac * [1.0 pr  0;
 
 
 % Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
-CBhat_avg = 0.5 * (C1 + C2) * Bhat;
+CBhat_avg = 0.5 * (C1 + C2) * Bhat;%C1*Bhat;%
 
 % Since 'Btilde1' ~= 'Btilde2', the average of 'Btilde' has to be
 % considered, too.
-CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);
+CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);%C1*Btilde1;%
 % ----------------------------------------------------------------------- %
 %% ESTABLISH A SET OF FLAGS
 % First enrichment

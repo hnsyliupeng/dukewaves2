@@ -8,9 +8,13 @@ set ylabel "error" 5,0 rotate
 set xrange [0.03:1]
 set yrange [0.00001:0.1]
 set format xy "$10^{%L}$"
+set style line 1 linetype 5 linewidth 1
+set style line 2 linetype 1 linewidth 10
 set size square
 set pointsize 1.5
-plot "dis.dat" using 1:2 title "Lagrange mutlipliers" with linespoints lc rgb "#00FF00",\
-"dis.dat" using 1:3 title "Penalty method" with linespoints lc rgb "#0000FF",\
-"dis.dat" using 1:4 title "Nitsche's method" with linespoints lc rgb "#FF0000",\
-"dis_triangle.dat" using 1:2 notitle with lines
+set label 1 "$1$" at 0.15,0.00007
+set label 2 "$2$" at 0.22,0.0002
+plot "dis.dat" using 1:2 title "Lagrange mutlipliers" w lp ls 1 pt 9,\
+"dis.dat" using 1:3 title "Penalty method" w lp ls 1 pt 11,\
+"dis.dat" using 1:4 title "Nitsche's method" w lp ls 1 pt 7,\
+"dis_triangle.dat" using 1:2 notitle with lines ls 2
