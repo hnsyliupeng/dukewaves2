@@ -26,7 +26,7 @@ if exist('IFpenalty_tangential','var') == 0, IFpenalty_tangential = IFpenalty_no
 if exist('IFnitsche_normal','var') == 0, IFnitsche_normal = IFnitsche;end;  % Stabilization-Parameter for normal direction
 if exist('IFnitsche_tangential','var') == 0, IFnitsche_tangential = IFnitsche_normal;end; % Stabilization-Parameter for tangential direction
 
-if exist('IFsymmetrized','var') == 0; IFsymmetrized = 0;end; % Chosse unsymmetric Nitsche formulation for plasticity
+if exist('IFsymmetrized','var') == 0; IFsymmetrized = -1;end; % Chosse unsymmetric Nitsche formulation for plasticity without considering the second Nitsche term
 
 % parameters for the loadstepping scheme
 if exist('IFtime','var') == 0, IFtime = [0 1];end;          % load steps
@@ -541,6 +541,71 @@ old_ndisp = zeros(numnod,6);
 old_ndisp_conv = zeros(numnod,6);
 
 dis_conv = zeros(2*numnod,1);
+% ----------------------------------------------------------------------- %
+%% EXPORT INITIAL STATE TO VTK FILE
+%
+% The following code exports the initial state to a VTK-file
+%{
+dis = zeros(2*numnod,1);  % initialize re-assembled displacement vector
+timestep = 0;             % set to zero to generate VTK data for initial state
+% compute stresses 'stress' and strains 'strain' at center of each element
+% Structure of 'stress':
+%   Dimension: numelex6xnumgrains
+%   Index 1:    'stress' for element 'e'
+%   Index 2:    column 1    global element ID
+%               column 2    x-coordinate of element centroid
+%               column 3    y-coordinate of element centroid
+%               column 4    xx-stress at element centroid
+%               column 5    yy-stress at element centroid
+%               column 6    xy-stress at element centroid
+%   Index 3:    ID of grain, to which these values belong to
+stress = zeros(numele,6,maxngrains);
+% 'strain' has an equivalent structure
+strain = zeros(numele,6,maxngrains+1);
+
+
+% von-Mises-stresses at center of each element
+% Structure of 'stressvonmises':
+%   Dimension: numelex4xnumgrains
+%   Index 1:    'stress' for element 'e'
+%   Index 2:    column 1    global element ID
+%               column 2    x-coordinate of element centroid
+%               column 3    y-coordinate of element centroid
+%               column 4    von-Mises-stress at element centroid
+%   Index 3:    ID of grain, to which these values belong to
+stressvonmises = zeros(numele,4,maxngrains);
+
+
+% loop over all elements
+for e=1:numele
+%     [stresse] = post_process(node,x,y,e,dis);
+%     stress(e,1:6) = stresse;
+
+  % compute stress and strain in current element
+  [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp, ...
+    id_dof,cutlist,maxngrains);
+
+  % assign 'stresse' to 'stress'
+  stress(e,1:6,:) = stresse;
+
+  % assign 'straine' to 'strain'
+  strain(e,1:6,:) = straine;
+
+  % compute von-Mises-stress
+  stressvonmises(e,1:3,:) = stresse(1,1:3,:);
+  for i=1:maxngrains
+    stressvonmises(e,4,i) = sqrt((stresse(1,4,i))^2 + (stresse(1,5,i))^2 - ...
+      stresse(1,4,i) * stresse(1,5,i) + 3 * stresse(1,6,i)^2);
+  end;
+end
+
+
+% clear some temporary variables
+clear stresse straine maxstress_vec minstress_vec i e f j;  
+
+% call routine to generate VTK file
+generateVTKoutput_enriched;
+%}
 % ----------------------------------------------------------------------- %
 %% LOAD STEPPING LOOP (BEGIN)
 % The deformed state will be computed via a incremental loading procedure.
@@ -1309,8 +1374,8 @@ for timestep = 1:(length(time)-1)
     % ------------------------------------------------------------------- %
     %% SOLVE (NEWTON-RAPHSON-SCHEME)
     % compute the increment vector 'deltanewton'
-    deltanewton = - inv(tangentmatrix) * residual;
-%     deltanewton = -tangentmatrix\residual; % no negative sign here, since 'residual' 
+%     deltanewton = - inv(tangentmatrix) * residual;
+    deltanewton = -tangentmatrix\residual; % no negative sign here, since 'residual' 
                                  % is considered as 'F_ext - F_int' 
                                  % (according to Laursen's Book)
     % ------------------------------------------------------------------- %
@@ -1480,7 +1545,10 @@ for timestep = 1:(length(time)-1)
       ls_par = getlsparameter(stol,residual,deltanewton,bigk_el,seg_cut_info,INTERFACE_MAP,x,y, ...
         big_force_loadstep,node,totaldis,IFpenalty_normal, ...
         IFpenalty_tangential,IFmethod,IFsliding_switch,IFintegral, ...
-        IFyieldstress,id_eqns,id_dof,deltaload,DBCmatrix);
+        IFyieldstress,id_eqns,id_dof,deltaload,DBCmatrix,IFnitsche_normal,...
+      IFnitsche_tangential,dis,old_ndisp,cutlist,maxngrains, ...
+      GRAININFO_ARR,nodegrainmap,youngs,poissons,dis_conv, ...
+      old_ndisp_conv,IFsymmetrized);
 
       % scale the displacement increment with the line search parameter
       deltanewton = ls_par * deltanewton;
@@ -1748,6 +1816,65 @@ old_ndisp_conv = old_ndisp;
     case 1  % frictionless sliding
       % no updates necessary
     case 2  % perfect plasticity
+      %% export data to VTK file
+      % compute stresses 'stress' and strains 'strain' at center of each element
+      % Structure of 'stress':
+      %   Dimension: numelex6xnumgrains
+      %   Index 1:    'stress' for element 'e'
+      %   Index 2:    column 1    global element ID
+      %               column 2    x-coordinate of element centroid
+      %               column 3    y-coordinate of element centroid
+      %               column 4    xx-stress at element centroid
+      %               column 5    yy-stress at element centroid
+      %               column 6    xy-stress at element centroid
+      %   Index 3:    ID of grain, to which these values belong to
+      stress = zeros(numele,6,maxngrains);
+      % 'strain' has an equivalent structure
+      strain = zeros(numele,6,maxngrains+1);
+
+
+      % von-Mises-stresses at center of each element
+      % Structure of 'stressvonmises':
+      %   Dimension: numelex4xnumgrains
+      %   Index 1:    'stress' for element 'e'
+      %   Index 2:    column 1    global element ID
+      %               column 2    x-coordinate of element centroid
+      %               column 3    y-coordinate of element centroid
+      %               column 4    von-Mises-stress at element centroid
+      %   Index 3:    ID of grain, to which these values belong to
+      stressvonmises = zeros(numele,4,maxngrains);
+
+
+      % loop over all elements
+      for e=1:numele
+      %     [stresse] = post_process(node,x,y,e,dis);
+      %     stress(e,1:6) = stresse;
+
+        % compute stress and strain in current element
+        [straine,stresse] = post_process_better(node,x,y,e,dis,old_ndisp, ...
+          id_dof,cutlist,maxngrains);
+
+        % assign 'stresse' to 'stress'
+        stress(e,1:6,:) = stresse;
+
+        % assign 'straine' to 'strain'
+        strain(e,1:6,:) = straine;
+
+        % compute von-Mises-stress
+        stressvonmises(e,1:3,:) = stresse(1,1:3,:);
+        for i=1:maxngrains
+          stressvonmises(e,4,i) = sqrt((stresse(1,4,i))^2 + (stresse(1,5,i))^2 - ...
+            stresse(1,4,i) * stresse(1,5,i) + 3 * stresse(1,6,i)^2);
+        end;
+      end
+
+
+      % clear some temporary variables
+      clear stresse straine maxstress_vec minstress_vec i e f j;  
+        
+      % call routine to generate VTK file
+      generateVTKoutput_enriched;
+      % ----------------------------------------------------------------- %
       %% update plastic contribution to plastic gap and tangential tractions
       % loop over interfaces 'i'
       for i=1:size(seg_cut_info,1)
@@ -1824,43 +1951,123 @@ old_ndisp_conv = old_ndisp;
             end;
             % now, p1 and p2 are the two nodes, that determine the
             % subsegment
+            
             xcoord = [p1(1) p2(1)];
             ycoord = [p1(2) p2(2)];
+            
+            % The subsegment can be divided into two parts with the same
+            % length, such that each part contains one Gauss point.
+            % Therefor, the coordinates of the mid point 'pm' are computed.
+            pm = 0.5 * (p1 + p2);
+            
+            % Define part 1 as the connection of 'p1' and 'pm' and part 2
+            % respectively. Then, the real coordinates of the gauss points
+            % are needed.
+            
+            % gauss points in parameter space
+            gauss = [-sqrt(3)/3 sqrt(3)/3];
+            
+            % Get real coordinates of gauss points
+            xn1 = 0.5*(1-gauss(1))*p1(1)+0.5*(1+gauss(1))*p2(1);  % first gauss point
+            yn1 = 0.5*(1-gauss(1))*p1(2)+0.5*(1+gauss(1))*p2(2);
+            
+            xn2 = 0.5*(1-gauss(2))*p1(1)+0.5*(1+gauss(2))*p2(1);  % second gauss point
+            yn2 = 0.5*(1-gauss(2))*p1(2)+0.5*(1+gauss(2))*p2(2);
 
+            % compute distance between 'p1' and first gauss point
+            dist_1 = sqrt((p1(1) - xn1)^2 + (p1(2) - yn1)^2);
+            
+            % compute distance between 'p1' and second gauss point
+            dist_2 = sqrt((p1(1) - xn2)^2 + (p1(2) - yn2)^2);
+            
             % set color depending on current slidestate
             stylecell = {'b','r'};
-
-            if any(seg_cut_info(i,e).f_trial > 0)
-              index = 2;
+            if seg_cut_info(i,e).f_trial(1) > 0
+              index1 = 2;
             else
-              index = 1;
+              index1 = 1;
+            end;
+            if seg_cut_info(i,e).f_trial(2) > 0
+              index2 = 2;
+            else
+              index2 = 1;
             end;
             
-%             % get 'index' for stylecell, depending on the 'slidestate'
-%             index = seg_cut_info(i,e).slidestate + 1;
-
             % get current normalized pseudotime of entire simulation
             timecoord = (timestep) / (length(time) - 1);
             
-            % check, if it is a horizontal or a vertical interface
-            if abs(xcoord(1) - xcoord(2)) < abs(ycoord(1)-ycoord(2))
-              % vertical interface
-              plot([timecoord timecoord],ycoord,stylecell{index},'LineWidth',3.0);   
-              xlabel('normalized pseudo-time');
-              ylabel('y-coordinate');
-            else
-              % horizontal interface
-              plot(xcoord,[timecoord timecoord],stylecell{index},'LineWidth',3.0);       
-              xlabel('x-coordinate');
-              ylabel('normalized pseudo-time');
+            if dist_1 < dist_2
+              % first gauss point lies between 'p1' and 'pm'
+              % check, if it is a horizontal or a vertical interface
+              if abs(xcoord(1) - xcoord(2)) < abs(ycoord(1)-ycoord(2))
+                % vertical interface
+                plot([timecoord timecoord],[p1(2) pm(2)],stylecell{index1},'LineWidth',6.0);   
+                plot([timecoord timecoord],[p2(2) pm(2)],stylecell{index2},'LineWidth',6.0);   
+                xlabel('normalized pseudo-time');
+                ylabel('y-coordinate');
+              else
+                % horizontal interface
+                plot([p1(1) pm(1)],[timecoord timecoord],stylecell{index1},'LineWidth',6.0);       
+                plot([p2(1) pm(1)],[timecoord timecoord],stylecell{index2},'LineWidth',6.0);       
+                xlabel('x-coordinate');
+                ylabel('normalized pseudo-time');
+              end;
+            else  
+              % first gauss point lies between 'p2' and 'pm'
+              % check, if it is a horizontal or a vertical interface
+              if abs(xcoord(1) - xcoord(2)) < abs(ycoord(1)-ycoord(2))
+                % vertical interface
+                plot([timecoord timecoord],[p1(2) pm(2)],stylecell{index2},'LineWidth',6.0);   
+                plot([timecoord timecoord],[p2(2) pm(2)],stylecell{index1},'LineWidth',6.0);   
+                xlabel('normalized pseudo-time');
+                ylabel('y-coordinate');
+              else
+                % horizontal interface
+                plot([p1(1) pm(1)],[timecoord timecoord],stylecell{index2},'LineWidth',6.0);       
+                plot([p2(1) pm(1)],[timecoord timecoord],stylecell{index1},'LineWidth',6.0);       
+                xlabel('x-coordinate');
+                ylabel('normalized pseudo-time');
+              end;
             end;
+            
+            
+%             xcoord = [p1(1) p2(1)];
+%             ycoord = [p1(2) p2(2)];
+% 
+%             % set color depending on current slidestate
+%             stylecell = {'b','r'};
+% 
+%             if any(seg_cut_info(i,e).f_trial > 0)
+%               index = 2;
+%             else
+%               index = 1;
+%             end;
+%             
+% %             % get 'index' for stylecell, depending on the 'slidestate'
+% %             index = seg_cut_info(i,e).slidestate + 1;
+% 
+%             % get current normalized pseudotime of entire simulation
+%             timecoord = (timestep) / (length(time) - 1);
+%             
+%             % check, if it is a horizontal or a vertical interface
+%             if abs(xcoord(1) - xcoord(2)) < abs(ycoord(1)-ycoord(2))
+%               % vertical interface
+%               plot([timecoord timecoord],ycoord,stylecell{index},'LineWidth',3.0);   
+%               xlabel('normalized pseudo-time');
+%               ylabel('y-coordinate');
+%             else
+%               % horizontal interface
+%               plot(xcoord,[timecoord timecoord],stylecell{index},'LineWidth',3.0);       
+%               xlabel('x-coordinate');
+%               ylabel('normalized pseudo-time');
+%             end;
           end;
         end;
       end;
 
       % edit figure
       % legend('stick','slip');
-      title('blue = stick, red = slip');
+%       title('blue = stick, red = slip');
       hold off;
 %}
       % ----------------------------------------------------------------------- %

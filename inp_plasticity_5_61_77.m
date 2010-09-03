@@ -37,8 +37,8 @@ IFlength = 4;
 IFheight = 5;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 21;%2;%5;%11;%21;%41;%61;%81;%141;
-IFnldivy = 27;%3;%6;%14;%27;%51;%77;%101;%176;
+IFnldivx = 81;%2;%5;%11;%21;%41;%61;%81;%141;
+IFnldivy = 101;%3;%6;%14;%27;%51;%77;%101;%176;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -281,12 +281,12 @@ IFMatSet = 11;
 IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 4e+6;
-IFpenalty_tangential  = 4e+5;
+IFpenalty_normal      = 5.0e+4;%5.0e+4;%1.84e+5;%7.22e+5;%
+IFpenalty_tangential  = 5.0e+4;%5.0e+4;%1.84e+5;%7.22e+5;%
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+4;
-IFnitsche_tangential  = 1.0e+4;
+IFnitsche_normal      = -1;%1.0e+4;
+IFnitsche_tangential  = -1;%2e+5;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -325,8 +325,10 @@ IFmaxiter = 30;
 IFconvtol = 1.0e-7;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,71);  % vector creation without 'linspace'-command
+% IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
+IFtime = [zeros(1,5) linspace(0,1,21)];
+IFtime2 = [linspace(0,1,6) ones(1,20)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

@@ -37,7 +37,7 @@ IFlength = 4;
 IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 21;%21;%41;%61;%121;%161;
+IFnldivx = 161;%21;%41;%61;%121;%161;
 IFnldivy = IFnldivx;
 %
 % filename for boundary description file for structured meshing and NBCs 
@@ -333,8 +333,8 @@ IFconvtol = 1.0e-8;
 % vector with pseudo-time-steps (always between '0' and '1')
 % IFtime = linspace(0,1,1);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
-IFtime = [zeros(1,2) linspace(0,1,3)]
-IFtime2 = [linspace(0,1,3) ones(1,2)]
+IFtime = [zeros(1,1) linspace(0,1,2)]
+IFtime2 = [linspace(0,1,2) ones(1,1)]
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

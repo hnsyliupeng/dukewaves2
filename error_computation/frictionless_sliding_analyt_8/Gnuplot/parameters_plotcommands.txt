@@ -8,9 +8,15 @@ set ylabel "parameter $\\alpha$" 5,0 rotate
 set xrange [0.03:1.0]
 set yrange [1e+3:1e+8]
 set format xy "$10^{%L}$"
+set style line 1 linetype 5 linewidth 1
+set style line 2 linetype 1 linewidth 10
 set size square
 set pointsize 1.5
-plot "par.dat" using 1:2 title "Penalty parameter" with linespoints linecolor 1,\
-"par.dat" using 1:3 title "Nitsche parameter" with linespoints linecolor 2,\
-"par_triangle.dat" using 1:2 notitle with lines,\
-"par_triangle.dat" using 1:3 notitle with lines
+set label 1 "$1$" at 0.1,3000
+set label 2 "$1$" at 0.042,10000
+set label 3 "$1$" at 0.1,150000
+set label 4 "$2$" at 0.042,900000
+plot "par.dat" using 1:2 title "Penalty parameter" w lp ls 1 pt 11,\
+"par.dat" using 1:3 title "Nitsche parameter" w lp ls 1 pt 7,\
+"par_triangle.dat" using 1:2 notitle with lines ls 2,\
+"par_triangle.dat" using 3:4 notitle with lines ls 2

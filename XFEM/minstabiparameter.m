@@ -115,9 +115,10 @@ C2 = fac*[1.0,  pr,   0;
 fac1 = norm(C1,2);
 fac2 = norm(C2,2);
 
+% fac2 = fac1;
+
 switch IFintegral 
   case 1
-    % compute alpha_min using eq. (42) and (53) in the paper mentioned above
     CI = Lsubsegment / 4 * (fac1 / area_1 + fac2 / area_2);
   case 2
     CI = Lsubsegment^2 / 2 * (fac1 / area_1^2 + fac2 / area_2^2);

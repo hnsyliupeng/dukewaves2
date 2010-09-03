@@ -36,8 +36,8 @@ IFlength = 3;
 IFheight = sqrt(3);
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 28;%28;%89a;%147;
-IFnldivy = 19;%19;%57;%49;
+IFnldivx = 147;%28;%89a;%147;
+IFnldivy = 49;%19;%57;%49;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -269,7 +269,7 @@ IFMatSet = 10;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
 IFpenalty_normal      = 4.2508e+006;
@@ -292,7 +292,7 @@ IFintegral = 1;
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
 %
-IFsliding_switch = 2; 
+IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 0.8;%3.329;
@@ -312,10 +312,10 @@ IFSolverType = 1;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-7;%12;
+IFconvtol = 1.0e-8;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,71);  %vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
 % IFtime = [linspace(0,1,21) ones(1,81)];
 % IFtime2 = [zeros(1,21) linspace(0,1,81)];

@@ -5,7 +5,7 @@ disp('generate VTK data ...');
 getVTKdata;
 
 % create filename
-filenameVTK = sprintf('VTK_%s.vtk',filename_input_file);
+filenameVTK = sprintf('VTK_files/VTK_%s_%d.vtk',filename_input_file,timestep);
 
 % get an pointer to the output file
 % options:

@@ -120,7 +120,7 @@ stress2 = [ stresse(1,4,neg_g);
             stresse(1,6,neg_g)];
 
 % compute averaged stress (Voigt-notation)
-stress_avg = 0.5 * (stress1 + stress2);
+stress_avg = 0.5 * (stress1 + stress2);%stress1;%
 % ----------------------------------------------------------------------- %
 %% GET AVERAGED 'CBhat' and 'CBtilde'
 % Since the matrices 'Bhat' and 'Btilde' are constant in an element due to 
@@ -133,11 +133,11 @@ stress_avg = 0.5 * (stress1 + stress2);
 
 
 % Since 'Bhat1' = 'Bhat2', <CBhat> = <C>Bhat
-CBhat_avg = 0.5 * (C1 + C2) * Bhat;
+CBhat_avg = 0.5 * (C1 + C2) * Bhat;%C1*Bhat;%
 
 % Since 'Btilde1' ~= 'Btilde2', the average of 'Btilde' has to be
 % considered, too.
-CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);
+CBtilde_avg = 0.5 * (C1 * Btilde1 + C2 * Btilde2);%C1*Btilde1;%
 % ----------------------------------------------------------------------- %
 %% ESTABLISH A SET OF FLAGS
 % First enrichment

@@ -55,7 +55,7 @@ switch IFMatSet
         youngs = [1.0e+4 1.0e+4 1.0e+4 1.0e+4];  % youngs moduli
     case 11
         poissons = [0.0 0.0 0.0];           % poissons ratios
-        youngs = [1000.0 1000.0 1000.0e+6];   % Young's moduli
+        youngs = [1000.0 1000.0 1000.0e+12];   % Young's moduli
     case 12
         poissons = [0.0 0.0 0.0];           % poissons ratios
         youngs = [1000.0e+5 1000.0 1000.0];   % Young's moduli

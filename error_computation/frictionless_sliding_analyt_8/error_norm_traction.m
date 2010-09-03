@@ -7,7 +7,7 @@ total_errorx = 0;
 total_apprx = 0;
 
 
-% Define 3-point Gauss quadrature (since polynom is of order 2)
+% Define 2-point Gauss quadrature (since polynom is of order 2)
 gp = [-sqrt(3)/3 sqrt(3)/3];  % gauss points
 gw = [1 1];               % gauss weights
 
