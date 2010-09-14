@@ -122,10 +122,10 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal = 5.0e+4;
+IFpenalty_normal = 1.0e+7;%5.0e+4;
 IFpenalty_tangential = 8e+3;%1.5e+4;
 %
 % Nitsche Parameter
@@ -156,7 +156,7 @@ IFsymmetrized = -1;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 0.0;
+IFyieldstress = 2.0;%0.5;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -178,6 +178,7 @@ IFconvtol = 1.0e-8;
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
+% IFtime = [linspace(0,1,21) linspace(0.95,0,20)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

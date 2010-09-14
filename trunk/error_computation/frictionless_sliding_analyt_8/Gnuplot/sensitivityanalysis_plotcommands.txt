@@ -1,0 +1,15 @@
+cd 'C:\a_Daten\TUM\DA_Ausland\Matlab\SVN_Code\error_computation\frictionless_sliding_analyt_8\Gnuplot'
+set output "sensitivityanalysis.tex"
+set terminal latex rotate
+set logscale x
+set format x "$10^{%L}$"
+set format y "$%d$"
+set xlabel "stabilization parameter $\\alpha$"
+set ylabel "error in traction field" 5,0 rotate
+set xrange [1:2e+10]
+set yrange [0.01:1.6]
+set format xy "$10^{%L}$"
+set style line 1 linetype 5 linewidth 1
+set style line 2 linetype 1 linewidth 10
+set pointsize 1.5
+plot "sensitivityanalysis.dat" using 1:4 notitle w lp ls 1 pt 7

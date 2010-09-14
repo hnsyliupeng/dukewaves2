@@ -120,7 +120,7 @@ IFpenalty_tangential  = 1.0e+4;
 %
 % Nitsche Parameter
 IFnitsche_normal      = -1;%1.5e+3;
-IFnitsche_tangential  = 1.5e+4;
+IFnitsche_tangential  = -1;%1.5e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals

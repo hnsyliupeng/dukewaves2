@@ -4,6 +4,7 @@ disp('generate VTK data ...');
 % subelements
 getVTKdata;
 
+%% VTK-file for stresses and displacements
 % create filename
 filenameVTK = sprintf('VTK_files/VTK_%s_%d.vtk',filename_input_file,timestep);
 
@@ -86,7 +87,79 @@ end;
 %   fprintf(fileID,'%f %f 0.0\n%f %f 0.0\n0.0 0.0 0.0\n\n',VTKstress(i,1),VTKstress(i,3),VTKstress(i,3),VTKstress(i,2));
 % end;
 
-status = fclose(fileID);
-if status == 0
+% define skalar field, that shows, if a node is part of an element edge
+% (=1) or not (=0). This is needed to show, that the cut elements are
+% really separated into two parts, that slide along each other.
+fprintf(fileID,'POINT_DATA %d\n',size(VTKcutgrid,1));
+fprintf(fileID,'SCALARS cut_grid float 1\n');
+fprintf(fileID,'LOOKUP_TABLE default\n');
+for i=1:size(VTKcutgrid,1);
+  fprintf(fileID,'%f \n',VTKcutgrid(i,1));
+end;
+
+% close file
+status1 = fclose(fileID);
+% ----------------------------------------------------------------------- %
+%% VTK-file for stick-slip-zone
+% create filename
+filenameVTK = sprintf('VTK_files/VTK_%s_stickslip_%d.vtk',filename_input_file,timestep);
+
+% get an pointer to the output file
+% options:
+%   w         delete all contents and get writing acces
+%   l         bit ordering scheme 'little endian'
+fileID = fopen(filenameVTK,'w','l');
+
+% write the file version and identifier
+fileversionidentifier = sprintf('# vtk DataFile Version 2.0\n');
+fprintf(fileID,fileversionidentifier);
+
+% write the header
+header = sprintf('Evolution of stick-slip-zone for %s\n', filename_input_file);
+fprintf(fileID,header);
+
+% define file format 'ASCII'
+fileformat = sprintf('ASCII\n');
+fprintf(fileID,fileformat);
+
+% define nodal coordinates
+dataset = sprintf('DATASET UNSTRUCTURED_GRID\nPOINTS %d  float\n',size(VTKinterfacenodes,1));
+fprintf(fileID,dataset);
+for i=1:size(VTKinterfacenodes,1)
+  point = sprintf('%f %f 0\n',VTKinterfacenodes(i,1),VTKinterfacenodes(i,2));
+  fprintf(fileID,point);
+end;
+
+% define element-node-connectivity
+cells = sprintf('CELLS %d %d\n',size(VTKinterfacestate,1),3*size(VTKinterfacestate,1));
+fprintf(fileID,cells);
+for i=1:2:2*size(VTKinterfacestate,1)
+  connectivity = sprintf('2 %d %d \n',i-1,i);
+  fprintf(fileID,connectivity);
+end;
+
+% define cell types
+celltypes = sprintf('CELL_TYPES %d\n',size(VTKinterfacestate,1));
+fprintf(fileID,celltypes);
+for i=1:size(VTKinterfacestate,1)
+  fprintf(fileID,'3\n');
+end;
+
+% define cell data
+% represents stick or slip
+% 0 ... stick
+% 1 ... stick
+fprintf(fileID,'CELL_DATA %d\n',size(VTKinterfacestate,1));
+fprintf(fileID,'SCALARS stick_slip float 1\n');
+fprintf(fileID,'LOOKUP_TABLE default\n');
+for i=1:size(VTKinterfacestate,1);
+  fprintf(fileID,'%f \n',VTKinterfacestate(i,1));
+end;
+
+% close file
+status2 = fclose(fileID);
+% ----------------------------------------------------------------------- %
+
+if status1 == 0 && status2 == 0
   disp('VTK data generated successfully.');
 end;

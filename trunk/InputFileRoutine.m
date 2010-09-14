@@ -1,12 +1,11 @@
-% Input File 'inp_frictionless_sliding1_8_2.m'
+% Input File 'inp_polygrain_1.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Modified patchtest for frictionless sliding with 8x2 linear triangular
-% elements in a 16x4 domain with one interface at x=5
+% 
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
@@ -33,12 +32,12 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 16;
-IFheight = 4;
+IFlength = 10;
+IFheight = 10;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 8;
-IFnldivy = 2;
+IFnldivx = 30;
+IFnldivy = 30;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,7 +52,7 @@ IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 4;%4;%19;
+IFdatasetp = 39;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -154,7 +153,9 @@ IFdatasetp = 4;%4;%19;
 % 89    frictionless_sliding_analyt_8_3592_DBC.m
 % 90    frictionless_sliding_analyt_8_104_DBC.m
 % 91    frictionless_sliding1_8_2_DBC.m
-IFDirichletBCs = 91;
+% 92    polygrain_1_DBC.m
+% 93    polygrain_2_DBC.m
+IFDirichletBCs = 92;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -250,7 +251,8 @@ IFDirichletBCs = 91;
 % 89    plasticity_5_61_77_NBC.m
 % 90    plasticity_4_80_41_NBC.m
 % 91    frictionless_sliding1_8_2_NBC.m
-IFNeumannBCs = 91;%74;
+% 92    polygrain_1_NBC.m
+IFNeumannBCs = 92;%74;
 %
 % method of giving NBCs
 % ID    Description
@@ -283,7 +285,7 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod =1;
 %
 % Set Penalty-Parameter
 IFpenalty_normal      = 1.0e+7;
@@ -308,7 +310,7 @@ IFintegral = 1;
 % 3     frictional sliding with Coulomb's friction
 % 4     frictionless contact (only opening contact)
 %
-IFsliding_switch = 1; 
+IFsliding_switch = 0; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 1;%44.1;%13.23;%8.82;%0.441;
@@ -328,7 +330,7 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-8;%12;
+IFconvtol = 1.0e-10;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
 IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command

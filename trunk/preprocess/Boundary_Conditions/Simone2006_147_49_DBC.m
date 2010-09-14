@@ -2,7 +2,7 @@
 
 % mesh data
 num_x = 147;%28;%89;%147;
-num_y = 49;%19;%57;%49;
+num_y = 49;%19;%30;%49;
 
 % left boundary
 for i=1:(num_y + 1)

@@ -330,9 +330,9 @@ for g = 1:length(gauss)
   if IFsymmetrized == 0
     % unsymmetric
     res_nit_tang_base = res_nit_tang_base ...
-      - CBhat_avg' * n_matrix' * (eye(2) - ntn) * gap_el * seg_jcob * weights(g);
+      + CBhat_avg' * n_matrix' * (eye(2) - ntn) * gap_el * seg_jcob * weights(g);
     res_nit_tang_enriched = res_nit_tang_enriched ...
-      - CBtilde_avg' * n_matrix' * (eye(2) - ntn) * gap_el * seg_jcob * weights(g);
+      + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * gap_el * seg_jcob * weights(g);
   end;
   
   res_nit_tang_enriched = res_nit_tang_enriched + N' * ttrac * seg_jcob * weights(g);

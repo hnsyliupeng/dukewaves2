@@ -1,6 +1,8 @@
 % plotgap.m
 %
-% Plots the tangential gap, its elastic and its plastic contribution
+% Plots the tangential gap for the example from 'Simone2006'. The
+% corresponding input file is 'inp_Simone2006_147_49.m'.
+%
 
 % Author: Matthias Mayr (09/2010)
 
@@ -9,7 +11,7 @@ disp('plottangentialgap ...');
 plotdata = [];
 
 % loop over interfaces 'i'
-for i=1:size(seg_cut_info,1)
+for i=5%1:size(seg_cut_info,1)
   % loop over cut elements 'e'
   for e=1:size(seg_cut_info,2)
     % if 'e' is cut by 'i'
@@ -119,14 +121,19 @@ for i=1:size(seg_cut_info,1)
 % %         plot(gap_pl,yn,'.g');
 %         plot(gap_el,yn,'.g');
         
+        % get local coordinate 's'
+        s = sqrt((xn-2)^2 + yn^2);
+        
         % horizontal interface
-        figure(46);
-        hold on;
-        plotdata = [plotdata;
-                    xn gap_scalar];
-%         plot(xn,gap_scalar,'.r');
+%         figure(46);
+%         hold on;
+%         plot(s, gap_scalar,'b');
 %         plot(xn,gap_pl,'.g');
 %         plot(xn,gap_el,'.r');
+         
+        plotdata = [plotdata;
+                    s gap_scalar];
+
       end;
       % ----------------------------------------------------------------- %
     end;
@@ -135,24 +142,18 @@ end;
 
 plotdata_sort = sortrows(plotdata);
 
-figure(46);
-xlabel('x-coordinate','FontSize',36);
-ylabel('tangential gap','FontSize',36);
+figure(2);
 hold on;
-plot(plotdata_sort(:,1),plotdata_sort(:,2),'r-','LineWidth',1);
+plot(plotdata_sort(:,1),plotdata_sort(:,2),'k:','LineWidth',3);
+
 % configure the figure
 % legend('total','plastic','elastic');
 
-%{
-num_x = 161;
-num_y = num_x;bottomboundary = []; for i=1:(num_x + 1),nodeID = i*(num_y+1);bottomboundary = [bottomboundary nodeID];end;
-hold on;plot(x(bottomboundary),-0.005 - dis(2*bottomboundary-1),'-g','LineWidth',1);
-%}
 disp(['method: ' num2str(IFmethod)]);
 
 % clear some temporary variables
 clear i e eleID elenodes xcoords ycoords gauss intersection p1 p2 ...
   endpoint inside xn yn gap tangent gap_scalar gap_pl gap_el pos_g ...
-  neg_g pn_nodes enrich1 enrich2 flg Area plotdata plotdata_sort;
+  neg_g pn_nodes enrich1 enrich2 flg Area;
 
 disp('Finished.');
