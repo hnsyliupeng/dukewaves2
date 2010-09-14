@@ -1,19 +1,19 @@
-% Input File 'inp_plasticity_5_61_77.m'
+% Input File 'inp_frictionless_sliding1_8_2.m'
 %
 % Here, you can define all parameters to configure the simulation.
 %
 %**************************************************************************
 % GIVE A SHORT DESCRIPTION OF THE EXAMPLE
 %**************************************************************************
-% Elastic and almost rigid block to simulate a 2D frictional sliding 
-% situation.
+% Modified patchtest for frictionless sliding with 8x2 linear triangular
+% elements in a 16x4 domain with one interface at x=5
 %**************************************************************************
 %
 % To set up a new example, build it in this file, so that all IDs are
 % strored in this file. Save it to an own file, afterwards.
 %
 
-% Author: Matthias Mayr (07/2010)
+% Author: Matthias Mayr (08/2010)
 
 %--------------------------------------------------------------------------
 % PARAMETERS FOR BACKGROUND MESH
@@ -33,12 +33,12 @@ IFmeshstructure = 0;
 IFshapegeometryID = 0;
 %
 % Give length and heigth of rectangle
-IFlength = 4;
-IFheight = 5;
+IFlength = 16;
+IFheight = 4;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 21;%2;%5;%11;%21;%41;%61;%81;%141;
-IFnldivy = 27;%3;%6;%14;%27;%51;%77;%101;%176;
+IFnldivx = 8;
+IFnldivy = 2;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -46,14 +46,14 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 37;%37;%19;
+IFdatasetp = 38;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -150,7 +150,11 @@ IFdatasetp = 37;%37;%19;
 % 85    Simone2006_14406_DBC.m
 % 86    plasticity_5_21_27_DBC.m
 % 87    plasticity_5_61_77_DBC.m
-IFDirichletBCs = 87;
+% 88    plasticity_5_ref_21_27_DBC.m
+% 89    frictionless_sliding_analyt_8_3592_DBC.m
+% 90    frictionless_sliding_analyt_8_104_DBC.m
+% 91    frictionless_sliding1_8_2_DBC.m
+IFDirichletBCs = 91;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -244,7 +248,9 @@ IFDirichletBCs = 87;
 % 87    Simone2006_14406_NBC.m
 % 88    plasticity_5_ref_20_27_NBC.m
 % 89    plasticity_5_61_77_NBC.m
-IFNeumannBCs = 74;%74;%89;
+% 90    plasticity_4_80_41_NBC.m
+% 91    frictionless_sliding1_8_2_NBC.m
+IFNeumannBCs = 91;%74;
 %
 % method of giving NBCs
 % ID    Description
@@ -268,8 +274,7 @@ IFneumann = 0;
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
 % 11    3 grains, grain 3 much stiffer
-% 12    3 grains, grain 1 much stiffer
-IFMatSet = 11;
+IFMatSet = 1;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -278,35 +283,35 @@ IFMatSet = 11;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 2.64e+3;%5.0e+4;%1.84e+5;%7.22e+5;%
-IFpenalty_tangential  = 2.64e+3;%5.0e+4;%1.84e+5;%7.22e+5;%
+IFpenalty_normal      = 1.0e+7;
+IFpenalty_tangential  = 1.0e+4;
 %
 % Nitsche Parameter
 IFnitsche_normal      = -1;%1.0e+4;
-IFnitsche_tangential  = -1;%2e+5;
+IFnitsche_tangential  = -1;%1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
 % 1     One integral (alpha ~1/h)
 % 2     Two integrals (alpha ~1/h^2)
 IFintegral = 1;
-IFsymmetrized = 0;
 %--------------------------------------------------------------------------
 % SLIDING PARAMETERS
 % Set an ID to indicate, how sliding should be treaten: 'IFsliding_switch'
 % ID    Description
-% 0     no slidung at all (full constraint)
+% 0     no sliding at all (full constraint)
 % 1     frictionless sliding
 % 2     perfect plasticity with shear yield stress
 % 3     frictional sliding with Coulomb's friction
+% 4     frictionless contact (only opening contact)
 %
-IFsliding_switch = 2; 
+IFsliding_switch = 1; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 0.25;%44.1;%13.23;%8.82;%0.441;
+IFyieldstress = 0.01;%44.1;%13.23;%8.82;%0.441;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -320,16 +325,16 @@ IFyieldstress = 0.25;%44.1;%13.23;%8.82;%0.441;
 IFSolverType = 0;
 %
 % Maximum number of iterations 'IFmaxiter' (only for implicit solver)
-IFmaxiter = 30;
+IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-10;%12;
+IFconvtol = 1.0e-8;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-% IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
+IFtime = linspace(0,1,1);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-IFtime = [zeros(1,5) linspace(0,1,21)];
-IFtime2 = [linspace(0,1,6) ones(1,20)];
+% IFtime = [linspace(0,1,21) ones(1,21)];
+% IFtime2 = [zeros(1,21) linspace(0,1,21)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

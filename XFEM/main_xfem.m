@@ -73,6 +73,8 @@ count = 0;
 % vector for 'Lagrange multipliers' (= tractions at interface)
 lagmult = [];
 
+meanstress = [0 0 0 0 0];
+
 % initialize a standard displacement vector
 dis = zeros(1,2*numnod);
 
@@ -423,7 +425,6 @@ switch IFneumann
         slot = id_eqns(n,j);
         big_force(slot) = force(j,n);
       end
-
             % If node is enriched, then apply NBCs on enriched DOFs, too.
 %             if strcmp(NODEINFO_ARR(n).enriched,'true')
 %                 % These nodes are enriched, so the forces can not be applied
@@ -545,7 +546,7 @@ dis_conv = zeros(2*numnod,1);
 %% EXPORT INITIAL STATE TO VTK FILE
 %
 % The following code exports the initial state to a VTK-file
-%{
+%
 dis = zeros(2*numnod,1);  % initialize re-assembled displacement vector
 timestep = 0;             % set to zero to generate VTK data for initial state
 % compute stresses 'stress' and strains 'strain' at center of each element
@@ -737,7 +738,7 @@ for timestep = 1:(length(time)-1)
     end;
     
     % This structure imposes DBCs with value '0' also on enriched nodes.
-%{
+%
     % loop over all nodes
     for n=1:numnod
       % loop x- and y-DOF of each node
@@ -1225,6 +1226,9 @@ for timestep = 1:(length(time)-1)
         end;
       otherwise
         error('MATLBA:XFEM:UnvalidID','Unvalid method-ID');
+    end;
+    if timestep == 1 && iter == 1
+      tangentmatrix2 = tangentmatrix;
     end;
     
     % clear some temporary variables
@@ -1817,6 +1821,7 @@ old_ndisp_conv = old_ndisp;
       % no updates necessary
     case 2  % perfect plasticity
       %% export data to VTK file
+      %
       % compute stresses 'stress' and strains 'strain' at center of each element
       % Structure of 'stress':
       %   Dimension: numelex6xnumgrains
@@ -1874,7 +1879,30 @@ old_ndisp_conv = old_ndisp;
         
       % call routine to generate VTK file
       generateVTKoutput_enriched;
+      %}
       % ----------------------------------------------------------------- %
+      %% compute mean stress for polygrain example
+%
+      % compute meanstresses for current load step
+      meanstress_loadstep = computemeanstress_polygrain(stress, ...
+        stressvonmises,x,y,node,X,Y,CONN,SUBELEM_INFO, ...
+        SUBELEMENT_GRAIN_MAP,cutlist,elemgrainmap);
+      
+      % append them to global variable
+      meanstress = [meanstress;
+                    timestep meanstress_loadstep];
+%}
+      % ----------------------------------------------------------------- %      
+%       %% save slidestate
+%       showslidestate;
+%       if timestep < 10
+%         figname = sprintf('slidestate_0%d',timestep);
+%       else
+%         figname = sprintf('slidestate_%d.fig',timestep);
+%       end;
+%       figpath = fullfile(pwd,'slidestate',figname);
+%       hgsave(figpath)
+%       % ----------------------------------------------------------------- %
       %% update plastic contribution to plastic gap and tangential tractions
       % loop over interfaces 'i'
       for i=1:size(seg_cut_info,1)
@@ -1902,7 +1930,7 @@ old_ndisp_conv = old_ndisp;
       end;
       % ----------------------------------------------------------------- %
       %% visualize 'slidestate'-flags
-%
+%{
       % create a new figure
       if timestep == 1
         figure(30)
@@ -2003,14 +2031,14 @@ old_ndisp_conv = old_ndisp;
                 % vertical interface
                 plot([timecoord timecoord],[p1(2) pm(2)],stylecell{index1},'LineWidth',6.0);   
                 plot([timecoord timecoord],[p2(2) pm(2)],stylecell{index2},'LineWidth',6.0);   
-                xlabel('normalized pseudo-time');
-                ylabel('y-coordinate');
+                xlabel('normalized pseudo-time','FontSize',36);
+                ylabel('y-coordinate','FontSize',36);
               else
                 % horizontal interface
                 plot([p1(1) pm(1)],[timecoord timecoord],stylecell{index1},'LineWidth',6.0);       
                 plot([p2(1) pm(1)],[timecoord timecoord],stylecell{index2},'LineWidth',6.0);       
-                xlabel('x-coordinate');
-                ylabel('normalized pseudo-time');
+                xlabel('x-coordinate','FontSize',36);
+                ylabel('normalized pseudo-time','FontSize',36);
               end;
             else  
               % first gauss point lies between 'p2' and 'pm'
@@ -2064,7 +2092,7 @@ old_ndisp_conv = old_ndisp;
           end;
         end;
       end;
-
+      
       % edit figure
       % legend('stick','slip');
 %       title('blue = stick, red = slip');

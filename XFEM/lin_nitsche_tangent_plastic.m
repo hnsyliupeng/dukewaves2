@@ -201,9 +201,9 @@ for g = 1:length(gauss)
   if IFsymmetrized == 0
     % unsymmetric
     ke_nit_12 = ke_nit_12 ...
-              - CBhat_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
+              + CBhat_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
     ke_nit_22 = ke_nit_22 ...
-              - CBtilde_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
+              + CBtilde_avg' * n_matrix' * (eye(2) - ntn) * N * seg_jcob * weights(g);
   end;
   
   % tangential stiffnes due to plasticity

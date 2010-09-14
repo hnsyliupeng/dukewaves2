@@ -75,7 +75,7 @@ for i=1:size(seg_cut_info,1)
       end;
 %       % get 'index' for stylecell, depending on the 'slidestate'
 %       index = seg_cut_info(i,e).slidestate + 1;
-      
+
       % plot subsegment
       plot(xcoord,ycoord,stylecell{index},'LineWidth',3.0);       
     end;
@@ -83,8 +83,9 @@ for i=1:size(seg_cut_info,1)
 end;
 % ----------------------------------------------------------------------- %
 %% edit figure
-xlabel('x-coordinate');
-ylabel('y-coordinate');
+% xlabel('x-coordinate');
+% ylabel('y-coordinate');
 % legend('stick','slip');
-title('blue = stick, red = slip');
+% title('blue = stick, red = slip');
+% axis([0 1 -0.5 0.5]);
 % ----------------------------------------------------------------------- %

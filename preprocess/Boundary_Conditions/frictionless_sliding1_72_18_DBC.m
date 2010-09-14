@@ -27,8 +27,8 @@ dispbc(2,1378) = 1;  % Center on right edge of domain
 % dispbc(2,704) = 1;
 % dispbc(2,704-19) = 1;
 
-% % displacement of right boundary
-for i=1369:1387
-  dispbc(1,i) = 1;
-  ubar(1,i) = -0.4;
-end;
+% % % displacement of right boundary
+% for i=1369:1387
+%   dispbc(1,i) = 1;
+%   ubar(1,i) = -0.4;
+% end;

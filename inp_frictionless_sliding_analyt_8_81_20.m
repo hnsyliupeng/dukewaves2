@@ -218,7 +218,7 @@ IFMatSet = 3;
 IFmethod = 2;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 1.17e+6;
+IFpenalty_normal      = 1.17e+9;%1.17e+6;
 IFpenalty_tangential  = 1.17e+6;
 %
 % Nitsche Parameter
