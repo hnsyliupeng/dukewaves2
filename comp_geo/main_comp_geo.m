@@ -12,6 +12,9 @@ load xfeminputdata_comp_geo.mat
 if exist('IFneumann','var') == 0, IFneumann = 0; end; % default to restore 
                                     % compatibility with older input files
 
+% set length tolerance to move intersection points
+if exist('IFlengthtol','var') == 0; IFlengthtol = 0.0;end; 
+                                    
 %gets array of points p for the voronoi diagram
 switch IFmeshstructure
   case 0
@@ -469,6 +472,19 @@ else
   BOUNDARY = 0;
 end;
 % ----------------------------------------------------------------------- %
+
+% ----------------------------------------------------------------------- %
+% ----------------------------------------------------------------------- %
+% Move some intersection points such that the portion of area of a part of
+% an element is not below a certain bound. Therefor, the length of the two
+% parts of the cut element edge are measured and the point is moved, such
+% that the smaller part is at least 1 percent (for example) of the edge
+% length.
+% [seg_cut_info X Y] = moveintersectionpoints(seg_cut_info, ...
+%   X,Y,x,y,node,INTERFACE_MAP,IFlengthtol);
+% ----------------------------------------------------------------------- %
+% ----------------------------------------------------------------------- %
+
 
 % scale axes of plotted mesh
 ax_x = (max(X) - min(X))/max(X);

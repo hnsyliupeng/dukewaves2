@@ -249,6 +249,8 @@ switch IFDirichletBCs
     filename_DBC = fullfile(pwd,'Boundary_Conditions','polygrain_1_DBC');
   case 93
     filename_DBC = fullfile(pwd,'Boundary_Conditions','polygrain_2_DBC');
+  case 94
+    filename_DBC = fullfile(pwd,'Boundary_Conditions','polygrain_1_unstruct_DBC');
   otherwise
     error('MATLAB:preprocess:applybcs','Unvalid ID for Dirichlet BCs. Either change ID in input file or introduce additional case in "applybcs.m"');
 end;

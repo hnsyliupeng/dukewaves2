@@ -53,6 +53,10 @@ IFfilename_msh_file = 'patchtest_14766';      % NO FILE EXTENSION '.msh'
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
 IFdatasetp = 34;%34;%19;
+%
+% Set a length tolerance to move the intersection points in order to avoid
+% artificial high stresses due to very small element portions
+IFlengthtol = 0.05;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -269,7 +273,7 @@ IFMatSet = 10;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty_normal      = 4.2508e+006;
@@ -295,7 +299,7 @@ IFintegral = 1;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 1.0;%3.329;
+IFyieldstress = 0.0;%3.329;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a

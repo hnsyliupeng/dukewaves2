@@ -50,7 +50,11 @@ IFfilename_msh_file = 'quarterring_gmsh';      % NO FILE EXTENSION '.msh'
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 4;%11;4;
+IFdatasetp = 11;%4;%11;4;
+%
+% Set a length tolerance to move the intersection points in order to avoid
+% artificial high stresses due to very small element portions
+IFlengthtol = 0.0;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -115,8 +119,8 @@ IFpenalty_normal      = 5.0e+7;
 IFpenalty_tangential  = 5.0e+7;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 0;%5.0e+7;%5.0e+3;
-IFnitsche_tangential  = 0;%5.0e+7;%5.0e+3;
+IFnitsche_normal      = 5.0e+7;%5.0e+3;
+IFnitsche_tangential  = 5.0e+7;%5.0e+3;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals

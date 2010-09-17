@@ -1,5 +1,5 @@
-%partition the elements based on intersections with grain boundaries
-%first, get some general information
+% partition the elements based on intersections with grain boundaries
+% first, get some general information
 
 %associate with each segment in the vor_d a list of cutelements
 %for each element cut by a segment, store the number of intersections and

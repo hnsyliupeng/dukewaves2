@@ -36,8 +36,8 @@ IFlength = 1;
 IFheight = 1;
 %
 % Give number of line divisions in x- and y-direction
-IFnldivx = 50;%40;
-IFnldivy = 50;%40;
+IFnldivx = 35;%40;
+IFnldivy = 35;%40;
 %
 % filename for boundary description file for structured meshing and NBCs 
 % via integration
@@ -53,6 +53,10 @@ IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
 IFdatasetp = 40;%40;%19;
+%
+% Set a length tolerance to move the intersection points in order to avoid
+% artificial high stresses due to very small element portions
+IFlengthtol = 0.3;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -284,15 +288,15 @@ IFMatSet = 13;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod = 2;
+IFmethod = 1;
 %
 % Set Penalty-Parameter
-IFpenalty_normal      = 1.0e+10;
+IFpenalty_normal      = 1.0e+8;
 IFpenalty_tangential  = 1.0e+7;
 %
 % Nitsche Parameter
-IFnitsche_normal      = 1.0e+6;%1.0e+4;
-IFnitsche_tangential  = 1.0e+6;%1.0e+4;
+IFnitsche_normal      = 1.0e+8;%1.0e+4;
+IFnitsche_tangential  = 1.0e+8;%1.0e+4;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals
@@ -309,7 +313,7 @@ IFintegral = 1;
 % 3     frictional sliding with Coulomb's friction
 % 4     frictionless contact (only opening contact)
 %
-IFsliding_switch = 0; 
+IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
 IFyieldstress = 50;%44.1;%13.23;%8.82;%0.441;
@@ -329,12 +333,12 @@ IFSolverType = 0;
 IFmaxiter = 25;
 %
 % convergence criteria: increment of displacement < 'IFconvtol' ???
-IFconvtol = 1.0e-8;%12;
+IFconvtol = 1.0e-10;%12;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,21);  %vector creation without 'linspace'-command
+% IFtime = linspace(0,1,101);  %vector creation without 'linspace'-command
                             % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,21) linspace(0.95,0,20)];
+IFtime = [linspace(0,1,101) linspace(0.99,0,100)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------
