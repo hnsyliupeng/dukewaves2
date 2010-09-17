@@ -75,7 +75,7 @@ for i=1:size(seg_cut_info,1)
       end;
 %       % get 'index' for stylecell, depending on the 'slidestate'
 %       index = seg_cut_info(i,e).slidestate + 1;
-
+      
       % plot subsegment
       plot(xcoord,ycoord,stylecell{index},'LineWidth',3.0);       
     end;

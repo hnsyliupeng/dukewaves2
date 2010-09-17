@@ -23,7 +23,7 @@
 % 0     structured
 % 1     unstructured
 % 2     read mesh from gmsh-mesh-file '*.msh'
-IFmeshstructure = 0;
+IFmeshstructure = 2;
 %
 % Shape of geometry: 'IFshapegeometryID'
 % ID    Description
@@ -45,14 +45,14 @@ IFboundarydescription = 'rectangular_domain_BDes'; %NO FILE EXTENSION '.m'
 %
 % filename of msh-file withput file extension '.msh'
 % (if reading mesh from gmsh-msh-file)
-IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
+IFfilename_msh_file = 'polygrain_1';      % NO FILE EXTENSION '.msh'
 %--------------------------------------------------------------------------
 % PARAMETERS FOR INTERFACES
 % Set some parameters to specify the interfaces (boundaries of the grains)
 %
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
-IFdatasetp = 39;%4;%19;
+IFdatasetp = 42;%4;%19;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
@@ -155,7 +155,8 @@ IFdatasetp = 39;%4;%19;
 % 91    frictionless_sliding1_8_2_DBC.m
 % 92    polygrain_1_DBC.m
 % 93    polygrain_2_DBC.m
-IFDirichletBCs = 92;
+% 94    polygrain_1_unstruct_DBC.m
+IFDirichletBCs = 94;
 %
 % Neumann BCs
 % ID    Filename            Description
@@ -276,7 +277,7 @@ IFneumann = 0;
 % 9     3 grains (E = 2.1e+4, nue = 0.3)
 % 10    4 grains for example from 'Simone2006'
 % 11    3 grains, grain 3 much stiffer
-IFMatSet = 1;
+IFMatSet = 13;
 %--------------------------------------------------------------------------
 % METHOD OF ENFORCING CONSTRAINTS AT THE INTERFACE
 % Set an ID to choose the method, by which the constrains shall be enforced
@@ -285,15 +286,15 @@ IFMatSet = 1;
 % 0     Lagrange Multipliers (piecewise constant)
 % 1     Penalty-Method
 % 2     Nitsche's Method
-IFmethod =1;
+IFmethod = 2;
 %
 % Set Penalty-Parameter
 IFpenalty_normal      = 1.0e+7;
 IFpenalty_tangential  = 1.0e+7;
 %
 % Nitsche Parameter
-IFnitsche_normal      = -1;%1.0e+4;
-IFnitsche_tangential  = -1;%1.0e+4;
+IFnitsche_normal      = 0;%1.0e+2;
+IFnitsche_tangential  = 0;%1.0e+2;
 %
 % Choose a penalty variant: One or two integrals
 % ID    Number of integrals

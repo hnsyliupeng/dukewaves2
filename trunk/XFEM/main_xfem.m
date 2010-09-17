@@ -1882,7 +1882,7 @@ old_ndisp_conv = old_ndisp;
       %}
       % ----------------------------------------------------------------- %
       %% compute mean stress for polygrain example
-%
+%{
       % compute meanstresses for current load step
       meanstress_loadstep = computemeanstress_polygrain(stress, ...
         stressvonmises,x,y,node,X,Y,CONN,SUBELEM_INFO, ...

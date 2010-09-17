@@ -6,8 +6,8 @@ dx = 0.001;
 dy = dx;
 
 % mesh data
-num_x = 50;%40;
-num_y = 50;%40;
+num_x = 35;%40;
+num_y = 35;%40;
 
 % left boundary
 for i=1:(num_y + 1)

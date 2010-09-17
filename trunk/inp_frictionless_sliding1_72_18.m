@@ -156,7 +156,7 @@ IFsymmetrized = -1;
 IFsliding_switch = 2; 
 % 
 % Set a yield stress for plasticity
-IFyieldstress = 2.0;%0.5;
+IFyieldstress = 0.0;%0.5;
 %--------------------------------------------------------------------------
 % SOLVER PREFERENCES
 % You can choose between an explicit solver and an implicit solver via a
@@ -176,9 +176,9 @@ IFmaxiter = 30;
 IFconvtol = 1.0e-8;
 %
 % vector with pseudo-time-steps (always between '0' and '1')
-IFtime = linspace(0,1,21);  % vector creation without 'linspace'-command
+% IFtime = linspace(0,1,101);  % vector creation without 'linspace'-command
                            % possible, but first element has to be '0'
-% IFtime = [linspace(0,1,21) linspace(0.95,0,20)];
+IFtime = [linspace(0,1,101) linspace(0.99,0,100)];
 %--------------------------------------------------------------------------
 % THE PARAMETER LIST ENDS HERE. DO NOT TOUCH ANY CODE BEYOND THIS LINE !!!
 %--------------------------------------------------------------------------

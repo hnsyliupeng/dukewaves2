@@ -54,6 +54,10 @@ IFfilename_msh_file = 'fless_analyt_8_104';      % NO FILE EXTENSION '.msh'
 % Choose one of the datasets for p in 'comp_geo/vdata_multi.m'
 %
 IFdatasetp = 38;%4;%19;
+%
+% Set a length tolerance to move the intersection points in order to avoid
+% artificial high stresses due to very small element portions
+IFlengthtol = 0.45;
 %--------------------------------------------------------------------------
 % BOUNDARY CONDITIONS
 % Dirichlet Boundary Conditions (DBCs) and Neumann Boundary Conditions
