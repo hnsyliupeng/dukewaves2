@@ -14,7 +14,7 @@ set size square
 set pointsize 1.5
 set label 1 "$1$" at 0.4,0.02
 set label 2 "$1$" at 0.9,0.06
-plot "trac.dat" using 1:2 title "Lagrange mutlipliers" w lp ls 1 pt 9,\
+plot "trac.dat" using 1:2 title "Lagrange multipliers" w lp ls 1 pt 9,\
 "trac.dat" using 1:3 title "Penalty method" w lp ls 1 pt 11,\
 "trac.dat" using 1:4 title "Nitsche's method" w lp ls 1 pt 7,\
 "trac_triangle.dat" using 1:2 notitle with lines ls 2
