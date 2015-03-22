@@ -1,0 +1,1 @@
+This is a set of Matlab codes for XFEM in 2D.  It does not include the computational geometry routines required to generate input files.  Given an input mesh, the scripts enrich the finite element basis along interface lines, and then enforce continuity across those interfaces with a simple linearly interpolated Lagrange multiplier field.
